@@ -11,7 +11,7 @@ namespace typatro.GameFolder
 {
     class Writer
     {
-        private int maxCharsPerLine = 20;
+        private int maxCharsPerLine = 40;
         private int yOffset = 80;
         private SpriteBatch _spriteBatch;
         private SpriteFont font;
@@ -137,7 +137,7 @@ namespace typatro.GameFolder
                 Array.Copy(printCharArray, i, lineChars, 0, length);
 
                 string writeLine = new string(lineChars);
-                _spriteBatch.DrawString(font, writeLine, new Vector2(80, yOffset + (font.LineSpacing * line)), color);
+                _spriteBatch.DrawString(font, writeLine + "\n", new Vector2(80, yOffset + (font.LineSpacing * line)), color);
                 line++;
             }
             //Highlight wrong characters
@@ -158,7 +158,7 @@ namespace typatro.GameFolder
                 Array.Copy(printCharArray, i, lineChars, 0, length);
 
                 string writeLine = new string(lineChars);
-                _spriteBatch.DrawString(font, writeLine, new Vector2(80, yOffset + (font.LineSpacing * line)), color);
+                _spriteBatch.DrawString(font, writeLine + "\n" + "aaaaaaaa", new Vector2(80, yOffset + (font.LineSpacing * line)), color);
                 line++;
             }
         }
