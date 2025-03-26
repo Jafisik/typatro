@@ -61,7 +61,7 @@ public class MainGame : Game
         Random rand = new Random();
         string jsonText = File.ReadAllText("Content/wordlist.json");
         jsonStrings = JsonSerializer.Deserialize<List<string>>(jsonText);
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < 20; i++){
             neededText += jsonStrings[rand.Next(0,jsonStrings.Count)] + " ";
         }
         neededText += jsonStrings[rand.Next(0,jsonStrings.Count)];
@@ -167,12 +167,13 @@ public class MainGame : Game
             if (Keyboard.GetState().IsKeyDown(Keys.Escape)) gameState = GameState.MENU;
             writer.WriteText(neededText, Color.Gray);
             writer.WriteText(writtenText.ToArray(), Color.Black);
+            writer.WriteMistakes();
 
             if (neededText == new string(writtenText.ToArray()))
             {
                 writer.WriteText("You win", Color.Red, 5);
             }
-            writer.WriteText("Correct: " + (writtenText.Count > 0 ? ((1f - (diffIndexes.Count / (float)writtenText.Count)) * 100).ToString("0.00") + "%" : "0%"), Color.Black, 6);
+            //writer.WriteText("Correct: " + (writtenText.Count > 0 ? ((1f - (diffIndexes.Count / (float)writtenText.Count)) * 100).ToString("0.00") + "%" : "0%"), Color.Black, 5);
         }
        
         _spriteBatch.End();

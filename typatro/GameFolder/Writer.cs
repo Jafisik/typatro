@@ -3,9 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace typatro.GameFolder
 {
@@ -17,10 +14,12 @@ namespace typatro.GameFolder
         private SpriteFont font;
         List<char> writtenText;
         List<int> diffIndexes;
+        List<int> endLineIndexes = new List<int>();
         Keys? lastKey = null;
         double keyPressTime = 0;
         double repeatInterval = 0.5;
         private int lastCheckedIndex = 0;
+
 
         public Writer(SpriteBatch _spriteBatch, SpriteFont font, List<int> diffIndexes, List<char> writtenText)
         {
@@ -33,13 +32,42 @@ namespace typatro.GameFolder
         public void UpdateDiffIndexes(string compareText)
         {
             if (writtenText.Count < lastCheckedIndex) lastCheckedIndex = writtenText.Count;
-            for (int i = lastCheckedIndex; i < Math.Min(writtenText.Count, compareText.Length); i++)
-            {
-                if (writtenText[i] != compareText [i]) if (!diffIndexes.Contains(i)) diffIndexes.Add(i);
+            for (int i = lastCheckedIndex; i < Math.Min(writtenText.Count, compareText.Length); i++){
+                if (writtenText[i] != compareText [i]){
+                    if (!diffIndexes.Contains(i)){
+                        diffIndexes.Add(i);
+                    }
                     else diffIndexes.Remove(i);
+                }
             }
             diffIndexes.RemoveAll(index => index >= writtenText.Count);
             lastCheckedIndex = writtenText.Count;
+        }
+
+        public void WriteMistakes(){
+            List<char> wrongString = new List<char>(new string(' ', writtenText.Count+50)); 
+            int line = 0, letterOffset = 0, offsetSum = 0;
+            foreach (int index in diffIndexes){
+                if(endLineIndexes.Count > line){
+                    if(index > endLineIndexes[line]){
+                        letterOffset += maxCharsPerLine + offsetSum - endLineIndexes[line];
+                        offsetSum = endLineIndexes[line];
+                        line++;
+                    }
+                }
+                
+                if (index < wrongString.Count) {
+                    int offsetIndex;
+                    if(line - 1 < 0){
+                        offsetIndex = index+letterOffset+line;
+                    } else{
+                        offsetIndex = index+letterOffset+line-1;
+                    }
+                    wrongString[offsetIndex] = writtenText[index];
+                }
+            }
+            
+            WriteText(new string(wrongString.ToArray()), Color.Red);
         }
 
         public void ReadKeyboardInput(GameTime gameTime)
@@ -87,24 +115,19 @@ namespace typatro.GameFolder
             }
         }
 
-        private char ConvertKeyToChar(Keys? key, bool shift)
-        {
+        private char ConvertKeyToChar(Keys? key, bool shift){
             if (key == null) return '\0';
 
             bool capsLock = Console.CapsLock;
 
-            if (key >= Keys.A && key <= Keys.Z)
-            {
+            if (key >= Keys.A && key <= Keys.Z){
                 bool isUpper = capsLock && !shift || !capsLock && shift;
                 return (char)((isUpper ? 'A' : 'a') + (key - Keys.A));
             }
 
-            if (key >= Keys.D0 && key <= Keys.D9)
-            {
-                if (shift)
-                {
-                    return key switch
-                    {
+            if (key >= Keys.D0 && key <= Keys.D9){
+                if (shift){
+                    return key switch{
                         Keys.D1 => '!',
                         Keys.D2 => '@',
                         Keys.D3 => '#',
@@ -130,52 +153,49 @@ namespace typatro.GameFolder
         public void WriteText(char[] printCharArray, Color color, int line = 0)
         {
             //Print written text to screen
-            for (int i = 0; i < printCharArray.Length; i += maxCharsPerLine)
-            {
-                int length = Math.Min(maxCharsPerLine, printCharArray.Length - i);
-                char[] lineChars = new char[length];
-                Array.Copy(printCharArray, i, lineChars, 0, length);
+            string writeLine = "";
+            int beginingOfWord = 0, currentLineLength = 0;
+            endLineIndexes.Clear(); 
+            for (int i = 0; i < printCharArray.Length; i++){
+                if(printCharArray[i] == ' ' || i == printCharArray.Length-1){
+                    int wordLength = i - beginingOfWord + 1;
 
-                string writeLine = new string(lineChars);
-                _spriteBatch.DrawString(font, writeLine + "\n", new Vector2(80, yOffset + (font.LineSpacing * line)), color);
-                line++;
+                    if (currentLineLength + wordLength > maxCharsPerLine){
+                        endLineIndexes.Add(writeLine.Length);
+                        writeLine += "\n";
+                        currentLineLength = 0;
+                    }
+
+                    writeLine += new string(printCharArray, beginingOfWord, wordLength);
+                    currentLineLength += wordLength;
+                    beginingOfWord = i+1;
+                }
+                
             }
-            //Highlight wrong characters
-            foreach (int diffCharIndex in diffIndexes)
-            {
-                WriteText(writtenText.ElementAt(diffCharIndex), Color.Red, diffCharIndex);
-            }
+            _spriteBatch.DrawString(font, writeLine, new Vector2(80, yOffset), color);
         }
 
         public void WriteText(string printString, Color color, int line = 0)
         {
             char[] printCharArray = printString.ToCharArray();
-            //Print written text to screen
-            for (int i = 0; i < printCharArray.Length; i += maxCharsPerLine)
-            {
-                int length = Math.Min(maxCharsPerLine, printCharArray.Length - i);
-                char[] lineChars = new char[length];
-                Array.Copy(printCharArray, i, lineChars, 0, length);
+            string writeLine = "";
+            int beginingOfWord = 0, currentLineLength = 0;
+            for (int i = 0; i < printCharArray.Length; i++){
+                if(printCharArray[i] == ' ' || i == printCharArray.Length-1){
+                    int wordLength = i - beginingOfWord + 1;
 
-                string writeLine = new string(lineChars);
-                _spriteBatch.DrawString(font, writeLine + "\n" + "aaaaaaaa", new Vector2(80, yOffset + (font.LineSpacing * line)), color);
-                line++;
+                    if (currentLineLength + wordLength > maxCharsPerLine){
+                        writeLine += "\n";
+                        currentLineLength = 0;
+                    }
+
+                    writeLine += new string(printCharArray, beginingOfWord, wordLength);
+                    currentLineLength += wordLength;
+                    beginingOfWord = i+1;
+                }
+                
             }
-        }
-
-
-        public void WriteText(char printChar, Color color, int charPos)
-        {
-            int fontSize = 16;
-            _spriteBatch.DrawString(
-                font,
-                printChar.ToString(),
-                new Vector2(
-                    yOffset + charPos * fontSize % (fontSize * maxCharsPerLine),
-                    yOffset + font.LineSpacing * (float)Math.Floor(charPos * fontSize / (float)(fontSize * maxCharsPerLine))
-                ),
-                Color.Red
-            );
+            _spriteBatch.DrawString(font, writeLine, new Vector2(80, yOffset), color);
         }
     }
 }
