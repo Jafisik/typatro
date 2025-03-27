@@ -165,15 +165,13 @@ public class MainGame : Game
         else if(gameState == GameState.PLAY)
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape)) gameState = GameState.MENU;
-            writer.WriteText(neededText, Color.Gray);
-            writer.WriteText(writtenText.ToArray(), Color.Black);
-            writer.WriteMistakes();
 
-            if (neededText == new string(writtenText.ToArray()))
-            {
-                writer.WriteText("You win", Color.Red, 5);
-            }
-            //writer.WriteText("Correct: " + (writtenText.Count > 0 ? ((1f - (diffIndexes.Count / (float)writtenText.Count)) * 100).ToString("0.00") + "%" : "0%"), Color.Black, 5);
+            //Write background text
+            writer.WriteText(neededText, Color.Gray, isHintText: true);
+            //Write used inputed text and highlight mistakes
+            writer.UserInputText(writtenText.ToArray(), Color.Black);
+            //Calculate correct/wrong precentage
+            writer.WriteText("Correct: " + (writtenText.Count > 0 ? ((1f - (diffIndexes.Count / (float)writtenText.Count)) * 100).ToString("0.00") + "%" : "0%"), Color.Black, 5);
         }
        
         _spriteBatch.End();
