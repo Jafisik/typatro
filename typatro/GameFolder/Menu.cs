@@ -13,7 +13,7 @@ namespace typatro.GameFolder
         SpriteBatch _spriteBatch;
         SpriteFont font;
         Texture2D texture;
-        int menuLineSpacing = 100, topOffset = 80, rectWidth = 400, rectHeight = 80;
+        int menuLineSpacing = 100, topOffset = 80, leftOffset = 160, rectWidth = 400, rectHeight = 80;
         enum MenuSelect
         {
             PLAY,
@@ -40,7 +40,7 @@ namespace typatro.GameFolder
         }
 
         //To add new new menu item just add an item into enum MenuSelect and in the class MainGame add the same thing to enum GameState
-        public int DrawMenu(GraphicsDeviceManager graphicsDevice)
+        public int DrawMainMenu(GraphicsDeviceManager graphicsDevice)
         {
             Color[] menuColors = new Color[menuTexts.Length];
             KeyboardState state = Keyboard.GetState();
@@ -67,10 +67,19 @@ namespace typatro.GameFolder
             {
                 _spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - rectWidth) / 2, topOffset + menuLineSpacing * line, rectWidth, rectHeight), menuColors[line]);
                 Vector2 textSize = font.MeasureString(menuTexts[line]);
-                Vector2 textPos = new Vector2((graphicsDevice.PreferredBackBufferWidth - textSize.X * 2) / 2, 80 + rectHeight / 2 - textSize.Y / 2 + menuLineSpacing * line);
-                _spriteBatch.DrawString(font, menuTexts[line], textPos, Color.Black, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0f);
+                Vector2 textPos = new Vector2((graphicsDevice.PreferredBackBufferWidth - textSize.X) / 2, 80 + rectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
+                _spriteBatch.DrawString(font, menuTexts[line], textPos, Color.Black);
             }
             return (int)MenuSelect.MENU;
+        }
+
+        public void DrawOptionsMenu(GraphicsDeviceManager graphicsDevice)
+        {
+            Vector2 textPosition = new Vector2((graphicsDevice.PreferredBackBufferWidth - font.MeasureString("options").X) / 2, 80);
+            _spriteBatch.DrawString(font, "options", textPosition, Color.AliceBlue);
+
+            _spriteBatch.DrawString(font, "theme", new Vector2(leftOffset, topOffset*2),Color.Black);
+            _spriteBatch.DrawString(font, "theme", new Vector2(leftOffset, topOffset*3),Color.Black);
         }
     }
 }

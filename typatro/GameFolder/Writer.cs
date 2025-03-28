@@ -105,7 +105,7 @@ namespace typatro.GameFolder
             return '\0';
         }
 
-        public void UserInputText(char[] printCharArray, Color color, int line = 0)
+        public void UserInputText(char[] printCharArray, Color color)
         {
             StringBuilder writeLine = new StringBuilder();
             int beginingOfWord = 0, currentLine = 0;
@@ -113,7 +113,7 @@ namespace typatro.GameFolder
                 if(printCharArray[i] == ' ' || i == printCharArray.Length-1){
                     int wordLength = i - beginingOfWord + 1;
 
-                    if(i >= endLineIndexes[currentLine]-currentLine){
+                    if(currentLine < endLineIndexes.Count && i >= endLineIndexes[currentLine]-currentLine){
                         writeLine.Append('\n');
                         currentLine++;
                     }
@@ -126,6 +126,7 @@ namespace typatro.GameFolder
             WriteMistakes(endLineIndexes);
         }
 
+        
         public void WriteText(string printString, Color color, int line = 0, bool isHintText = false)
         {
             char[] printCharArray = printString.ToCharArray();
