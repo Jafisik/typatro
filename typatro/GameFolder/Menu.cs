@@ -10,26 +10,38 @@ namespace typatro.GameFolder
 
     class Menu
     {
-        SpriteBatch _spriteBatch;
+        SpriteBatch spriteBatch;
         SpriteFont font;
         Texture2D texture;
-        int menuLineSpacing = 100, topOffset = 80, leftOffset = 160, rectWidth = 400, rectHeight = 80;
+        int menuLineSpacing = 100, topOffset = 140;
+        int menuRectWidth = 400, menuRectHeight = 80;
+        int leftOffset = 140, optionRectWidth = 300, optionRectHeight = 80;
+
+        bool menuNav = true;
         enum MenuSelect
         {
             PLAY,
             OPTIONS,
             EXIT,
-            MENU
+            EMPTY
         }
         private MenuSelect menuSelect = MenuSelect.PLAY;
         string[] menuTexts;
-        bool menuNav = true;
+        
+
+        enum OptionSelect{
+            THEME,
+            VOLUME
+        }
+        private OptionSelect optionSelect = OptionSelect.THEME;
+        string[] optionTexts;
 
         public Menu(SpriteBatch spriteBatch, SpriteFont font, Texture2D texture)
         {
-            this._spriteBatch = spriteBatch;
+            this.spriteBatch = spriteBatch;
             this.font = font;
             this.texture = texture;
+
             int menuSelectLength = Enum.GetValues(typeof(MenuSelect)).Length - 1;
             List<string> tempMenuTexts = new List<string>(menuSelectLength);
             for (int menuItems = 0; menuItems < menuSelectLength; menuItems++)
@@ -37,6 +49,14 @@ namespace typatro.GameFolder
                 tempMenuTexts.Add(((MenuSelect)menuItems).ToString().ToLower());
             }
             menuTexts = tempMenuTexts.ToArray();
+
+            int menuOptionLength = Enum.GetValues(typeof(OptionSelect)).Length;
+            List<string> tempOptionTexts = new List<string>(menuOptionLength);
+            for (int menuItems = 0; menuItems < menuOptionLength; menuItems++)
+            {
+                tempOptionTexts.Add(((OptionSelect)menuItems).ToString().ToLower());
+            }
+            optionTexts = tempOptionTexts.ToArray();
         }
 
         //To add new new menu item just add an item into enum MenuSelect and in the class MainGame add the same thing to enum GameState
@@ -46,8 +66,8 @@ namespace typatro.GameFolder
             KeyboardState state = Keyboard.GetState();
             if (menuNav)
             {
-                if (state.IsKeyDown(Keys.Down) && menuSelect != MenuSelect.EXIT) menuSelect++;
-                else if (state.IsKeyDown(Keys.Up) && menuSelect != MenuSelect.PLAY) menuSelect--;
+                if (state.IsKeyDown(Keys.Down) && menuSelect != (MenuSelect)menuTexts.Length-1) menuSelect++;
+                else if (state.IsKeyDown(Keys.Up) && menuSelect != (MenuSelect)0) menuSelect--;
                 menuNav = false;
             }
 
@@ -65,21 +85,43 @@ namespace typatro.GameFolder
 
             for (int line = 0; line < menuTexts.Length; line++)
             {
-                _spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - rectWidth) / 2, topOffset + menuLineSpacing * line, rectWidth, rectHeight), menuColors[line]);
+                spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - menuRectWidth) / 2, topOffset + menuLineSpacing * line, menuRectWidth, menuRectHeight), menuColors[line]);
                 Vector2 textSize = font.MeasureString(menuTexts[line]);
-                Vector2 textPos = new Vector2((graphicsDevice.PreferredBackBufferWidth - textSize.X) / 2, 80 + rectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
-                _spriteBatch.DrawString(font, menuTexts[line], textPos, Color.Black);
+                Vector2 textPos = new Vector2((graphicsDevice.PreferredBackBufferWidth - textSize.X) / 2, topOffset + menuRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
+                spriteBatch.DrawString(font, menuTexts[line], textPos, Color.Black);
             }
-            return (int)MenuSelect.MENU;
+            return (int)MenuSelect.EMPTY;
         }
 
         public void DrawOptionsMenu(GraphicsDeviceManager graphicsDevice)
         {
-            Vector2 textPosition = new Vector2((graphicsDevice.PreferredBackBufferWidth - font.MeasureString("options").X) / 2, 80);
-            _spriteBatch.DrawString(font, "options", textPosition, Color.AliceBlue);
+            Color[] menuColors = new Color[optionTexts.Length];
+            KeyboardState state = Keyboard.GetState();
+            if (menuNav)
+            {
+                if (state.IsKeyDown(Keys.Down) && optionSelect != (OptionSelect)optionTexts.Length-1) optionSelect++;
+                else if (state.IsKeyDown(Keys.Up) && optionSelect != (OptionSelect)0) optionSelect--;
+                menuNav = false;
+            }
 
-            _spriteBatch.DrawString(font, "theme", new Vector2(leftOffset, topOffset*2),Color.Black);
-            _spriteBatch.DrawString(font, "theme", new Vector2(leftOffset, topOffset*3),Color.Black);
+            if (state.IsKeyUp(Keys.Up) && state.IsKeyUp(Keys.Down))
+            {
+                menuNav = true;
+            }
+
+            for (int menuIndex = 0; menuIndex < optionTexts.Length; menuIndex++)
+            {
+                if ((int)optionSelect == menuIndex) menuColors[menuIndex] = Color.Gray;
+                else menuColors[menuIndex] = Color.LightGray;
+            }
+
+            for (int line = 0; line < optionTexts.Length; line++)
+            {
+                spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - optionRectWidth) / 2 + leftOffset, topOffset + menuLineSpacing * line, optionRectWidth, optionRectHeight), menuColors[line]);
+                Vector2 textSize = font.MeasureString(optionTexts[line]);
+                Vector2 textPos = new Vector2((graphicsDevice.PreferredBackBufferWidth - textSize.X) / 2 - leftOffset, topOffset + optionRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
+                spriteBatch.DrawString(font, optionTexts[line], textPos, Color.Black);
+            }
         }
     }
 }

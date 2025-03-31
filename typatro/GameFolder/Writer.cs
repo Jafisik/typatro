@@ -45,22 +45,6 @@ namespace typatro.GameFolder
             lastCheckedIndex = writtenText.Count;
         }
 
-        //Build a string of ' ' and wrong characters which is devided by \n into lines 
-        // and then draw it over written text
-        public void WriteMistakes(List<int> endLineIndexes){
-            StringBuilder wrongString = new StringBuilder();
-            int indexLine = 0;
-
-            for (int i = 0; i < writtenText.Count; i++){
-                if (indexLine < endLineIndexes.Count && i == endLineIndexes[indexLine] - indexLine){
-                    wrongString.Append('\n');
-                    indexLine++;
-                }
-                wrongString.Append(diffIndexes.Contains(i) ? writtenText[i] : ' ');
-            }
-            _spriteBatch.DrawString(font, wrongString.ToString(), new Vector2(80, yOffset), Color.Red);
-        }
-
         public void ReadKeyboardInput(GameTime gameTime){
             KeyboardState currentState = Keyboard.GetState();
             Keys[] pressedKeys = currentState.GetPressedKeys();
@@ -105,25 +89,24 @@ namespace typatro.GameFolder
             return '\0';
         }
 
+        //Visualizes user input and highlights mistakes (prints user input and then prints wrongString,
+        // which has ' ' for correct letters and the actual letters for wrong letters)
         public void UserInputText(char[] printCharArray, Color color)
         {
             StringBuilder writeLine = new StringBuilder();
-            int beginingOfWord = 0, currentLine = 0;
-            for (int i = 0; i < printCharArray.Length; i++){
-                if(printCharArray[i] == ' ' || i == printCharArray.Length-1){
-                    int wordLength = i - beginingOfWord + 1;
-
-                    if(currentLine < endLineIndexes.Count && i >= endLineIndexes[currentLine]-currentLine){
-                        writeLine.Append('\n');
-                        currentLine++;
-                    }
-
-                    writeLine.Append(new string(printCharArray, beginingOfWord, wordLength));
-                    beginingOfWord = i+1;
+            StringBuilder wrongString = new StringBuilder();
+            int indexLine = 0;
+            for (int i = 0; i < writtenText.Count; i++){
+                if (indexLine < endLineIndexes.Count && i == endLineIndexes[indexLine] - indexLine){
+                    writeLine.Append('\n');
+                    wrongString.Append('\n');
+                    indexLine++;
                 }
+                writeLine.Append(printCharArray[i]);
+                wrongString.Append(diffIndexes.Contains(i) ? writtenText[i] : ' ');
             }
             _spriteBatch.DrawString(font, writeLine.ToString(), new Vector2(80, yOffset), color);
-            WriteMistakes(endLineIndexes);
+            _spriteBatch.DrawString(font, wrongString.ToString(), new Vector2(80, yOffset), Color.Red);
         }
 
         
