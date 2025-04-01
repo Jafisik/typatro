@@ -70,7 +70,7 @@ public class MainGame : Game
         texture.SetData(new[] { Color.White });
         menu = new Menu(spriteBatch, menuFont, texture);
         
-        map = new Map(spriteBatch, menuFont, rand.Next());
+        map = new Map(spriteBatch, menuFont);
     }
 
     Point originalPosition;
@@ -110,6 +110,7 @@ public class MainGame : Game
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Escape)){
                 neededText = RandomTextGenerate(10);
+                map.GenerateNodes();
                 gameState = GameState.MENU;
             }
 
