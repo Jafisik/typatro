@@ -13,9 +13,9 @@ namespace typatro.GameFolder;
 
 public class MainGame : Game
 {
-    Random rand = new Random();
-    private GraphicsDeviceManager graphics;
-    private SpriteBatch spriteBatch;
+    readonly Random rand = new Random();
+    GraphicsDeviceManager graphics;
+    SpriteBatch spriteBatch;
     SpriteFont gameFont;
 
     List<char> writtenText = new List<char>();
@@ -70,15 +70,17 @@ public class MainGame : Game
         texture.SetData(new[] { Color.White });
         menu = new Menu(spriteBatch, menuFont, texture);
         
-        map = new Map(spriteBatch, menuFont);
+        map = new Map(spriteBatch, menuFont, gameFont, texture);
+        map.GenerateNodes();
+        selectedNode = map.GetFirstNode();
     }
 
     Point originalPosition;
     protected override void Update(GameTime gameTime)
     {
-        if (Keyboard.GetState().IsKeyDown(Keys.Space)) // Spustí otřes při stisknutí mezerníku
+        if (Keyboard.GetState().IsKeyDown(Keys.Space))
         {
-            int shakeAmount = 5; // Maximální posun v pixelech
+            int shakeAmount = 5;
             int offsetX = rand.Next(-shakeAmount, shakeAmount + 1);
             int offsetY = rand.Next(-shakeAmount, shakeAmount + 1);
 
@@ -86,7 +88,7 @@ public class MainGame : Game
         }
         else
         {
-            Window.Position = originalPosition; // Vrátí okno zpět
+            Window.Position = originalPosition;
         }
         if (gameState == GameState.PLAY)
         {
@@ -96,6 +98,8 @@ public class MainGame : Game
         base.Update(gameTime);
     }
 
+    MapNode selectedNode;
+    bool firstEnter = true;
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(bgColor);
@@ -104,6 +108,7 @@ public class MainGame : Game
         if (gameState == GameState.MENU)
         {
             gameState = (GameState)menu.DrawMainMenu(graphics);
+            firstEnter = true;
         }
 
         else if (gameState == GameState.PLAY)
@@ -111,9 +116,14 @@ public class MainGame : Game
             if (Keyboard.GetState().IsKeyDown(Keys.Escape)){
                 neededText = RandomTextGenerate(10);
                 map.GenerateNodes();
+                selectedNode = map.GetFirstNode();
                 gameState = GameState.MENU;
             }
-
+            if(!firstEnter || Keyboard.GetState().IsKeyUp(Keys.Enter)){
+                firstEnter = false;
+                selectedNode = map.NodeSelect(selectedNode);
+            }
+            
             map.DrawNodes();
 
             /*

@@ -9,17 +9,16 @@ namespace typatro.GameFolder
 {
     class Writer
     {
-        private int maxCharsPerLine = 40;
-        private int yOffset = 80;
-        private SpriteBatch _spriteBatch;
-        private SpriteFont font;
-        private List<char> writtenText;
-        private List<int> diffIndexes;
-        private List<int> endLineIndexes = new List<int>(); 
-        private Keys? lastKey = null;
-        private double keyPressTime = 0;
-        private double repeatInterval = 0.5;
-        private int lastCheckedIndex = 0;
+        readonly int maxCharsPerLine = 40, yOffset = 80;
+        readonly SpriteBatch _spriteBatch;
+        readonly SpriteFont font;
+        List<char> writtenText;
+        List<int> diffIndexes;
+        List<int> endLineIndexes = new List<int>(); 
+        Keys? lastKey = null;
+        double keyPressTime = 0;
+        readonly double repeatInterval = 0.5;
+        int lastCheckedIndex = 0;
 
 
         public Writer(SpriteBatch _spriteBatch, SpriteFont font, List<int> diffIndexes, List<char> writtenText)
@@ -81,7 +80,7 @@ namespace typatro.GameFolder
             }
         }
 
-        private char ConvertKeyToChar(Keys? key){
+        private static char ConvertKeyToChar(Keys? key){
             if (key == null) return '\0';
             if (key >= Keys.A && key <= Keys.Z) return (char)('a' + key - Keys.A);
             if (key == Keys.Space) return ' ';

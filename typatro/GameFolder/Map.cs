@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace typatro.GameFolder{
     enum NodeType{
@@ -12,7 +13,7 @@ namespace typatro.GameFolder{
         SHOP,
         RANDOM,
         BOSS,
-        NORMAL
+        NOTHING
     }
     class MapNode{
         public Vector2 point;
@@ -25,18 +26,31 @@ namespace typatro.GameFolder{
         }
     }
     class Map{
-        private SpriteBatch spriteBatch;
-        private SpriteFont font;
+        readonly SpriteBatch spriteBatch;
+        readonly SpriteFont bigFont;
+        readonly SpriteFont smallFont;
+        readonly int rowSpacing = 75, columnSpacing = 60, randomChange = 12;
+        readonly int topOffset = 50, leftOffset = 40;
+        readonly int paths = 4;
+        readonly Random random = new Random();
+        readonly Texture2D texture;
+        
         MapNode[,] mapNodes;
-        int rowSpacing = 75, columnSpacing = 70, randomChange = 12;
-        int topOffset = 30, leftOffset = 30;
-        int paths = 4;
-        Random random = new Random();
-        public Map(SpriteBatch spriteBatch, SpriteFont font){
+        int nodeSelectIndex = 0;
+        bool nodeMove = true, enterUp = true;
+        
+
+        public Map(SpriteBatch spriteBatch, SpriteFont bigFont, SpriteFont smallFont, Texture2D texture){
             this.spriteBatch = spriteBatch;
-            this.font = font;
+            this.bigFont = bigFont;
+            this.smallFont = smallFont;
+            this.texture = texture;
 
             GenerateNodes();
+        }
+
+        public MapNode GetFirstNode(){
+            return mapNodes[0,0];
         }
 
         public void GenerateNodes()
@@ -46,14 +60,14 @@ namespace typatro.GameFolder{
 
             //Generates first node and then makes a path by going to i+1 or i or i-1 node
             for (int path = 0; path < paths; path++){
-                while (mapNodes[pos, 0] != null){
+                while (mapNodes[pos, 1] != null){
                     pos = random.Next(0, mapNodes.GetLength(0));
                 }
 
-                mapNodes[pos, 0] = new MapNode(new List<MapNode>(), NodeType.NORMAL,
+                mapNodes[pos, 1] = new MapNode(new List<MapNode>(), NodeType.FIGHT,
                     new Vector2(leftOffset, random.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing));
 
-                for (int column = 1; column < mapNodes.GetLength(1)-1; column++){
+                for (int column = 2; column < mapNodes.GetLength(1)-1; column++){
                     pos += random.Next(-1, 2);
 
                     if (pos >= mapNodes.GetLength(0)) pos = mapNodes.GetLength(0) - 1;
@@ -68,30 +82,38 @@ namespace typatro.GameFolder{
                 }
             }
             //Boss node generation
-            List<MapNode> lastRow = new List<MapNode>();
+            mapNodes[0, mapNodes.GetLength(1)-1] = new MapNode(new List<MapNode>(), NodeType.BOSS,
+                    new Vector2(leftOffset + (mapNodes.GetLength(1)-1) * rowSpacing, mapNodes.GetLength(0)/2*columnSpacing));
+
+            //First node for traversal generation
+            List<MapNode> firstRow = new List<MapNode>();
             for(int node = 0; node < mapNodes.GetLength(0); node++){
-                if(mapNodes[node,mapNodes.GetLength(1)-2] != null){
-                    lastRow.Add(mapNodes[node,mapNodes.GetLength(1)-2]);
+                if(mapNodes[node,1] != null){
+                    firstRow.Add(mapNodes[node,1]);
                 }
             }
-            mapNodes[0, mapNodes.GetLength(1)-1] = new MapNode(lastRow, NodeType.BOSS,
-                    new Vector2( + leftOffset + (mapNodes.GetLength(1)-1) * rowSpacing, mapNodes.GetLength(0)/2*columnSpacing));
+            mapNodes[0,0] = new MapNode(firstRow, NodeType.NOTHING, new Vector2());
 
             //Connects to previous nodes
-            for (int column = 1; column < mapNodes.GetLength(1); column++){
+            for (int column = 1; column < mapNodes.GetLength(1)-1; column++){
                 for (int row = 0; row < mapNodes.GetLength(0); row++){
                     MapNode currentNode = mapNodes[row, column];
 
                     if (currentNode != null){
-                        if (mapNodes[row, column - 1] != null)
-                            currentNode.forward.Add(mapNodes[row, column - 1]);
+                        if (row - 1 >= 0 && mapNodes[row - 1, column + 1] != null)
+                            currentNode.forward.Add(mapNodes[row - 1, column + 1]);
 
-                        if (row - 1 >= 0 && mapNodes[row - 1, column - 1] != null)
-                            currentNode.forward.Add(mapNodes[row - 1, column - 1]);
+                        if (mapNodes[row, column + 1] != null)
+                            currentNode.forward.Add(mapNodes[row, column + 1]);
 
-                        if (row + 1 < mapNodes.GetLength(0) && mapNodes[row + 1, column - 1] != null)
-                            currentNode.forward.Add(mapNodes[row + 1, column - 1]);
+                        if (row + 1 < mapNodes.GetLength(0) && mapNodes[row + 1, column + 1] != null)
+                            currentNode.forward.Add(mapNodes[row + 1, column + 1]);
                     }
+                }
+            }
+            for(int node = 0; node < mapNodes.GetLength(0); node++){
+                if(mapNodes[node,mapNodes.GetLength(1)-2] != null){
+                    mapNodes[node,mapNodes.GetLength(1)-2].forward.Add(mapNodes[0, mapNodes.GetLength(1)-1]);
                 }
             }
         }
@@ -99,20 +121,21 @@ namespace typatro.GameFolder{
         public void DrawNodes()
         {
             for (int i = 0; i < mapNodes.GetLength(0); i++){
-                for (int j = 0; j < mapNodes.GetLength(1); j++){
+                for (int j = 1; j < mapNodes.GetLength(1); j++){
                     MapNode node = mapNodes[i, j];
 
                     if (node != null){
-                        spriteBatch.DrawString(font, MapIcon(node.type), node.point, Color.Black);
-
                         foreach (MapNode next in node.forward){
                             if (next != null){
                                 DrawDottedPath(node.point, next.point);
                             }
                         }
+
+                        spriteBatch.DrawString(bigFont, MapIcon(node.type), node.point, Color.Black);
                     }
                 }
             }
+            spriteBatch.DrawString(smallFont, "F - Fight   E - Elite fight   ? - Random\n  $ - Shop   X - Treasure   B - Boss", new Vector2(leftOffset + 100,520), Color.Black);
         }
 
         private void DrawDottedPath(Vector2 start, Vector2 end)
@@ -123,7 +146,7 @@ namespace typatro.GameFolder{
             
             for (float d = dotSpacing; d < distance-dotSpacing; d += dotSpacing){
                 Vector2 dotPosition = start + direction * d;
-                spriteBatch.DrawString(font, ".", dotPosition, Color.Gray);
+                spriteBatch.DrawString(bigFont, ".", dotPosition, Color.Gray);
             }
         }
 
@@ -136,24 +159,47 @@ namespace typatro.GameFolder{
             return NodeType.TREASURE;
         }
 
-        private string MapIcon(NodeType type){
-            switch(type){
-                case NodeType.FIGHT:
-                    return "F";
-                case NodeType.ELITE:
-                    return "E";
-                case NodeType.BOSS:
-                    return "B";
-                case NodeType.RANDOM:
-                    return "?";
-                case NodeType.SHOP:
-                    return "$";
-                case NodeType.TREASURE:
-                    return "X";
-                case NodeType.NORMAL:
-                    return "N";
+        public MapNode NodeSelect(MapNode node){
+            int forwardCount = node.forward.Count;
+            if(forwardCount > 0){KeyboardState state = Keyboard.GetState();
+                if (nodeMove){
+                    if (state.IsKeyDown(Keys.Down) && nodeSelectIndex != forwardCount-1) nodeSelectIndex++;
+                    else if (state.IsKeyDown(Keys.Up) && nodeSelectIndex != 0) nodeSelectIndex--;
+                    nodeMove = false;
+                }
+
+                if (state.IsKeyUp(Keys.Up) && state.IsKeyUp(Keys.Down)){
+                    nodeMove = true;
+                }
+                
+                MapNode selectedNode = node.forward[nodeSelectIndex];
+                if(state.IsKeyDown(Keys.Enter) && enterUp){
+                    enterUp = false;
+                    nodeSelectIndex = 0;
+                    return selectedNode;
+                }
+                else if(state.IsKeyUp(Keys.Enter)) enterUp = true;
+                
+                spriteBatch.Draw(texture, new Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), Color.Gray);
             }
-            return "A";
+            if(node.type != NodeType.NOTHING){
+                spriteBatch.Draw(texture, new Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), Color.MediumVioletRed);
+            }
+            
+            return node;
+        }
+
+        private static string MapIcon(NodeType type){
+            return type switch
+            {
+                NodeType.FIGHT => "F",
+                NodeType.ELITE => "E",
+                NodeType.BOSS => "B",
+                NodeType.RANDOM => "?",
+                NodeType.SHOP => "$",
+                NodeType.TREASURE => "X",
+                _ => "A",
+            };
         }
     }
 }
