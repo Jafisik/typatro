@@ -9,7 +9,7 @@ namespace typatro.GameFolder
 {
     class Writer
     {
-        readonly int maxCharsPerLine = 40, yOffset = 80;
+        readonly int maxCharsPerLine = 40, yOffset = 160;
         readonly SpriteBatch _spriteBatch;
         readonly SpriteFont font;
         List<char> writtenText;

@@ -19,18 +19,21 @@ namespace typatro.GameFolder{
         public Vector2 point;
         public List<MapNode> forward;
         public NodeType type;
-        public MapNode(List<MapNode> forward, NodeType type, Vector2 point){
+        public int row, column;
+        public MapNode(List<MapNode> forward, NodeType type, Vector2 point, int row, int column){
             this.forward = forward;
             this.type = type;
             this.point = point;
+            this.row = row;
+            this.column = column;
         }
     }
     class Map{
         readonly SpriteBatch spriteBatch;
         readonly SpriteFont bigFont;
         readonly SpriteFont smallFont;
-        readonly int rowSpacing = 75, columnSpacing = 60, randomChange = 12;
-        readonly int topOffset = 50, leftOffset = 40;
+        readonly int rowSpacing = 75, columnSpacing = 55, randomChange = 12;
+        readonly int topOffset = 60, leftOffset = 40;
         readonly int paths = 4;
         readonly Random random = new Random();
         readonly Texture2D texture;
@@ -65,7 +68,7 @@ namespace typatro.GameFolder{
                 }
 
                 mapNodes[pos, 1] = new MapNode(new List<MapNode>(), NodeType.FIGHT,
-                    new Vector2(leftOffset, random.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing));
+                    new Vector2(leftOffset, random.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, 1);
 
                 for (int column = 2; column < mapNodes.GetLength(1)-1; column++){
                     pos += random.Next(-1, 2);
@@ -77,13 +80,13 @@ namespace typatro.GameFolder{
 
                         mapNodes[pos, column] = new MapNode(new List<MapNode>(), GenerateNodeType(),
                             new Vector2(random.Next(-randomChange, randomChange) + leftOffset + column * rowSpacing,
-                            random.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing));
+                            random.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, column);
                     }
                 }
             }
             //Boss node generation
             mapNodes[0, mapNodes.GetLength(1)-1] = new MapNode(new List<MapNode>(), NodeType.BOSS,
-                    new Vector2(leftOffset + (mapNodes.GetLength(1)-1) * rowSpacing, mapNodes.GetLength(0)/2*columnSpacing));
+                    new Vector2(leftOffset + (mapNodes.GetLength(1)-1) * rowSpacing, mapNodes.GetLength(0)/2*columnSpacing), 0, mapNodes.GetLength(1)-1);
 
             //First node for traversal generation
             List<MapNode> firstRow = new List<MapNode>();
@@ -92,7 +95,7 @@ namespace typatro.GameFolder{
                     firstRow.Add(mapNodes[node,1]);
                 }
             }
-            mapNodes[0,0] = new MapNode(firstRow, NodeType.NOTHING, new Vector2());
+            mapNodes[0,0] = new MapNode(firstRow, NodeType.NOTHING, new Vector2(), 0, 0);
 
             //Connects to previous nodes
             for (int column = 1; column < mapNodes.GetLength(1)-1; column++){
