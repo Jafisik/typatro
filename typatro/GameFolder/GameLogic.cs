@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using typatro.GameFolder.Rooms;
+using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder
 {
@@ -27,17 +28,20 @@ namespace typatro.GameFolder
         readonly List<string> jsonStrings;
         readonly Map map;
         MapNode selectedNode;
-        bool firstEnter = true, waitingForEnter, enterReleased;
+        bool firstEnter = true, waitingForEnter, enterReleased, startedTyping;
         Color textColor = Color.GreenYellow;
         readonly Menu menu;
         readonly SpriteBatch spriteBatch;
         readonly int wordsGenerated = 10;
         int coins = 0;
+        long currentScore = 0;
         Fight fight;
         Treasure treasure;
         Shop shop;
         SpriteFont bigFont;
         Texture2D texture;
+        double timeSinceLastDecrease = 0;
+        Enhancements enhancements;
 
         public GameLogic(SpriteBatch spriteBatch, SpriteFont menuFont, SpriteFont gameFont, Texture2D texture, List<string> jsonStrings)
         {
@@ -53,13 +57,24 @@ namespace typatro.GameFolder
             writer = new Writer(spriteBatch, gameFont, diffIndexes, writtenText);
             menu = new Menu(spriteBatch, menuFont, texture);
 
+            shop = new Shop(spriteBatch,gameFont,texture);
+
             neededText = RandomTextGenerate(wordsGenerated);
+            enhancements = new Enhancements();
         }
 
         public void Update(GameTime gameTime){
             if (gameState == GameState.PLAY){
                 writer.ReadKeyboardInput(gameTime);
                 writer.UpdateDiffIndexes(neededText);
+            }
+            if (!startedTyping && writtenText.Count > 0){
+                startedTyping = true;
+                timeSinceLastDecrease = 0;
+            }
+
+            if (startedTyping) {
+                timeSinceLastDecrease += gameTime.ElapsedGameTime.TotalSeconds;
             }
         }
 
@@ -93,17 +108,20 @@ namespace typatro.GameFolder
                 gameState = GameState.MENU;
                 return;
             }
-            TopBannerDisplay();
 
             if (waitingForEnter){
                 if (!enterReleased && state.IsKeyUp(Keys.Enter)){
+                    timeSinceLastDecrease = 0;
                     enterReleased = true;
                 }
 
                 if (enterReleased){
-                    if(selectedNode.type == NodeType.FIGHT || selectedNode.type == NodeType.ELITE || selectedNode.type == NodeType.BOSS){
+                    if(IsFight(selectedNode.type)){
                         writer.WriteText(neededText, Color.Gray, isHintText: true);
                         writer.UserInputText(writtenText.ToArray(), textColor);
+                        TopBannerDisplay(false);
+                        CalculateScore();
+
                         writer.WriteText("Correct: " + (writtenText.Count > 0 ?
                             ((1f - (diffIndexes.Count / (float)writtenText.Count)) * 100).ToString("0.00") + "%" : "0%"), Color.White, 7);
                     }
@@ -111,13 +129,11 @@ namespace typatro.GameFolder
                         writer.WriteText("Treasure",Color.Black);
                     }
                     else if(selectedNode.type == NodeType.SHOP){
-                        writer.WriteText("Shop",Color.Black);
+                        shop.DisplayShop();
                     }
                 
-                    
-
-                    if (state.IsKeyDown(Keys.Enter))
-                    {
+                    if (state.IsKeyDown(Keys.Enter)){
+                        if(IsFight(selectedNode.type) && currentScore >= fight.scoreNeeded) coins += fight.cashGain;
                         waitingForEnter = false;
                         enterReleased = false;
                     }
@@ -131,30 +147,36 @@ namespace typatro.GameFolder
                     if (newNode != selectedNode){
                         switch(newNode.type){
                             case NodeType.FIGHT:
-                                fight = new NormalFight(newNode.row, newNode.column);
+                                fight = new NormalFight(1, newNode.column);
                                 neededText = RandomTextGenerate(fight.letters);
                                 break;
                             case NodeType.ELITE:
-                                fight = new EliteFight(newNode.row, newNode.column);
+                                fight = new EliteFight(1, newNode.column);
                                 neededText = RandomTextGenerate(fight.letters);
                                 break;
                             case NodeType.BOSS:
-                                fight = new BossFight(newNode.row, newNode.column);
+                                fight = new BossFight(1, newNode.column);
                                 neededText = RandomTextGenerate(fight.letters);
                                 break;
                             case NodeType.TREASURE:
                                 //TODO
                                 break;
                             case NodeType.SHOP:
-                                //TODO
+                                shop.GenerateCards();
+                                break;
+                            case NodeType.RANDOM:
+                                while(newNode.type == NodeType.RANDOM){
+                                    newNode.type = Map.GenerateNodeType();
+                                }
                                 break;
                         }
                         writtenText.Clear();
+                        startedTyping = false;
                         selectedNode = newNode;
                         waitingForEnter = true;
                     }
                 }
-
+                TopBannerDisplay(true);
                 map.DrawNodes();
             }
         }
@@ -168,10 +190,43 @@ namespace typatro.GameFolder
             return stringBuilder.ToString();
         }
 
-        private void TopBannerDisplay(){
+        private void TopBannerDisplay(bool map){
             spriteBatch.Draw(texture, new Rectangle(0,0,1500,45),Color.Silver);
-            spriteBatch.DrawString(bigFont, $"Coins:{coins}", new Vector2(10,10), Color.Black);
-            
+            if(map) spriteBatch.DrawString(bigFont, $"Coins:{coins}", new Vector2(10,10), Color.Black);
+            else spriteBatch.DrawString(bigFont, $"Coins:{coins}  {currentScore}/{fight.scoreNeeded}  Reward:{fight.cashGain}", new Vector2(10,10), Color.Black);
+        }
+
+        private static bool IsFight(NodeType nodeType){
+            if(nodeType == NodeType.FIGHT || nodeType == NodeType.ELITE || nodeType == NodeType.BOSS)
+                return true;
+            return false;
+        }
+
+        private void CalculateScore()
+        {
+            long letterScore = 0;
+            for(int i = 0; i < writtenText.Count; i++){
+                bool canAdd = true;
+                for(int j = 0; j < diffIndexes.Count; j++){
+                    if(i == j) canAdd = false;
+                }
+                if(canAdd && writtenText[i] != ' '){
+                    letterScore += enhancements.letters[writtenText[i]-'a'];
+                }
+            }
+
+            string userText = new string(writtenText.ToArray());
+            string[] userWords = userText.Split(' ');
+            string[] neededWords = neededText.Split(' ');
+
+            int correctWords = 0;
+            for (int i = 0; i < Math.Min(userWords.Length, neededWords.Length); i++){
+                if (userWords[i] == neededWords[i])
+                    correctWords++;
+            }
+
+            if(startedTyping) currentScore = correctWords * 2 + letterScore - (int)timeSinceLastDecrease * fight.speed;
+            else currentScore = 0;
         }
     }
 }

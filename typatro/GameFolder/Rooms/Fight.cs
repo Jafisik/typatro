@@ -19,11 +19,15 @@ namespace typatro.GameFolder.Rooms{
         }
 
         public static int CashGainGen(int level, int floor, int difficulty){
-            return (int)((level*3 + floor/2) * (difficulty*multPerDiff));
+            return (int)((level*3 + floor*0.5) * (difficulty*multPerDiff));
         }
 
         public static int SpeedGen(int level, int floor, int difficulty){
-            return (int)((level*3 + floor/2) * (difficulty*multPerDiff));
+            return (int)((level + floor*0.2) * (difficulty*multPerDiff*0.8));
+        }
+
+        public static int ScoreNeddedGen(int level, int floor, int difficulty){
+            return (int)(20+(level*5 + floor*3) * (difficulty*multPerDiff));
         }
     }
 
@@ -34,8 +38,9 @@ namespace typatro.GameFolder.Rooms{
             get { return lett; }
             set { lett = value; }
         }
-        public SpecialFight(int cashGain, int difficulty, int speed, int letters) : base(cashGain,difficulty,speed){
+        public SpecialFight(int cashGain, int difficulty, int speed, int letters, int scoreNeeded) : base(cashGain,difficulty,speed){
             this.letters = letters;
+            this.scoreNeeded = scoreNeeded;
         }
     }
 
@@ -44,6 +49,7 @@ namespace typatro.GameFolder.Rooms{
         public NormalFight(int level, int floor) : base(1) {
             cashGain = CashGainGen(level, floor, difficulty);
             speed = SpeedGen(level, floor, difficulty);
+            scoreNeeded = ScoreNeddedGen(level, floor, difficulty);
         }
     }
 
@@ -52,6 +58,7 @@ namespace typatro.GameFolder.Rooms{
         public EliteFight(int level, int floor) : base(2) {
             cashGain = CashGainGen(level, floor, difficulty);
             speed = SpeedGen(level, floor, difficulty);
+            scoreNeeded = ScoreNeddedGen(level, floor, difficulty);
         }
     }
 
@@ -61,6 +68,7 @@ namespace typatro.GameFolder.Rooms{
         public BossFight(int level, int floor) : base(3) {
             cashGain = CashGainGen(level, floor, difficulty);
             speed = SpeedGen(level, floor, difficulty);
+            scoreNeeded = ScoreNeddedGen(level, floor, difficulty);
         }
     }
 }

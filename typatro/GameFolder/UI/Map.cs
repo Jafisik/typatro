@@ -153,7 +153,8 @@ namespace typatro.GameFolder{
             }
         }
 
-        private NodeType GenerateNodeType(){
+        public static NodeType GenerateNodeType(){
+            Random random = new Random();
             int roll = random.Next(0,101);
             if(roll < 50) return NodeType.FIGHT;
             if(roll < 80) return NodeType.RANDOM;
