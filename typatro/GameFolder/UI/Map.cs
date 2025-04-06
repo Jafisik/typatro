@@ -163,6 +163,16 @@ namespace typatro.GameFolder{
             return NodeType.TREASURE;
         }
 
+        public static NodeType GenerateNodeTypeFromRandom()
+        {
+            Random random = new Random();
+            int roll = random.Next(0, 101);
+            if (roll < 75) return NodeType.FIGHT;
+            if (roll < 85) return NodeType.SHOP;
+            if (roll < 96) return NodeType.ELITE;
+            return NodeType.TREASURE;
+        }
+
         public MapNode NodeSelect(MapNode node){
             int forwardCount = node.forward.Count;
             if(forwardCount > 0){KeyboardState state = Keyboard.GetState();

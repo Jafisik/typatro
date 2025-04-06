@@ -165,8 +165,20 @@ namespace typatro.GameFolder
                                 shop.GenerateCards();
                                 break;
                             case NodeType.RANDOM:
-                                while(newNode.type == NodeType.RANDOM){
-                                    newNode.type = Map.GenerateNodeType();
+                                newNode.type = Map.GenerateNodeTypeFromRandom();
+                                if (newNode.type == NodeType.FIGHT){
+                                    fight = new NormalFight(1, newNode.column);
+                                    neededText = RandomTextGenerate(fight.letters);
+                                } 
+                                else if(newNode.type == NodeType.ELITE){
+                                    fight = new EliteFight(1, newNode.column);
+                                    neededText = RandomTextGenerate(fight.letters);
+                                } 
+                                else if (newNode.type == NodeType.SHOP){
+                                    shop.GenerateCards();
+                                }
+                                else if (newNode.type == NodeType.TREASURE){
+                                    //TODO
                                 }
                                 break;
                         }
