@@ -28,7 +28,7 @@ namespace typatro.GameFolder
         readonly List<string> jsonStrings;
         readonly Map map;
         MapNode selectedNode;
-        bool firstEnter = true, waitingForEnter, enterReleased, startedTyping;
+        bool firstEnter = true, waitingForEnter, enterReleased, startedTyping, finished;
         Color textColor = Color.GreenYellow;
         readonly Menu menu;
         readonly SpriteBatch spriteBatch;
@@ -57,10 +57,12 @@ namespace typatro.GameFolder
             writer = new Writer(spriteBatch, gameFont, diffIndexes, writtenText);
             menu = new Menu(spriteBatch, menuFont, texture);
 
-            shop = new Shop(spriteBatch,gameFont,texture);
+            
+            treasure = new Treasure(spriteBatch, bigFont, gameFont, texture);
 
             neededText = RandomTextGenerate(wordsGenerated);
             enhancements = new Enhancements();
+            shop = new Shop(spriteBatch,gameFont,texture, enhancements);
         }
 
         public void Update(GameTime gameTime){
@@ -126,10 +128,12 @@ namespace typatro.GameFolder
                             ((1f - (diffIndexes.Count / (float)writtenText.Count)) * 100).ToString("0.00") + "%" : "0%"), Color.White, 7);
                     }
                     else if(selectedNode.type == NodeType.TREASURE){
-                        writer.WriteText("Treasure",Color.Black);
+                        treasure.DisplayTreasure();
+                        TopBannerDisplay(true);
                     }
                     else if(selectedNode.type == NodeType.SHOP){
-                        shop.DisplayShop();
+                        finished = shop.DisplayShop(ref coins);
+                        TopBannerDisplay(true);
                     }
                 
                     if (state.IsKeyDown(Keys.Enter)){
@@ -145,6 +149,8 @@ namespace typatro.GameFolder
                     MapNode newNode = map.NodeSelect(selectedNode);
 
                     if (newNode != selectedNode){
+                        finished = false;
+                        if(newNode.type == NodeType.RANDOM) newNode.type = Map.GenerateNodeTypeFromRandom();
                         switch(newNode.type){
                             case NodeType.FIGHT:
                                 fight = new NormalFight(1, newNode.column);
@@ -159,27 +165,10 @@ namespace typatro.GameFolder
                                 neededText = RandomTextGenerate(fight.letters);
                                 break;
                             case NodeType.TREASURE:
-                                //TODO
+                                treasure.NewGlyph();
                                 break;
                             case NodeType.SHOP:
-                                shop.GenerateCards();
-                                break;
-                            case NodeType.RANDOM:
-                                newNode.type = Map.GenerateNodeTypeFromRandom();
-                                if (newNode.type == NodeType.FIGHT){
-                                    fight = new NormalFight(1, newNode.column);
-                                    neededText = RandomTextGenerate(fight.letters);
-                                } 
-                                else if(newNode.type == NodeType.ELITE){
-                                    fight = new EliteFight(1, newNode.column);
-                                    neededText = RandomTextGenerate(fight.letters);
-                                } 
-                                else if (newNode.type == NodeType.SHOP){
-                                    shop.GenerateCards();
-                                }
-                                else if (newNode.type == NodeType.TREASURE){
-                                    //TODO
-                                }
+                                shop.GenerateShop();
                                 break;
                         }
                         writtenText.Clear();

@@ -3,7 +3,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder
 {
@@ -104,10 +106,18 @@ namespace typatro.GameFolder
                 writeLine.Append(printCharArray[i]);
                 wrongString.Append(diffIndexes.Contains(i) ? writtenText[i] : ' ');
             }
-            _spriteBatch.DrawString(font, writeLine.ToString(), new Vector2(80, yOffset), color);
-            _spriteBatch.DrawString(font, wrongString.ToString(), new Vector2(80, yOffset), Color.Red);
-        }
 
+            string correctText = writeLine.ToString();
+            string incorrectText = wrongString.ToString();
+
+            Vector2 position = new Vector2(80, yOffset);
+
+            float rotation = GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
+
+            _spriteBatch.DrawString(font, correctText, position + rotationPoint, color, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, Color.Red, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+        }
+        Vector2 rotationPoint;
         
         public void WriteText(string printString, Color color, int line = 0, bool isHintText = false)
         {
@@ -130,7 +140,14 @@ namespace typatro.GameFolder
                     beginingOfWord = i + 1;
                 }
             }
-            _spriteBatch.DrawString(font, writeLine.ToString(), new Vector2(80, yOffset + (line * 30)), color);
+            string finalText = writeLine.ToString();
+            Vector2 position = new Vector2(80, yOffset + (line * 30));
+            Vector2 size = font.MeasureString(finalText);
+            rotationPoint = size / 2f;
+
+            float rotation = GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
+
+            _spriteBatch.DrawString(font, finalText, position + rotationPoint, color, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
         }
     }
 }

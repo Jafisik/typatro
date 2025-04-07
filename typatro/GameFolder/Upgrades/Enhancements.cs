@@ -10,12 +10,12 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
 
-        public void AddLetterScore(int letter, int score){
-            letters[letter] += score;
+        public void AddLetterScore(char letter, int score){
+            letters[letter-'a'] += score;
         }
 
-        public void MultiplyLetterScore(int letter, int score){
-            letters[letter] *= score;
+        public void MultiplyLetterScore(char letter, int score){
+            letters[letter-'a'] *= score;
         }
 
     }
