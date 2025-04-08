@@ -22,16 +22,12 @@ namespace typatro.GameFolder.Rooms{
         private SpriteBatch spriteBatch;
         private SpriteFont font;
         private Texture2D texture;
-        private readonly int rows = 2;
-        private readonly int cols = 3;
+        private readonly int rows = 2, cols = 6;
         private List<Card> cards;
-        private int selectedRow = 0;
-        private int selectedCol = 0;
-        private readonly int cardWidth = 150;
-        private readonly int cardHeight = 80;
-        private readonly int horizontalSpacing = 160;
-        private readonly int verticalSpacing = 100;
-        private readonly int topOffset = 100, leftOffset = 50;
+        private int selectedRow = 0, selectedCol = 0;
+        private readonly int horizontalSpacing = 160, verticalSpacing = 100, cardHeight = 80, cardWidth = 150;
+        private readonly int topOffset = 100, leftOffset = 30, cardCount = 5;
+        private int rerollCost = 2;
 
         private bool topMove = true, downMove = true, leftMove = true, rightMove = true, enterPressed = false;
         Enhancements enhancements;
@@ -42,11 +38,11 @@ namespace typatro.GameFolder.Rooms{
             this.font = font;
             this.texture = texture;
             this.enhancements = enhancements;
-            cards = new List<Card>(6);
+            cards = new List<Card>(cardCount);
             GenerateShop();
         }
 
-        public Card GenerateCard()
+        private Card GenerateCard()
         {
             char letter = (char)(new Random().Next(0, 26) + 'a');
             bool mult = new Random().Next(1, 101) >= 75;
@@ -54,31 +50,40 @@ namespace typatro.GameFolder.Rooms{
             return new Card(letter, mult, value, mult ? value*5 : value);
         }
 
-        public void GenerateShop(){
+        private void GenerateShop(){
             cards.Clear();
-            for(int i = 0; i < 6; i++){
+            for(int i = 0; i < cardCount; i++){
                 cards.Add(GenerateCard());
             }
+        }
+
+        public void NewShop(){
+            GenerateShop();
+            rerollCost = 2;
+            selectedCol = 0;
+            selectedRow = 0;
         }
 
         public bool DisplayShop(ref int coins)
         {
             MoveSelection();
-            Buying(ref coins);
+            if(Buying(ref coins)) return true;
             for (int row = 0; row < rows; row++)
             {
                 for (int col = 0; col < cols; col++)
                 {
                     int cardIndex = row * cols + col;
-                    if (cardIndex >= cards.Count) break;
+                    Color cardColor = (row == selectedRow && col == selectedCol) ? Color.Crimson : Color.Beige;
 
-                    Color cardColor = (row == selectedRow && col == selectedCol) ? Color.Red : Color.White;
                     spriteBatch.Draw(texture, new Rectangle(col * horizontalSpacing + leftOffset, row * verticalSpacing+ topOffset, cardWidth, cardHeight), cardColor);
-                    spriteBatch.DrawString(font, $"   {cards[cardIndex].letter}\n {(cards[cardIndex].mult ? "*" : "+")} {cards[cardIndex].value}\nCost:{cards[cardIndex].cost}", new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
-                
+                    
+                    if(cardIndex < cardCount) spriteBatch.DrawString(font, $"   {cards[cardIndex].letter}   {enhancements.GetLetterScore(cards[cardIndex].letter)}\n {(cards[cardIndex].mult ? "*" : "+")} {cards[cardIndex].value}\nCost:{cards[cardIndex].cost}", 
+                        new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
+                    else if(cardIndex == 5) spriteBatch.DrawString(font, $"reroll\ncost:  {rerollCost}", new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
+                    
+                    else if(cardIndex == 11) spriteBatch.DrawString(font, "exit\nshop", new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
                 }
             }
-
             return false;
         }
 
@@ -86,16 +91,26 @@ namespace typatro.GameFolder.Rooms{
             KeyboardState state = Keyboard.GetState();
             if(state.IsKeyDown(Keys.Enter) && !enterPressed){
                 enterPressed = true;
-                Card card = cards[selectedRow*cols+selectedCol];
-                if(card.cost <= coins){
-                    coins -= card.cost;
-                    if (card.mult)
-                        enhancements.MultiplyLetterScore(card.letter, card.value);
-                    else
-                        enhancements.AddLetterScore(card.letter, card.value);
-                    cards[selectedRow*cols+selectedCol] = GenerateCard();
-                    return true;
+                int selectionIndex = selectedRow*cols+selectedCol;
+
+                if(selectionIndex < cardCount){
+                    Card card = cards[selectionIndex];
+                    if(card.cost <= coins){
+                        coins -= card.cost;
+                        if (card.mult)
+                            enhancements.MultiplyLetterScore(card.letter, card.value);
+                        else
+                            enhancements.AddLetterScore(card.letter, card.value);
+                        cards[selectionIndex] = GenerateCard();
+                    }
                 }
+                if(selectionIndex == 5 && coins >= rerollCost){
+                    coins -= rerollCost;
+                    rerollCost += 2;
+                    GenerateShop();
+                }
+                if(selectionIndex == 11) return true;
+                
             }
             else if(state.IsKeyUp(Keys.Enter)) enterPressed = false;
             return false;

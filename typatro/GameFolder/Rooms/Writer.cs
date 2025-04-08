@@ -58,7 +58,7 @@ namespace typatro.GameFolder
                     char currentChar = ConvertKeyToChar(currentKey);
                     if (currentChar != '~' && currentChar != '\0') writtenText.Add(currentChar);
                     else{
-                        if (writtenText.Count > 0 && currentChar != '\0') writtenText.RemoveAt(writtenText.Count - 1);
+                        if (writtenText.Count > 0 && currentChar != '\0'){} //writtenText.RemoveAt(writtenText.Count - 1);
                     }
 
                     lastKey = currentKey;
@@ -70,7 +70,7 @@ namespace typatro.GameFolder
                         char currentChar = ConvertKeyToChar(currentKey);
                         if (currentChar != '~' && currentChar != '\0') writtenText.Add(currentChar);
                         else{
-                            if (writtenText.Count > 0 && currentChar != '\0') writtenText.RemoveAt(writtenText.Count - 1);
+                            if (writtenText.Count > 0 && currentChar != '\0'){} //writtenText.RemoveAt(writtenText.Count - 1);
                         }
 
                     }
@@ -112,7 +112,7 @@ namespace typatro.GameFolder
 
             Vector2 position = new Vector2(80, yOffset);
 
-            float rotation = GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
+            float rotation = 0; //GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
 
             _spriteBatch.DrawString(font, correctText, position + rotationPoint, color, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
             _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, Color.Red, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
@@ -145,7 +145,7 @@ namespace typatro.GameFolder
             Vector2 size = font.MeasureString(finalText);
             rotationPoint = size / 2f;
 
-            float rotation = GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
+            float rotation = 0; // GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
 
             _spriteBatch.DrawString(font, finalText, position + rotationPoint, color, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
         }
