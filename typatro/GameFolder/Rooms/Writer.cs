@@ -58,7 +58,7 @@ namespace typatro.GameFolder
                     char currentChar = ConvertKeyToChar(currentKey);
                     if (currentChar != '~' && currentChar != '\0') writtenText.Add(currentChar);
                     else{
-                        if (writtenText.Count > 0 && currentChar != '\0'){} //writtenText.RemoveAt(writtenText.Count - 1);
+                        if (writtenText.Count > 0 && currentChar != '\0' && GlyphManager.IsActive(Glyph.R)) writtenText.RemoveAt(writtenText.Count - 1);
                     }
 
                     lastKey = currentKey;
@@ -70,7 +70,7 @@ namespace typatro.GameFolder
                         char currentChar = ConvertKeyToChar(currentKey);
                         if (currentChar != '~' && currentChar != '\0') writtenText.Add(currentChar);
                         else{
-                            if (writtenText.Count > 0 && currentChar != '\0'){} //writtenText.RemoveAt(writtenText.Count - 1);
+                            if (writtenText.Count > 0 && currentChar != '\0' && GlyphManager.IsActive(Glyph.R)) writtenText.RemoveAt(writtenText.Count - 1);
                         }
 
                     }

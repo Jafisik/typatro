@@ -1,11 +1,12 @@
 using System.Diagnostics.Tracing;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
+using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder.Rooms{
     abstract class Fight{
         public int cashGain, difficulty, speed, scoreNeeded;
-        public abstract int letters { get; set; }
+        public abstract int words { get; set; }
         public static float multPerDiff = 1.5f;
 
         public Fight(int difficulty, int cashGain = 1, int speed = 1){
@@ -23,7 +24,7 @@ namespace typatro.GameFolder.Rooms{
         }
 
         public static int SpeedGen(int level, int floor, int difficulty){
-            return (int)((level + floor*0.2) * (difficulty*multPerDiff*0.8));
+            return (int)((level + floor*0.2) * (difficulty*multPerDiff*(GlyphManager.IsActive(Glyph.W)?0.5:0.8)));
         }
 
         public static int ScoreNeddedGen(int level, int floor, int difficulty){
@@ -33,19 +34,19 @@ namespace typatro.GameFolder.Rooms{
 
     class SpecialFight : Fight{
         int lett = 0;
-        public override int letters
+        public override int words
         {
             get { return lett; }
             set { lett = value; }
         }
         public SpecialFight(int cashGain, int difficulty, int speed, int letters, int scoreNeeded) : base(cashGain,difficulty,speed){
-            this.letters = letters;
+            this.words = letters;
             this.scoreNeeded = scoreNeeded;
         }
     }
 
     class NormalFight : Fight{
-        public override int letters { get; set; } = 10;
+        public override int words { get; set; } = 10;
         public NormalFight(int level, int floor) : base(1) {
             cashGain = CashGainGen(level, floor, difficulty);
             speed = SpeedGen(level, floor, difficulty);
@@ -54,7 +55,7 @@ namespace typatro.GameFolder.Rooms{
     }
 
     class EliteFight : Fight{
-        public override int letters { get; set;} = 20;
+        public override int words { get; set;} = 20;
         public EliteFight(int level, int floor) : base(2) {
             cashGain = CashGainGen(level, floor, difficulty);
             speed = SpeedGen(level, floor, difficulty);
@@ -63,7 +64,7 @@ namespace typatro.GameFolder.Rooms{
     }
 
     class BossFight : Fight{
-        public override int letters { get; set;} = 40;
+        public override int words { get; set;} = 40;
 
         public BossFight(int level, int floor) : base(3) {
             cashGain = CashGainGen(level, floor, difficulty);

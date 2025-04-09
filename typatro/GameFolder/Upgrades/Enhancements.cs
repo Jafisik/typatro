@@ -18,9 +18,23 @@ namespace typatro.GameFolder.Upgrades{
             letters[letter-'a'] += score;
         }
 
+        public void AllLettersAddScore(int score){
+            for(int i = 0; i < letters.Length; i++){
+                letters[i] += score;
+            }
+        }
+
         public void MultiplyLetterScore(char letter, int score){
             letters[letter-'a'] *= score;
         }
+
+        public void AllLettersMultiplyScore(int score){
+            for(int i = 0; i < letters.Length; i++){
+                letters[i] *= score;
+            }
+        }
+
+        
 
     }
 

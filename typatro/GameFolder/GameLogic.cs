@@ -28,12 +28,12 @@ namespace typatro.GameFolder
         readonly List<string> jsonStrings;
         readonly Map map;
         MapNode selectedNode;
-        bool firstEnter = true, waitingForEnter, enterReleased, startedTyping, finished;
+        bool firstEnter = true, waitingForEnter, enterReleased, startedTyping, finished, dead = false;
         Color textColor = Color.GreenYellow;
         readonly Menu menu;
         readonly SpriteBatch spriteBatch;
         readonly int wordsGenerated = 10;
-        int coins = 0, level = 1;
+        int coins = 0, level = 1, startingScore = 0, textRotation = 0;
         long currentScore = 0;
         Fight fight;
         Treasure treasure;
@@ -42,6 +42,7 @@ namespace typatro.GameFolder
         Texture2D texture;
         double timeSinceLastDecrease = 0;
         Enhancements enhancements;
+        Random random = new Random();
 
         public GameLogic(SpriteBatch spriteBatch, SpriteFont menuFont, SpriteFont gameFont, Texture2D texture, List<string> jsonStrings)
         {
@@ -58,11 +59,9 @@ namespace typatro.GameFolder
             writer = new Writer(spriteBatch, gameFont, diffIndexes, writtenText);
             menu = new Menu(spriteBatch, menuFont, texture);
 
-            
-            treasure = new Treasure(spriteBatch, bigFont, gameFont, texture);
-
             neededText = RandomTextGenerate(wordsGenerated);
             enhancements = new Enhancements();
+            treasure = new Treasure(spriteBatch, bigFont, gameFont, texture, enhancements);
             shop = new Shop(spriteBatch,gameFont,texture, enhancements);
         }
 
@@ -109,6 +108,12 @@ namespace typatro.GameFolder
                 map.GenerateNodes();
                 selectedNode = map.GetFirstNode();
                 gameState = GameState.MENU;
+                dead = false;
+                return;
+            }
+
+            if(dead){
+                spriteBatch.DrawString(bigFont, "You are dead", new Vector2(100), Color.Black);
                 return;
             }
 
@@ -120,6 +125,7 @@ namespace typatro.GameFolder
 
                 if (enterReleased){
                     if(IsFight(selectedNode.type)){
+
                         writer.WriteText(neededText, Color.Gray, isHintText: true);
                         writer.UserInputText(writtenText.ToArray(), textColor);
                         TopBannerDisplay(false);
@@ -130,7 +136,7 @@ namespace typatro.GameFolder
                             ((1f - (diffIndexes.Count / (float)writtenText.Count)) * 100).ToString("0.00") + "%" : "0%"), Color.White, 7);
                     }
                     else if(selectedNode.type == NodeType.TREASURE){
-                        treasure.DisplayTreasure();
+                        treasure.DisplayTreasure(ref coins);
                         TopBannerDisplay(true);
                         finished = true;
                     }
@@ -140,7 +146,14 @@ namespace typatro.GameFolder
                     }
                 
                     if (state.IsKeyDown(Keys.Enter) && finished){
-                        if(IsFight(selectedNode.type) && currentScore >= fight.scoreNeeded) coins += fight.cashGain;
+                        if(IsFight(selectedNode.type)){
+                            currentScore = currentScore;
+                            if(currentScore >= fight.scoreNeeded){
+                                double cashMultiply = (GlyphManager.IsActive(Glyph.M) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
+                                coins += (int)(fight.cashGain * cashMultiply);
+                                if(GlyphManager.IsActive(Glyph.B)) startingScore += 5;
+                            } else dead = true;
+                        }
                         if(selectedNode.type == NodeType.BOSS){
                             map.GenerateNodes();
                             selectedNode = map.GetFirstNode();
@@ -162,21 +175,24 @@ namespace typatro.GameFolder
                         switch(newNode.type){
                             case NodeType.FIGHT:
                                 fight = new NormalFight(level, newNode.column);
-                                neededText = RandomTextGenerate(fight.letters);
+                                neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus)?20:0));
                                 break;
                             case NodeType.ELITE:
                                 fight = new EliteFight(level, newNode.column);
-                                neededText = RandomTextGenerate(fight.letters);
+                                neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus)?20:0));
                                 break;
                             case NodeType.BOSS:
                                 fight = new BossFight(level, newNode.column);
-                                neededText = RandomTextGenerate(fight.letters);
+                                neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus)?20:0));
                                 break;
                             case NodeType.TREASURE:
                                 treasure.NewGlyph();
                                 break;
                             case NodeType.SHOP:
                                 shop.NewShop();
+                                if(GlyphManager.IsActive(Glyph.Life)){
+                                    enhancements.AddLetterScore((char)(random.Next(0,26)+'a'),5);
+                                }
                                 break;
                         }
                         writtenText.Clear();
@@ -224,6 +240,9 @@ namespace typatro.GameFolder
                 }
             }
 
+            int mistakeCount = Math.Max(diffIndexes.Count - (GlyphManager.IsActive(Glyph.EyeOfHorus)?2:0),0);
+            if(GlyphManager.IsActive(Glyph.Star) && mistakeCount > 0) dead = true;
+
             string userText = new string(writtenText.ToArray());
             string[] userWords = userText.Split(' ');
             string[] neededWords = neededText.Split(' ');
@@ -234,8 +253,8 @@ namespace typatro.GameFolder
                     correctWords++;
             }
 
-            if(startedTyping) currentScore = correctWords * 2 + letterScore - (int)timeSinceLastDecrease * fight.speed - diffIndexes.Count;
-            else currentScore = 0;
+            if(startedTyping) currentScore = startingScore + correctWords * 2 + letterScore - (long)((GlyphManager.IsActive(Glyph.House) ? 0.25:1)*(int)timeSinceLastDecrease) * fight.speed - (GlyphManager.IsActive(Glyph.R)?5:1)*mistakeCount;
+            else currentScore = startingScore;
         }
     }
 }
