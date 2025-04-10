@@ -1,9 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder;
 
@@ -19,7 +21,6 @@ public class MainGame : Game
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-        //Window.IsBorderless = true;
     }
 
     protected override void Initialize(){
@@ -40,11 +41,11 @@ public class MainGame : Game
         texture = new Texture2D(GraphicsDevice, 1, 1);
         texture.SetData(new[] { Color.White });
 
-        gameLogic = new GameLogic(spriteBatch, menuFont, gameFont, texture, jsonStrings);
+        gameLogic = new GameLogic(spriteBatch, menuFont, gameFont, texture, jsonStrings, Window.Position);
     }
 
     protected override void Update(GameTime gameTime){
-        gameLogic.Update(gameTime);
+        gameLogic.Update(gameTime, Window);
         base.Update(gameTime);
     }
 

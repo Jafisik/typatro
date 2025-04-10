@@ -11,7 +11,7 @@ namespace typatro.GameFolder
 {
     class Writer
     {
-        readonly int maxCharsPerLine = 40, yOffset = 160;
+        readonly int maxCharsPerLine = 40, yOffset = 250, leftOffset = 120;
         readonly SpriteBatch _spriteBatch;
         readonly SpriteFont font;
         List<char> writtenText;
@@ -35,7 +35,7 @@ namespace typatro.GameFolder
         public void UpdateDiffIndexes(string compareText){
             if (writtenText.Count < lastCheckedIndex) lastCheckedIndex = writtenText.Count;
             for (int i = lastCheckedIndex; i < Math.Min(writtenText.Count, compareText.Length); i++){
-                if (writtenText[i] != compareText [i]){
+                if (writtenText[i] != compareText[i] || (GlyphManager.IsActive(Glyph.Man) && writtenText[i] == 'x')){
                     if (!diffIndexes.Contains(i)){
                         diffIndexes.Add(i);
                     }
@@ -92,7 +92,7 @@ namespace typatro.GameFolder
 
         //Visualizes user input and highlights mistakes (prints user input and then prints wrongString,
         // which has ' ' for correct letters and the actual letters for wrong letters)
-        public void UserInputText(char[] printCharArray, Color color)
+        public void UserInputText(char[] printCharArray, Color color, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
         {
             StringBuilder writeLine = new StringBuilder();
             StringBuilder wrongString = new StringBuilder();
@@ -110,16 +110,14 @@ namespace typatro.GameFolder
             string correctText = writeLine.ToString();
             string incorrectText = wrongString.ToString();
 
-            Vector2 position = new Vector2(80, yOffset);
+            Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + yExtraOffset);
 
-            float rotation = 0; //GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
-
-            _spriteBatch.DrawString(font, correctText, position + rotationPoint, color, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, Color.Red, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, correctText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, Color.Red, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
         }
         Vector2 rotationPoint;
         
-        public void WriteText(string printString, Color color, int line = 0, bool isHintText = false)
+        public void WriteText(string printString, Color color, int line = 0, bool isHintText = false, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
         {
             char[] printCharArray = printString.ToCharArray();
             StringBuilder writeLine = new StringBuilder(printString.Length);
@@ -141,13 +139,12 @@ namespace typatro.GameFolder
                 }
             }
             string finalText = writeLine.ToString();
-            Vector2 position = new Vector2(80, yOffset + (line * 30));
+            Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + (line * 30)+ yExtraOffset);
             Vector2 size = font.MeasureString(finalText);
             rotationPoint = size / 2f;
 
-            float rotation = 0; // GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
-
-            _spriteBatch.DrawString(font, finalText, position + rotationPoint, color, rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            // GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
+            _spriteBatch.DrawString(font, finalText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
         }
     }
 }

@@ -24,17 +24,17 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
 
-        public void MultiplyLetterScore(char letter, int score){
-            letters[letter-'a'] *= score;
+        public void MultiplyLetterScore(char letter, double score){
+            letters[letter-'a'] = (int)(letters[letter-'a'] * score);
         }
 
-        public void AllLettersMultiplyScore(int score){
+        public void AllLettersMultiplyScore(double score){
             for(int i = 0; i < letters.Length; i++){
-                letters[i] *= score;
+                letters[i] = (int)(letters[i] * score);
             }
         }
 
-        
+
 
     }
 
