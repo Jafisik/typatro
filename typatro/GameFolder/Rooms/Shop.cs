@@ -24,9 +24,11 @@ namespace typatro.GameFolder.Rooms{
         private Texture2D texture;
         private readonly int rows = 2, cols = 6;
         private List<Card> cards;
+        private List<Glyph> glyphs;
         private int selectedRow = 0, selectedCol = 0;
         private readonly int horizontalSpacing = 160, verticalSpacing = 100, cardHeight = 80, cardWidth = 150;
-        private readonly int topOffset = 100, leftOffset = 30, cardCount = 5;
+        private readonly int topOffset = 100, leftOffset = 30, cardCount = 5, glyphCount = 2;
+        bool[] glyphBought;
         private int rerollCost = 2;
 
         private bool topMove = true, downMove = true, leftMove = true, rightMove = true, enterPressed = false;
@@ -39,6 +41,8 @@ namespace typatro.GameFolder.Rooms{
             this.texture = texture;
             this.enhancements = enhancements;
             cards = new List<Card>(cardCount);
+            glyphs = new List<Glyph>(glyphCount);
+            glyphBought = new bool[glyphCount];
             GenerateShop();
         }
 
@@ -52,8 +56,10 @@ namespace typatro.GameFolder.Rooms{
 
         private void GenerateShop(){
             cards.Clear();
+            glyphs.Clear();
             for(int i = 0; i < cardCount; i++){
                 cards.Add(GenerateCard());
+                glyphs.Add(GlyphManager.GetRandomUnusedGlyph());
             }
         }
 
@@ -62,6 +68,9 @@ namespace typatro.GameFolder.Rooms{
             rerollCost = 2;
             selectedCol = 0;
             selectedRow = 0;
+            for(int i = 0; i < glyphBought.Length; i++){
+                glyphBought[i] = false;
+            }
         }
 
         public bool DisplayShop(ref int coins)
@@ -80,7 +89,8 @@ namespace typatro.GameFolder.Rooms{
                     if(cardIndex < cardCount) spriteBatch.DrawString(font, $"   {cards[cardIndex].letter}   {enhancements.GetLetterScore(cards[cardIndex].letter)}\n {(cards[cardIndex].mult ? "*" : "+")} {cards[cardIndex].value}\nCost:{cards[cardIndex].cost}", 
                         new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
                     else if(cardIndex == 5) spriteBatch.DrawString(font, $"reroll\ncost:  {rerollCost}", new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
-                    
+                    else if(cardIndex == 9 && !glyphBought[0]) spriteBatch.DrawString(font, glyphs[0].ToString() + "\n\nCost: 50", new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
+                    else if(cardIndex == 10 && !glyphBought[1]) spriteBatch.DrawString(font, glyphs[1].ToString() + "\n\nCost: 50", new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
                     else if(cardIndex == 11) spriteBatch.DrawString(font, "exit\nshop", new Vector2(col * horizontalSpacing + 10 + leftOffset, row * verticalSpacing + 10 + topOffset), Color.Black);
                 }
             }
@@ -108,6 +118,22 @@ namespace typatro.GameFolder.Rooms{
                     coins -= rerollCost;
                     rerollCost += 2;
                     GenerateShop();
+                }
+                if(selectionIndex == 9 && coins>= 50){
+                    coins -= 50;
+                    Glyph glyph = glyphs[0];
+                    GlyphManager.Add(glyph);
+                    if(glyph == Glyph.Hundred) coins += 100;
+                    enhancements.AddGlyphEnhancementsUpdate(glyph);
+                    glyphBought[0] = true;
+                }
+                if(selectionIndex == 10 && coins>= 50){
+                    coins -= 50;
+                    Glyph glyph = glyphs[1];
+                    GlyphManager.Add(glyph);
+                    if(glyph == Glyph.Hundred) coins += 100;
+                    enhancements.AddGlyphEnhancementsUpdate(glyph);
+                    glyphBought[1] = true;
                 }
                 if(selectionIndex == 11) return true;
                 

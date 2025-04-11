@@ -45,7 +45,7 @@ namespace typatro.GameFolder.Rooms{
                 if(state.IsKeyDown(Keys.Enter) && pickUp){
                     GlyphManager.Add(glyph);
                     if(glyph == Glyph.Hundred) coins += 100;
-                    AddGlyphEnhancementsUpdate(glyph);
+                    enhancements.AddGlyphEnhancementsUpdate(glyph);
                 }
 
                 spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), pickUp ? Color.Gray : Color.LightGray);
@@ -63,64 +63,6 @@ namespace typatro.GameFolder.Rooms{
             currentGlyph = GlyphManager.GetRandomUnusedGlyph();
         }
 
-        public void AddGlyphEnhancementsUpdate(Glyph glyph){
-            switch(glyph){
-                case Glyph.A:
-                    enhancements.AddLetterScore('a',5);
-                    enhancements.AddLetterScore('e',5);
-                    enhancements.AddLetterScore('i',5);
-                    enhancements.AddLetterScore('o',5);
-                    enhancements.AddLetterScore('u',5);
-                    break;
-                case Glyph.D:   
-                    enhancements.MultiplyLetterScore('d',4);
-                    break;
-                case Glyph.H:
-                    for(int i = 0; i < 10; i++){
-                        enhancements.MultiplyLetterScore((char)(random.Next(0,26)+'a'),5);
-                    }
-                    break;
-                case Glyph.K:
-                    enhancements.AllLettersAddScore(10);
-                    break;
-                case Glyph.Water:
-                    for(int i = 0; i < 5; i++){
-                        enhancements.AddLetterScore((char)(random.Next(0,26)+'a'),-5);
-                    }
-                    break;
-                case Glyph.King:
-                    long maxVal = enhancements.letters.Max();
-                    long minVal = enhancements.letters.Min();
-                    bool setZero = maxVal != minVal;
-                    for(int i = 0; i < enhancements.letters.Length; i++){
-                        if(enhancements.letters[i] == maxVal) enhancements.letters[i] *= 5;
-                        if(setZero && enhancements.letters[i] == minVal) enhancements.letters[i] = 0;
-                    }
-                    break;
-                case Glyph.Cat:
-                    for(int i = 0; i < 9; i++){
-                        enhancements.MultiplyLetterScore((char)(random.Next(0,26)+'a'),2);
-                    }
-                    break;
-                case Glyph.Crocodile:
-                    enhancements.MultiplyLetterScore((char)(random.Next(0,26)+'a'),20);
-                    enhancements.letters[(char)(random.Next(0,26)+'a')] = 0;
-                    break;
-                case Glyph.One:
-                    enhancements.AllLettersAddScore(1);
-                    break;
-                case Glyph.Ten:
-                    enhancements.MultiplyLetterScore((char)(random.Next(0,26)+'a'),10);
-                    break;
-                case Glyph.Bread:
-                    for(int i = 0; i < 6; i++){
-                        enhancements.MultiplyLetterScore((char)(random.Next(0,26)+'a'),3);
-                    }
-                    break;
-                case Glyph.Star:
-                    enhancements.AllLettersMultiplyScore(20);
-                    break;
-            }
-        }
+        
     }
 }

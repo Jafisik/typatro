@@ -30,7 +30,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for'M', symbol for 'mother' or 'woman'.\n+ Multiplies random letter score by *2 after each fight\n- Earn only 80% coins")]
         M,
 
-        [Description("Sound for 'N', used for words like 'water' or 'running'.\n+ Words written under 2 seconds are doubled\n- Words written over 4 seconds count as 0")] //TODO
+        [Description("Sound for 'N', used for words like 'water' or 'running'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds count as 0 and break streak")]
         N,
 
         [Description("Sound for 'R', symbolizing the king or the sun.\n+ Lets you correct your mistakes\n- Mistakes count as -5")]
@@ -40,10 +40,10 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for 'W', symbolizing gods or power.\n+ Elite and boss fights deal less damage")]
         W,
 
-        [Description("'Sun', representing Ra, the sun god.\n+ Disables all visual glyphs\n- Letters are less visible")] //TODO
+        [Description("'Sun', representing Ra, the sun god.\n+ Disables all visual glyphs\n- Letters are less visible")]
         Sun,
 
-        [Description("'House', represents domestic life or temples.\n+ Take only quarter damage\n- Every 8 seconds your keyboard stops working")] //TODO
+        [Description("'House', represents domestic life or temples.\n+ Take only quarter damage\n- Every 8 seconds your keyboard stops working")]
         House,
 
         [Description("'Water', often representing rivers or offerings.\n+ Multiplies final score by *2\n- Add -5 to 5 random letter scores")]
@@ -64,7 +64,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("'Existence', used for the verb 'to be' or 'exist'.\n+ Adds +0.1 to the final score multiplier for each active glyph")]
         Existence,
 
-        [Description("'Cat', representing the goddess Bastet, protector of the home.\n+ Multiplies 9 random letter values by *2\n- A cat will be sleeping on a random location")] //TODO
+        [Description("'Cat', representing the goddess Bastet, protector of the home.\n+ Multiplies 9 random letter values by *2\n- A cat will be sleeping on a random location")]
         Cat,
 
         [Description("Anubis, the god of mummification and protector of tombs.\n+ Gain 1 coin per 5 words")]
@@ -127,6 +127,10 @@ namespace typatro.GameFolder.Upgrades{
 
             int index = random.Next(unusedGlyphs.Count);
             return unusedGlyphs[index];
+        }
+
+        public static string GetName(Glyph glyph){
+            return glyph.ToString();
         }
 
         public static string GetDescription(Glyph? glyph){

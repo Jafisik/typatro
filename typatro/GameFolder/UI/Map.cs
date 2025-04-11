@@ -78,7 +78,7 @@ namespace typatro.GameFolder{
 
                     if (mapNodes[pos, column] == null){
 
-                        mapNodes[pos, column] = new MapNode(new List<MapNode>(), GenerateNodeType(),
+                        mapNodes[pos, column] = new MapNode(new List<MapNode>(), column == 7?NodeType.TREASURE:GenerateNodeType(),
                             new Vector2(random.Next(-randomChange, randomChange) + leftOffset + column * rowSpacing,
                             random.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, column);
                     }
@@ -159,7 +159,7 @@ namespace typatro.GameFolder{
             if(roll < 50) return NodeType.FIGHT;
             if(roll < 80) return NodeType.RANDOM;
             if(roll < 87) return NodeType.SHOP;
-            if(roll < 97) return NodeType.ELITE;
+            if(roll < 98) return NodeType.ELITE;
             return NodeType.TREASURE;
         }
 
@@ -169,7 +169,7 @@ namespace typatro.GameFolder{
             int roll = random.Next(0, 101);
             if (roll < 75) return NodeType.FIGHT;
             if (roll < 85) return NodeType.SHOP;
-            if (roll < 96) return NodeType.ELITE;
+            if (roll < 98) return NodeType.ELITE;
             return NodeType.TREASURE;
         }
 
