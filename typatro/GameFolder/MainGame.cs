@@ -32,11 +32,16 @@ public class MainGame : Game
 
     protected override void LoadContent(){
         string jsonText = File.ReadAllText("Content/wordlist.json");
+        jsonText = jsonText.Trim();
         List<string> jsonStrings = JsonSerializer.Deserialize<List<string>>(jsonText);
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
         SpriteFont gameFont = Content.Load<SpriteFont>("Fonts/pixelFont");
         SpriteFont menuFont = Content.Load<SpriteFont>("Fonts/menuFont");
+        Texture2D eyeOfHorusTexture = Content.Load<Texture2D>("Glyphs/eyeOfHorus");
+        Texture2D ATexture = Content.Load<Texture2D>("Glyphs/A");
+        GlyphManager.glyphImage.Add(eyeOfHorusTexture);
+        GlyphManager.glyphImage.Add(ATexture);
 
         texture = new Texture2D(GraphicsDevice, 1, 1);
         texture.SetData(new[] { Color.White });

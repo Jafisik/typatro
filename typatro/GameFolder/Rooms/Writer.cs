@@ -92,16 +92,18 @@ namespace typatro.GameFolder
 
         //Visualizes user input and highlights mistakes (prints user input and then prints wrongString,
         // which has ' ' for correct letters and the actual letters for wrong letters)
-        public void UserInputText(char[] printCharArray, Color color, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
+        public Vector2 UserInputText(char[] printCharArray, Color color, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
         {
             StringBuilder writeLine = new StringBuilder();
             StringBuilder wrongString = new StringBuilder();
-            int indexLine = 0;
+            int indexLine = 0, charIndex = 0;
             for (int i = 0; i < writtenText.Count; i++){
+                charIndex++;
                 if (indexLine < endLineIndexes.Count && i == endLineIndexes[indexLine] - indexLine){
                     writeLine.Append('\n');
                     wrongString.Append('\n');
                     indexLine++;
+                    charIndex = 1;
                 }
                 writeLine.Append(printCharArray[i]);
                 wrongString.Append(diffIndexes.Contains(i) ? writtenText[i] : ' ');
@@ -114,6 +116,7 @@ namespace typatro.GameFolder
 
             _spriteBatch.DrawString(font, correctText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
             _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, Color.Red, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            return new Vector2(charIndex*16-50, -50) + position;
         }
         Vector2 rotationPoint;
         
@@ -143,7 +146,6 @@ namespace typatro.GameFolder
             Vector2 size = font.MeasureString(finalText);
             rotationPoint = size / 2f;
 
-            // GlyphManager.IsActive(Glyph.ReverseText) ? MathF.PI : 0;
             _spriteBatch.DrawString(font, finalText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
         }
     }

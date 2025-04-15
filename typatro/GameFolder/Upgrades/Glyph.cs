@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace typatro.GameFolder.Upgrades{
 
@@ -110,6 +112,7 @@ namespace typatro.GameFolder.Upgrades{
     public static class GlyphManager
     {
         private static HashSet<Glyph> activeGlyphs = new HashSet<Glyph>();
+        public static List<Texture2D> glyphImage = new List<Texture2D>();
         public static int glyphCount = activeGlyphs.Count;
 
         public static void Add(Glyph glyph) => activeGlyphs.Add(glyph);
@@ -137,6 +140,10 @@ namespace typatro.GameFolder.Upgrades{
             var field = glyph.GetType().GetField(glyph.ToString());
             var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
             return attribute == null ? "No description available" : attribute.Description;
+        }
+
+        public static Texture2D GetGlyphImage(Glyph glyph){
+            return glyphImage[1];
         }
     }
 }

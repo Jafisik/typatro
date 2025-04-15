@@ -6,6 +6,9 @@ namespace typatro.GameFolder.Upgrades{
 
     class Enhancements{
         public long[] letters = new long[26];
+        public int wordScore = 2;
+        public int damageResist = 0;
+        public int startingScore = 0;
         Random random = new Random();
         public Enhancements(){
             for(int letter = 0; letter < letters.Length; letter++){
@@ -17,11 +20,11 @@ namespace typatro.GameFolder.Upgrades{
             return letters[letter-'a'];
         }
 
-        public void AddLetterScore(char letter, int score){
+        public void AddLetterScore(char letter, long score){
             letters[letter-'a'] += score;
         }
 
-        public void AllLettersAddScore(int score){
+        public void AllLettersAddScore(long score){
             for(int i = 0; i < letters.Length; i++){
                 letters[i] += score;
             }
@@ -35,6 +38,10 @@ namespace typatro.GameFolder.Upgrades{
             for(int i = 0; i < letters.Length; i++){
                 letters[i] = (int)(letters[i] * score);
             }
+        }
+
+        public void AddToWordScore(int score){
+            wordScore += score;
         }
 
         public void AddGlyphEnhancementsUpdate(Glyph glyph){

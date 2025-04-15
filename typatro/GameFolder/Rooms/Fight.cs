@@ -20,7 +20,7 @@ namespace typatro.GameFolder.Rooms{
         }
 
         public static int CashGainGen(int level, int floor, int difficulty){
-            return (int)((level*3 + floor*0.5) * (difficulty*multPerDiff));
+            return (int)((level*5 + floor) * (difficulty*multPerDiff));
         }
 
         public static int SpeedGen(int level, int floor, int difficulty){
@@ -28,7 +28,7 @@ namespace typatro.GameFolder.Rooms{
         }
 
         public static int ScoreNeddedGen(int level, int floor, int difficulty){
-            return (int)(20+(level*5 + floor*3) * (difficulty*multPerDiff));
+            return (int)(50+((level-1)*100 + floor*10) * (difficulty*multPerDiff));
         }
     }
 
