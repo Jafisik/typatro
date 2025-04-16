@@ -14,34 +14,31 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for 'A', used for names or verbs.\n+ Adds 5 to all vowels")]
         A,
 
-        [Description("Sound for 'B', symbol for 'house' or 'building'.\nAdds +5 to the starting score each fight")]
+        [Description("Sound for 'B', symbol for foot or place.\nAdds +5 to the starting score each fight")]
         B,
 
-        [Description("Sound for 'D', used in names or words with this sound.\n+ Multiplies d letter score by *4")]
+        [Description("Sound for 'D', symbol for hand.\n+ Multiplies 2 random letter scores by *5")]
         D,
 
-        [Description("Sound for 'H', symbolizing movement or breath.\n+ Multiplies 10 random letters by *5\n- Rotates text upside down every 10 seconds")]
+        [Description("Sound for 'H', symbolizing shelter or building.\n+ Multiplies 10 random letters by *5\n- Rotates text upside down every 10 seconds")]
         H,
 
-        [Description("Sound for 'K', used in names and with meaning of strength.\n+ Add +10 to all letter scores\n- Screen shakes with every input")]
-        K,
+        [Description("Sound for 'J', also symbol for reed or tall grass.\n+ Add +10 to all letter scores\n- Screen shakes with every input")]
+        J,
 
-        [Description("Sound for 'F', symbol for 'fish', representing water.\n+ Gains 10 coins every 10 seconds in a fight\n- Text changes position every 5 seconds")]
-        F,
-
-        [Description("Sound for'M', symbol for 'mother' or 'woman'.\n+ Multiplies random letter score by *2 after each fight\n- Earn only 80% coins")]
+        [Description("Sound for 'M', can symbolize owl, silence or wisdom.\n+ Gains 10 coins every 10 seconds in a fight\n- Text changes position every 5 seconds")]
         M,
 
-        [Description("Sound for 'N', used for words like 'water' or 'running'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds count as 0 and break streak")]
+        [Description("Sound for 'N', ripple of water, also 'to' or 'for'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds count as 0 and break streak")]
         N,
 
-        [Description("Sound for 'R', symbolizing the king or the sun.\n+ Lets you correct your mistakes\n- Mistakes count as -5")]
+        [Description("Sound for 'R', symbolizing mouth or one whole thing.\n+ Lets you correct your mistakes\n- Mistakes count as -5")]
         
         R,
 
-        [Description("Sound for 'W', symbolizing gods or power.\n+ Elite and boss fights deal less damage")]
-        W,
+        [Description("Sound for 'S', also sufffix for she, her, hers.\n+ Elite and boss fights deal less damage")]
 
+        S,
         [Description("'Sun', representing Ra, the sun god.\n+ Disables all visual glyphs\n- Letters are less visible")]
         Sun,
 
@@ -60,11 +57,14 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Osiris, the god of the afterlife and resurrection.\n+ Revive once per run\n- After ressurection all letters multiplied by *0.8")]
         Osiris,
 
+        [Description("'Woman', symbolizes feminine names or nurture.\n+ Multiplies random letter score by *2 after each fight\n- Earn only 80% coins")]
+        Woman,
+
         [Description("'Man', used for writing the word 'person'.\n+ Multiplies coin rewards by *1.5\n- Letter 'x' counts as a mistake")]
         Man,
 
-        [Description("'Existence', used for the verb 'to be' or 'exist'.\n+ Adds +0.1 to the final score multiplier for each active glyph")]
-        Existence,
+        [Description("'Flower', meaning 'to be' or 'to exist'.\n+ Adds +0.1 to the final score multiplier for each active glyph")]
+        Flower,
 
         [Description("'Cat', representing the goddess Bastet, protector of the home.\n+ Multiplies 9 random letter values by *2\n- A cat will be sleeping on a random location")]
         Cat,
@@ -90,19 +90,19 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Symbol for the number one.\n+ Adds +1 to every letter value")]
         One,
 
-        [Description("Symbol for the number ten.\n+ Multiplies random letter value by *10")]
+        [Description("Symbol for the number ten, cattle hobble.\n+ Multiplies random letter value by *10")]
         Ten,
 
-        [Description("Symbol for the number one hundred.\n+ Adds 100 coins")]
+        [Description("Symbol for the number one hundred, coil of rope.\n+ Adds 100 coins")]
         Hundred,
 
-        [Description("Symbol for the number one thousand.\n+ Every 1000 letters add +1000 to score")]
+        [Description("Symbol for the number one thousand, water lily.\n+ Every 1000 letters add +1000 to score")]
         Thousand,
 
         [Description("'Bread', representing basic sustenance and offerings.\n+ Add +3 to 6 random letter scores")]
         Bread,
 
-        [Description("'Papyrus', representing writing, knowledge, and records.\n+ +20 extra words in fights")]
+        [Description("'Papyrus', representing writing, knowledge, and records.\n+ Adds +20 extra words in fights")]
         Papyrus,
 
         [Description("'Star', often associated with the divine or celestial bodies.\n+ Multiplies all letter scores by *20\n- If you make a single mistake, you die instantly")]
@@ -113,7 +113,6 @@ namespace typatro.GameFolder.Upgrades{
     {
         private static HashSet<Glyph> activeGlyphs = new HashSet<Glyph>();
         public static List<Texture2D> glyphImage = new List<Texture2D>();
-        public static int glyphCount = activeGlyphs.Count;
 
         public static void Add(Glyph glyph) => activeGlyphs.Add(glyph);
         public static void Remove(Glyph glyph) => activeGlyphs.Remove(glyph);
@@ -132,6 +131,10 @@ namespace typatro.GameFolder.Upgrades{
             return unusedGlyphs[index];
         }
 
+        public static int GetGlyphCount(){
+            return activeGlyphs.Count;
+        }
+
         public static string GetName(Glyph glyph){
             return glyph.ToString();
         }
@@ -143,7 +146,7 @@ namespace typatro.GameFolder.Upgrades{
         }
 
         public static Texture2D GetGlyphImage(Glyph glyph){
-            return glyphImage[1];
+            return glyphImage[(int)glyph];
         }
     }
 }

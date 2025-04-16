@@ -29,8 +29,7 @@ namespace typatro.GameFolder.Rooms{
         readonly int horizontalSpacing = 160, verticalSpacing = 100, cardHeight = 80, cardWidth = 150, cardTextTopOffset = 10, cardTextLeftOffset = 5;
         readonly int topOffset = 100, leftOffset = 30, cardCount = 5, glyphCount = 2;
         Vector2 descPos = new Vector2(50,320);
-        bool[] glyphBought;
-        int rerollCost = 2, wordCost = 20, damageRedCost = 10, startingScoreCost = 1;
+        int rerollCost = 2, wordCost = 10, damageRedCost = 10, startingScoreCost = 1, glyphCost = 50;
 
         bool topMove = true, downMove = true, leftMove = true, rightMove = true, enterPressed = false;
         Enhancements enhancements;
@@ -43,7 +42,6 @@ namespace typatro.GameFolder.Rooms{
             this.enhancements = enhancements;
             cards = new List<Card>(cardCount);
             glyphs = new List<Glyph>(glyphCount);
-            glyphBought = new bool[glyphCount];
             GenerateShop();
         }
 
@@ -62,6 +60,7 @@ namespace typatro.GameFolder.Rooms{
                 cards.Add(GenerateCard());
                 glyphs.Add(GlyphManager.GetRandomUnusedGlyph());
             }
+            glyphCost = 50 + 10 * GlyphManager.GetGlyphCount();
         }
 
         public void NewShop(){
@@ -69,9 +68,6 @@ namespace typatro.GameFolder.Rooms{
             rerollCost = 2;
             selectedCol = 0;
             selectedRow = 0;
-            for(int i = 0; i < glyphBought.Length; i++){
-                glyphBought[i] = false;
-            }
         }
 
         public bool DisplayShop(ref long coins)
@@ -94,21 +90,35 @@ namespace typatro.GameFolder.Rooms{
                         if(selectedCardIndex < cardCount){
                             Card selectedCard = cards[selectedCardIndex];
                             string description;
-                            if(selectedCard.mult) description = $"Muliplies letter value of '{selectedCard.letter}' by *{selectedCard.value}\n\nCurrent letter score value:{selectedCard.value}    Price of upgrade:{selectedCard.cost}";
-                            else description = $"Adds +{selectedCard.value} to the letter value of '{selectedCard.letter}'\n\nCurrent letter score value:{selectedCard.value}    Price of upgrade:{selectedCard.cost}";
+                            if(selectedCard.mult) description = $"Muliplies letter value of '{selectedCard.letter}' by *{selectedCard.value}\n\nCurrent letter score value:{enhancements.GetLetterScore(selectedCard.letter)}    Price of upgrade:{selectedCard.cost}";
+                            else description = $"Adds +{selectedCard.value} to the letter value of '{selectedCard.letter}'\n\nCurrent letter score value:{enhancements.GetLetterScore(selectedCard.letter)}    Price of upgrade:{selectedCard.cost}";
                             spriteBatch.DrawString(font, description, descPos, Color.Black);
                         }
                     }
-                    else if(cardIndex == 5) spriteBatch.DrawString(font, $"reroll\n\ncost:  {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
-                    else if(cardIndex == 6) spriteBatch.DrawString(font, $"Word\nscore:+1\nCost:{wordCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
-                    else if(cardIndex == 7) spriteBatch.DrawString(font, $"Incoming\ndamage:-1\nCost:{damageRedCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
-                    else if(cardIndex == 8) spriteBatch.DrawString(font, $"Startng\nscore:+1\nCost:{startingScoreCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
-                    else if(cardIndex == 9 && !glyphBought[0]){
+                    else if(cardIndex == 5){
+                        spriteBatch.DrawString(font, $"reroll\n\ncost:  {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
+                        if(selectedCardIndex == 5)spriteBatch.DrawString(font, $"Rerolls all items in the shop for {rerollCost}", descPos, Color.Black);
+                    }
+                    else if(cardIndex == 6){
+                        spriteBatch.DrawString(font, $"Word\nscore:+1\nCost:{wordCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
+                        if(selectedCardIndex == 6)spriteBatch.DrawString(font, $"Adds +1 score per each correct word\n\nCurrent bonus: {enhancements.wordScore}    Cost:{wordCost}", descPos, Color.Black);
+                    }
+                    else if(cardIndex == 7){
+                        spriteBatch.DrawString(font, $"Incoming\ndamage:-1\nCost:{damageRedCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
+                        if(selectedCardIndex == 7)spriteBatch.DrawString(font, $"Reduces the incoming damage from enemies\n\nCurrent bonus: {enhancements.damageResist}    Cost:{damageRedCost}", descPos, Color.Black);
+                    }
+                    else if(cardIndex == 8){
+                        spriteBatch.DrawString(font, $"Startng\nscore:+10\nCost:{startingScoreCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
+                        if(selectedCardIndex == 8)spriteBatch.DrawString(font, $"Adds +10 to the score at begining of the fight\n\nCurrent bonus: {enhancements.startingScore}    Cost:{startingScoreCost}", descPos, Color.Black);
+                    }
+                    else if(cardIndex == 9){
                         spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
+                        spriteBatch.DrawString(font, $"Cost:\n\n  {glyphCost}", new Vector2(64+col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
                         if(selectedCardIndex == 9) spriteBatch.DrawString(font, GlyphManager.GetDescription(glyphs[0]), descPos, Color.Black);
                     } 
-                    else if(cardIndex == 10 && !glyphBought[1]){
-                        spriteBatch.DrawString(font, glyphs[1].ToString() + "\n\nCost: 50", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
+                    else if(cardIndex == 10){
+                        spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
+                        spriteBatch.DrawString(font, $"Cost:\n\n  {glyphCost}", new Vector2(64+col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
                         if(selectedCardIndex == 10) spriteBatch.DrawString(font, GlyphManager.GetDescription(glyphs[1]), descPos, Color.Black);
                     }
                     else if(cardIndex == 11) spriteBatch.DrawString(font, "exit\nshop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), Color.Black);
@@ -118,6 +128,7 @@ namespace typatro.GameFolder.Rooms{
         }
 
         private bool Buying(ref long coins){
+            Console.WriteLine(GlyphManager.GetGlyphCount());
             KeyboardState state = Keyboard.GetState();
             if(state.IsKeyDown(Keys.Enter) && !enterPressed){
                 enterPressed = true;
@@ -151,24 +162,26 @@ namespace typatro.GameFolder.Rooms{
                 }
                 if(selectionIndex == 8 && coins >= startingScoreCost){
                     coins -= startingScoreCost;
-                    startingScoreCost += enhancements.startingScore;
-                    enhancements.startingScore += 1;
+                    startingScoreCost += 5;
+                    enhancements.startingScore += 10;
                 }
-                if(selectionIndex == 9 && coins>= 50){
-                    coins -= 50;
+                if(selectionIndex == 9 && coins>= glyphCost){
+                    coins -= glyphCost;
+                    glyphCost = 50 + 10 * GlyphManager.GetGlyphCount();
                     Glyph glyph = glyphs[0];
                     GlyphManager.Add(glyph);
                     if(glyph == Glyph.Hundred) coins += 100;
                     enhancements.AddGlyphEnhancementsUpdate(glyph);
-                    glyphBought[0] = true;
+                    glyphs[0] = GlyphManager.GetRandomUnusedGlyph();
                 }
-                if(selectionIndex == 10 && coins>= 50){
-                    coins -= 50;
+                if(selectionIndex == 10 && coins>= glyphCost){
+                    coins -= glyphCost;
+                    glyphCost = 50 + 10 * GlyphManager.GetGlyphCount();
                     Glyph glyph = glyphs[1];
                     GlyphManager.Add(glyph);
                     if(glyph == Glyph.Hundred) coins += 100;
                     enhancements.AddGlyphEnhancementsUpdate(glyph);
-                    glyphBought[1] = true;
+                    glyphs[1] = GlyphManager.GetRandomUnusedGlyph();
                 }
                 if(selectionIndex == 11) return true;
                 

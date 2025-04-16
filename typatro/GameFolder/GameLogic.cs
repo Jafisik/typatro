@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Mime;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -37,7 +38,7 @@ namespace typatro.GameFolder
         double textRotation = 0, correctWordTimer = 0, letterTimer = 0;
         int xTextOffset = 0, yTextOffset = 0;
         bool eyeOfHorusActive = false, anubisActive = false, tabPressed = false;
-        long currentScore = 0, playerScore = 0, lastScore = 0, coins = 0, startCoins = 30, damagePrint = -1;
+        long currentScore = 0, playerScore = 0, lastScore = 0, coins = 0, startCoins = 1000, damagePrint = -1;
         Rectangle topBanner = new Rectangle(0,0,1024,45);
         Vector2 topBannerTextOffset = new Vector2(10,10);
         Fight fight;
@@ -103,11 +104,11 @@ namespace typatro.GameFolder
                     if((int)timeInSeconds != lastTime){
                         if((int)timeInSeconds % 10 == 0){
                             if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.H)) textRotation += Math.PI;
-                            if(GlyphManager.IsActive(Glyph.F)) coins += 10;
+                            if(GlyphManager.IsActive(Glyph.M)) coins += 10;
                         }
                         if((int)timeInSeconds % 5 == 0 && timeInSeconds != 0){
                             if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.EyeOfHorus)) eyeOfHorusActive = true;
-                            if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.F)){
+                            if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.M)){
                                 xTextOffset = random.Next(-100,101);
                                 yTextOffset = random.Next(-100,101);
                             }
@@ -119,7 +120,7 @@ namespace typatro.GameFolder
                     }
                     lastTime = (int)timeInSeconds;
                     KeyboardState keyboardState = Keyboard.GetState();
-                    if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.K)){
+                    if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.J)){
                         if(keyboardState.GetPressedKeyCount() > 0){
                             window.Position = new Point(windowPos.X+random.Next(-5,6), windowPos.Y+random.Next(-5,6));
                         }
@@ -206,19 +207,19 @@ namespace typatro.GameFolder
                 
                     if (state.IsKeyDown(Keys.Enter) && finished){
                         if(IsFight(selectedNode.type)){
-                            currentScore = currentScore * (long)((GlyphManager.IsActive(Glyph.Existence)?(1+0.1*GlyphManager.glyphCount):1) *
+                            currentScore = currentScore * (long)((GlyphManager.IsActive(Glyph.Flower)?(1+0.1*GlyphManager.GetGlyphCount()):1) *
                                 (GlyphManager.IsActive(Glyph.Water)?2:1) * (GlyphManager.IsActive(Glyph.Heart)?(diffIndexes.Count>0?3:0.5):1));
                             if(currentScore >= fight.scoreNeeded){
-                                double cashMultiply = (GlyphManager.IsActive(Glyph.M) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
+                                double cashMultiply = (GlyphManager.IsActive(Glyph.Woman) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
                                 coins += (int)(fight.cashGain * cashMultiply);
                                 if(GlyphManager.IsActive(Glyph.B)) enhancements.startingScore += 5;
-                                if(GlyphManager.IsActive(Glyph.M)) enhancements.MultiplyLetterScore((char)(random.Next(0,26)+'a'),2);
+                                if(GlyphManager.IsActive(Glyph.Woman)) enhancements.MultiplyLetterScore((char)(random.Next(0,26)+'a'),2);
                             } 
                             else{
                                 if(GlyphManager.IsActive(Glyph.Osiris)){
                                     enhancements.AllLettersMultiplyScore(0.8);
                                 }
-                                else dead = true;
+                                else dead = false;
                             }
                         }
                         if(selectedNode.type == NodeType.BOSS){

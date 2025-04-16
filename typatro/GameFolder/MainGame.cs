@@ -38,11 +38,8 @@ public class MainGame : Game
         spriteBatch = new SpriteBatch(GraphicsDevice);
         SpriteFont gameFont = Content.Load<SpriteFont>("Fonts/pixelFont");
         SpriteFont menuFont = Content.Load<SpriteFont>("Fonts/menuFont");
-        Texture2D eyeOfHorusTexture = Content.Load<Texture2D>("Glyphs/eyeOfHorus");
-        Texture2D ATexture = Content.Load<Texture2D>("Glyphs/A");
-        GlyphManager.glyphImage.Add(eyeOfHorusTexture);
-        GlyphManager.glyphImage.Add(ATexture);
-
+        
+        GlyphImageLoad();
         texture = new Texture2D(GraphicsDevice, 1, 1);
         texture.SetData(new[] { Color.White });
 
@@ -58,5 +55,14 @@ public class MainGame : Game
         GraphicsDevice.Clear(bgColor);
         gameLogic.Draw(graphics);
         base.Draw(gameTime);
+    }
+
+    private void GlyphImageLoad(){
+        string[] glyphNames = new string[]{"empty", "A", "B", "D", "H", "J", "M", "N", "R", "S", "sun", "house", "water", "king",
+                                           "eyeOfHorus", "osiris", "woman", "man", "flower", "cat", "anubis", "scarab", "snake", "life", 
+                                           "heart", "crocodile", "one", "ten", "hundred", "thousand", "bread", "papyrus", "star"};
+        foreach(string glyphName in glyphNames){
+            GlyphManager.glyphImage.Add(Content.Load<Texture2D>($"Glyphs/{glyphName}"));
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace typatro.GameFolder.Rooms{
         }
 
         public static int SpeedGen(int level, int floor, int difficulty){
-            return (int)((level + floor*0.2) * (difficulty*multPerDiff*(GlyphManager.IsActive(Glyph.W)?0.5:0.8)));
+            return (int)((level + floor*0.2) * (difficulty*multPerDiff*(GlyphManager.IsActive(Glyph.S)?0.5:0.8)));
         }
 
         public static int ScoreNeddedGen(int level, int floor, int difficulty){

@@ -54,14 +54,15 @@ namespace typatro.GameFolder.Upgrades{
                     AddLetterScore('u',5);
                     break;
                 case Glyph.D:   
-                    MultiplyLetterScore('d',4);
+                    MultiplyLetterScore((char)(random.Next(0,26)+'a'),5);
+                    MultiplyLetterScore((char)(random.Next(0,26)+'a'),5);
                     break;
                 case Glyph.H:
                     for(int i = 0; i < 10; i++){
                         MultiplyLetterScore((char)(random.Next(0,26)+'a'),5);
                     }
                     break;
-                case Glyph.K:
+                case Glyph.J:
                     AllLettersAddScore(10);
                     break;
                 case Glyph.Water:
