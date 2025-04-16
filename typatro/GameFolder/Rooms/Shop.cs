@@ -60,7 +60,7 @@ namespace typatro.GameFolder.Rooms{
                 cards.Add(GenerateCard());
                 glyphs.Add(GlyphManager.GetRandomUnusedGlyph());
             }
-            glyphCost = 50 + 10 * GlyphManager.GetGlyphCount();
+            glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
         }
 
         public void NewShop(){
@@ -167,21 +167,21 @@ namespace typatro.GameFolder.Rooms{
                 }
                 if(selectionIndex == 9 && coins>= glyphCost){
                     coins -= glyphCost;
-                    glyphCost = 50 + 10 * GlyphManager.GetGlyphCount();
                     Glyph glyph = glyphs[0];
                     GlyphManager.Add(glyph);
                     if(glyph == Glyph.Hundred) coins += 100;
                     enhancements.AddGlyphEnhancementsUpdate(glyph);
                     glyphs[0] = GlyphManager.GetRandomUnusedGlyph();
+                    glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
                 }
                 if(selectionIndex == 10 && coins>= glyphCost){
                     coins -= glyphCost;
-                    glyphCost = 50 + 10 * GlyphManager.GetGlyphCount();
                     Glyph glyph = glyphs[1];
                     GlyphManager.Add(glyph);
                     if(glyph == Glyph.Hundred) coins += 100;
                     enhancements.AddGlyphEnhancementsUpdate(glyph);
                     glyphs[1] = GlyphManager.GetRandomUnusedGlyph();
+                    glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
                 }
                 if(selectionIndex == 11) return true;
                 

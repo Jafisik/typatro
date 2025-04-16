@@ -38,7 +38,7 @@ namespace typatro.GameFolder
         double textRotation = 0, correctWordTimer = 0, letterTimer = 0;
         int xTextOffset = 0, yTextOffset = 0;
         bool eyeOfHorusActive = false, anubisActive = false, tabPressed = false;
-        long currentScore = 0, playerScore = 0, lastScore = 0, coins = 0, startCoins = 1000, damagePrint = -1;
+        long currentScore = 0, playerScore = 0, lastScore = 0, coins = 0, startCoins = 30, damagePrint = -1;
         Rectangle topBanner = new Rectangle(0,0,1024,45);
         Vector2 topBannerTextOffset = new Vector2(10,10);
         Fight fight;
@@ -153,7 +153,7 @@ namespace typatro.GameFolder
             spriteBatch.End();
         }
 
-        private void Play(){
+        public void Play(){
             KeyboardState state = Keyboard.GetState();
 
             if (state.IsKeyDown(Keys.Escape)){
@@ -219,7 +219,7 @@ namespace typatro.GameFolder
                                 if(GlyphManager.IsActive(Glyph.Osiris)){
                                     enhancements.AllLettersMultiplyScore(0.8);
                                 }
-                                else dead = false;
+                                else dead = true;
                             }
                         }
                         if(selectedNode.type == NodeType.BOSS){
@@ -323,7 +323,6 @@ namespace typatro.GameFolder
         {
             long letterScore = 0;
             for(int i = 0; i < writtenText.Count; i++){
-                if(writtenText[i] == '\n') Console.WriteLine("Line");
                 bool canAdd = true;
                 for(int j = 0; j < diffIndexes.Count; j++){
                     if(i == j) canAdd = false;
@@ -390,11 +389,12 @@ namespace typatro.GameFolder
                 long mistakeDamage = (GlyphManager.IsActive(Glyph.Snake)?0:1)*(GlyphManager.IsActive(Glyph.R)?5:1)*mistakeCount;
                 currentScore = playerScore + correctWords * enhancements.wordScore - (enemyDamage<0?1*(int)timeInSeconds:enemyDamage) - mistakeDamage;
                 if(writtenText.Count == 1) lastScore = 0;
-                if(playerScore - lastScore != 0 && timeInSeconds - letterTimer < 0.5 && writtenText.Count > 0) spriteBatch.DrawString(bigFont, "+" + (playerScore - lastScore).ToString(), lastCharPos, Color.Green);
+                if(playerScore - lastScore != 0 && timeInSeconds - letterTimer < 0.25 && writtenText.Count > 0) spriteBatch.DrawString(bigFont, "+" + (playerScore - lastScore).ToString(), lastCharPos, Color.Green);
             }
             else currentScore = enhancements.startingScore;
         }
-        public void Inventory(){
+
+        private void Inventory(){
             tabPressed = true;
             int columns = 4, rows = 7;
             for(int column = 0; column < columns; column++){
