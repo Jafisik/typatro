@@ -26,9 +26,8 @@ namespace typatro.GameFolder.Rooms{
             GlyphManager.Add(Glyph.NoGlyphsLeft);
         }
 
-        public void DisplayTreasure(ref long coins){
+        public bool DisplayTreasure(ref long coins){
             Glyph glyph = currentGlyph;
-            string treasureText = glyph.ToString();
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
             spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 64, 64), Color.DarkGray);
             spriteBatch.DrawString(smallFont, treasureDescriptionText, new Vector2(leftOffset,topOffset+descOffset), Color.Black);
@@ -46,6 +45,7 @@ namespace typatro.GameFolder.Rooms{
                     GlyphManager.Add(glyph);
                     if(glyph == Glyph.Hundred) coins += 100;
                     enhancements.AddGlyphEnhancementsUpdate(glyph);
+                    return true;
                 }
 
                 spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset+descOffset, rectWidth, rectHeight), pickUp ? Color.Gray : Color.LightGray);
@@ -57,6 +57,7 @@ namespace typatro.GameFolder.Rooms{
                 spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), Color.Gray);
                 spriteBatch.Draw(texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset, rectWidth, rectHeight), Color.LightGray);
             }
+            return false;
         }
 
         public void NewGlyph(){

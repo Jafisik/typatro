@@ -14,7 +14,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for 'A', used for names or verbs.\n+ Adds 5 to all vowels")]
         A,
 
-        [Description("Sound for 'B', symbol for foot or place.\nAdds +5 to the starting score each fight")]
+        [Description("Sound for 'B', symbol for foot or place.\n+ Adds +5 to the starting score each fight")]
         B,
 
         [Description("Sound for 'D', symbol for hand.\n+ Multiplies 2 random letter scores by *5")]
@@ -129,6 +129,10 @@ namespace typatro.GameFolder.Upgrades{
 
             int index = random.Next(unusedGlyphs.Count);
             return unusedGlyphs[index];
+        }
+
+        public static Glyph[] GetGlyphs(){
+            return activeGlyphs.ToArray();
         }
 
         public static int GetGlyphCount(){

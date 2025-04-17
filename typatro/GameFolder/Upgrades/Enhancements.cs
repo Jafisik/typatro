@@ -6,6 +6,7 @@ namespace typatro.GameFolder.Upgrades{
 
     class Enhancements{
         public long[] letters = new long[26];
+        public long[] lettersChange = new long[26];
         public int wordScore = 2;
         public int damageResist = 0;
         public int startingScore = 0;
@@ -16,26 +17,35 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
 
+        public void ResetLettersChange(){
+            lettersChange = new long[26];
+        }
+
         public long GetLetterScore(char letter){
             return letters[letter-'a'];
         }
 
         public void AddLetterScore(char letter, long score){
             letters[letter-'a'] += score;
+            lettersChange[letter-'a'] += score;
         }
 
         public void AllLettersAddScore(long score){
             for(int i = 0; i < letters.Length; i++){
                 letters[i] += score;
+                lettersChange[i] += score;
             }
         }
 
         public void MultiplyLetterScore(char letter, double score){
+            lettersChange[letter-'a'] += (int)(letters[letter-'a'] * score);
             letters[letter-'a'] = (int)(letters[letter-'a'] * score);
+            
         }
 
         public void AllLettersMultiplyScore(double score){
             for(int i = 0; i < letters.Length; i++){
+                lettersChange[i] += (int)(letters[i] * score);
                 letters[i] = (int)(letters[i] * score);
             }
         }
@@ -75,8 +85,14 @@ namespace typatro.GameFolder.Upgrades{
                     long minVal = letters.Min();
                     bool setZero = maxVal != minVal;
                     for(int i = 0; i < letters.Length; i++){
-                        if(letters[i] == maxVal) letters[i] *= 5;
-                        if(setZero && letters[i] == minVal) letters[i] = 0;
+                        if(letters[i] == maxVal){
+                            lettersChange[i] = letters[i] * 5;
+                            letters[i] *= 5;
+                        }
+                        if(setZero && letters[i] == minVal){
+                            lettersChange[i] -= letters[i];
+                            letters[i] = 0;
+                        }
                     }
                     break;
                 case Glyph.Cat:
@@ -86,7 +102,9 @@ namespace typatro.GameFolder.Upgrades{
                     break;
                 case Glyph.Crocodile:
                     MultiplyLetterScore((char)(random.Next(0,26)+'a'),20);
-                    letters[random.Next(0,26)] = 0;
+                    char letter = (char)random.Next(0,26);
+                    lettersChange[letter] -= letters[letter];
+                    letters[letter] = 0;
                     break;
                 case Glyph.One:
                     AllLettersAddScore(1);

@@ -38,12 +38,14 @@ public class MainGame : Game
         spriteBatch = new SpriteBatch(GraphicsDevice);
         SpriteFont gameFont = Content.Load<SpriteFont>("Fonts/pixelFont");
         SpriteFont menuFont = Content.Load<SpriteFont>("Fonts/menuFont");
+        SpriteFont textFont = Content.Load<SpriteFont>("Fonts/textFont");
         
         GlyphImageLoad();
+        Texture2D catPic = Content.Load<Texture2D>("Images/catPic");
         texture = new Texture2D(GraphicsDevice, 1, 1);
         texture.SetData(new[] { Color.White });
 
-        gameLogic = new GameLogic(spriteBatch, menuFont, gameFont, texture, jsonStrings, Window.Position);
+        gameLogic = new GameLogic(spriteBatch, menuFont, gameFont, textFont, texture, jsonStrings, Window.Position, catPic);
     }
 
     protected override void Update(GameTime gameTime){

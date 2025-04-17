@@ -58,7 +58,15 @@ namespace typatro.GameFolder.Rooms{
             glyphs.Clear();
             for(int i = 0; i < cardCount; i++){
                 cards.Add(GenerateCard());
-                glyphs.Add(GlyphManager.GetRandomUnusedGlyph());
+            }
+            for(int i = 0; i < glyphCount; i++){
+                Glyph glyph = GlyphManager.GetRandomUnusedGlyph();
+                if(i == 1){
+                    while(glyph == glyphs[0]){
+                        glyph = GlyphManager.GetRandomUnusedGlyph();
+                    }
+                }
+                glyphs.Add(glyph);
             }
             glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
         }
@@ -128,7 +136,6 @@ namespace typatro.GameFolder.Rooms{
         }
 
         private bool Buying(ref long coins){
-            Console.WriteLine(GlyphManager.GetGlyphCount());
             KeyboardState state = Keyboard.GetState();
             if(state.IsKeyDown(Keys.Enter) && !enterPressed){
                 enterPressed = true;
