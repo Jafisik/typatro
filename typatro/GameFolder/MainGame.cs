@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder;
@@ -15,7 +16,7 @@ public class MainGame : Game
     SpriteBatch spriteBatch;
     Texture2D texture;
     GameLogic gameLogic;
-    Color bgColor = Color.DarkGray;
+    Color bgColor = new Color(255,133,222);
 
     public MainGame(){
         graphics = new GraphicsDeviceManager(this);
@@ -37,15 +38,17 @@ public class MainGame : Game
         
         spriteBatch = new SpriteBatch(GraphicsDevice);
         SpriteFont gameFont = Content.Load<SpriteFont>("Fonts/pixelFont");
+        SpriteFont smallTextFont = Content.Load<SpriteFont>("Fonts/smallPixelFont");
         SpriteFont menuFont = Content.Load<SpriteFont>("Fonts/menuFont");
         SpriteFont textFont = Content.Load<SpriteFont>("Fonts/textFont");
         
         GlyphImageLoad();
+        ThemeColors.Apply("pink");
         Texture2D catPic = Content.Load<Texture2D>("Images/catPic");
         texture = new Texture2D(GraphicsDevice, 1, 1);
         texture.SetData(new[] { Color.White });
 
-        gameLogic = new GameLogic(spriteBatch, menuFont, gameFont, textFont, texture, jsonStrings, Window.Position, catPic);
+        gameLogic = new GameLogic(spriteBatch, menuFont, gameFont, smallTextFont, textFont, texture, jsonStrings, Window.Position, catPic);
     }
 
     protected override void Update(GameTime gameTime){
@@ -54,7 +57,6 @@ public class MainGame : Game
     }
 
     protected override void Draw(GameTime gameTime){
-        GraphicsDevice.Clear(bgColor);
         gameLogic.Draw(graphics);
         base.Draw(gameTime);
     }
@@ -67,4 +69,5 @@ public class MainGame : Game
             GlyphManager.glyphImage.Add(Content.Load<Texture2D>($"Glyphs/{glyphName}"));
         }
     }
+
 }

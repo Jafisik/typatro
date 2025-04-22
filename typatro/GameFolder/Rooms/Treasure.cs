@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder.Rooms{
@@ -15,7 +16,7 @@ namespace typatro.GameFolder.Rooms{
         Enhancements enhancements;
         Random random = new Random();
         bool pickUp = true, keyDown;
-        readonly int topOffset = 80, leftOffset = 50, descOffset = 100, rectTopOffset = 200, rectWidth = 100, rectHeight = 100;
+        readonly int topOffset = 80, leftOffset = 50, descOffset = 100, rectTopOffset = 200, rectWidth = 100, rectHeight = 50;
 
         public Treasure(SpriteBatch spriteBatch, SpriteFont bigFont, SpriteFont smallFont, Texture2D texture, Enhancements enhancements){
             this.spriteBatch = spriteBatch;
@@ -29,8 +30,8 @@ namespace typatro.GameFolder.Rooms{
         public bool DisplayTreasure(ref long coins){
             Glyph glyph = currentGlyph;
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
-            spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 64, 64), Color.DarkGray);
-            spriteBatch.DrawString(smallFont, treasureDescriptionText, new Vector2(leftOffset,topOffset+descOffset), Color.Black);
+            spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 64, 64), ThemeColors.Background);
+            spriteBatch.DrawString(smallFont, treasureDescriptionText, new Vector2(leftOffset,topOffset+descOffset), ThemeColors.Text);
 
             if(glyph != Glyph.NoGlyphsLeft){
                 var state = Keyboard.GetState();
@@ -48,14 +49,14 @@ namespace typatro.GameFolder.Rooms{
                     return true;
                 }
 
-                spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset+descOffset, rectWidth, rectHeight), pickUp ? Color.Gray : Color.LightGray);
-                spriteBatch.DrawString(bigFont, "yes", new Vector2(leftOffset, rectTopOffset+descOffset), Color.Black);
-                spriteBatch.Draw(texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset+descOffset, rectWidth, rectHeight), pickUp ? Color.LightGray : Color.Gray);
-                spriteBatch.DrawString(bigFont, "no", new Vector2(leftOffset*2+rectHeight, rectTopOffset+descOffset), Color.Black);
+                spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset+descOffset, rectWidth, rectHeight), pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
+                spriteBatch.DrawString(bigFont, "yes", new Vector2(leftOffset+10, rectTopOffset+descOffset+5), ThemeColors.Text);
+                spriteBatch.Draw(texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset+descOffset, rectWidth, rectHeight), pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
+                spriteBatch.DrawString(bigFont, "no", new Vector2(leftOffset*2+rectHeight+10, rectTopOffset+descOffset+5), ThemeColors.Text);
             } 
             else{
-                spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), Color.Gray);
-                spriteBatch.Draw(texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset, rectWidth, rectHeight), Color.LightGray);
+                spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), ThemeColors.NotSelected);
+                spriteBatch.Draw(texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset, rectWidth, rectHeight), ThemeColors.Selected);
             }
             return false;
         }

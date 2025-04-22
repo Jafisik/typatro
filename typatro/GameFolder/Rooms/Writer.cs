@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder
@@ -92,7 +93,7 @@ namespace typatro.GameFolder
 
         //Visualizes user input and highlights mistakes (prints user input and then prints wrongString,
         // which has ' ' for correct letters and the actual letters for wrong letters)
-        public Vector2 UserInputText(char[] printCharArray, Color color, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
+        public Vector2 UserInputText(char[] printCharArray, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
         {
             StringBuilder writeLine = new StringBuilder();
             StringBuilder wrongString = new StringBuilder();
@@ -114,8 +115,8 @@ namespace typatro.GameFolder
 
             Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + yExtraOffset);
 
-            _spriteBatch.DrawString(font, correctText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, Color.Red, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, correctText, position + rotationPoint, ThemeColors.Text, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, ThemeColors.Wrong, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
             return new Vector2(charIndex*16-50, -50) + position;
         }
         Vector2 rotationPoint;

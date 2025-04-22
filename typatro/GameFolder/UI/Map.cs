@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using typatro.GameFolder.UI;
 
 namespace typatro.GameFolder{
     enum NodeType{
@@ -134,11 +136,11 @@ namespace typatro.GameFolder{
                             }
                         }
 
-                        spriteBatch.DrawString(bigFont, MapIcon(node.type), node.point, Color.Black);
+                        spriteBatch.DrawString(bigFont, MapIcon(node.type), node.point, ThemeColors.Text);
                     }
                 }
             }
-            spriteBatch.DrawString(smallFont, "F - Fight   E - Elite fight   ? - Random\n  $ - Shop   X - Treasure   B - Boss", new Vector2(leftOffset + 100,520), Color.Black);
+            spriteBatch.DrawString(smallFont, "F - Fight   E - Elite fight   ? - Random  $ - Shop   X - Treasure   B - Boss", new Vector2(leftOffset + 100,520), ThemeColors.Text);
         }
 
         private void DrawDottedPath(Vector2 start, Vector2 end)
@@ -149,7 +151,7 @@ namespace typatro.GameFolder{
             
             for (float d = dotSpacing; d < distance-dotSpacing; d += dotSpacing){
                 Vector2 dotPosition = start + direction * d;
-                spriteBatch.DrawString(bigFont, ".", dotPosition, Color.Gray);
+                spriteBatch.DrawString(bigFont, ".", dotPosition, ThemeColors.Extra);
             }
         }
 
@@ -194,10 +196,10 @@ namespace typatro.GameFolder{
                 }
                 else if(state.IsKeyUp(Keys.Enter)) enterUp = true;
                 
-                spriteBatch.Draw(texture, new Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), Color.Gray);
+                spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), ThemeColors.NodeSelect);
             }
             if(node.type != NodeType.NOTHING){
-                spriteBatch.Draw(texture, new Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), Color.MediumVioletRed);
+                spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), ThemeColors.Background);
             }
             
             return node;
