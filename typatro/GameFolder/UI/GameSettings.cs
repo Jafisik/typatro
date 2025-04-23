@@ -50,9 +50,9 @@ namespace typatro.GameFolder.UI{
 
                 case 3: //RED
                     Background = new Color(0x242cae);
-                    Foreground = new Color(0x181eb1);
-                    Selected = new Color(0x342502);
-                    NotSelected = new Color(0x0c1137);
+                    Foreground = new Color(0x481eb1);
+                    Selected = new Color(0x444444);
+                    NotSelected = new Color(0x2c2137);
                     Text = Color.Black;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
