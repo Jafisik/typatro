@@ -140,7 +140,7 @@ namespace typatro.GameFolder{
                     }
                 }
             }
-            spriteBatch.DrawString(smallFont, "F - Fight   E - Elite fight   ? - Random  $ - Shop   X - Treasure   B - Boss", new Vector2(leftOffset + 100,520), ThemeColors.Text);
+            spriteBatch.DrawString(smallFont, "F - Fight   E - Elite fight   ? - Random  $ - Shop   X - Treasure   B - Boss", new Vector2(leftOffset + 100,540), ThemeColors.Text);
         }
 
         private void DrawDottedPath(Vector2 start, Vector2 end)
@@ -151,7 +151,7 @@ namespace typatro.GameFolder{
             
             for (float d = dotSpacing; d < distance-dotSpacing; d += dotSpacing){
                 Vector2 dotPosition = start + direction * d;
-                spriteBatch.DrawString(bigFont, ".", dotPosition, ThemeColors.Extra);
+                spriteBatch.DrawString(bigFont, ".", dotPosition, ThemeColors.NotSelected);
             }
         }
 
@@ -196,7 +196,7 @@ namespace typatro.GameFolder{
                 }
                 else if(state.IsKeyUp(Keys.Enter)) enterUp = true;
                 
-                spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), ThemeColors.NodeSelect);
+                spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), ThemeColors.NotSelected);
             }
             if(node.type != NodeType.NOTHING){
                 spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), ThemeColors.Background);

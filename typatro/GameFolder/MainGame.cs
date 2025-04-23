@@ -17,6 +17,7 @@ public class MainGame : Game
     Texture2D texture;
     GameLogic gameLogic;
     Color bgColor = new Color(255,133,222);
+    public readonly static int screenWidth = 1024, screenHeight = 576;
 
     public MainGame(){
         graphics = new GraphicsDeviceManager(this);
@@ -25,8 +26,9 @@ public class MainGame : Game
     }
 
     protected override void Initialize(){
-        graphics.PreferredBackBufferWidth = 1024;
-        graphics.PreferredBackBufferHeight = 576;
+        graphics.PreferredBackBufferWidth = screenWidth;
+        graphics.PreferredBackBufferHeight = screenHeight;
+        Window.Title = "GLYPHORA";
         graphics.ApplyChanges();
         base.Initialize();
     }
@@ -43,7 +45,8 @@ public class MainGame : Game
         SpriteFont textFont = Content.Load<SpriteFont>("Fonts/textFont");
         
         GlyphImageLoad();
-        ThemeColors.Apply("pink");
+        int[] settings = SettingsManager.Load();
+        ThemeColors.Apply(settings[0]);
         Texture2D catPic = Content.Load<Texture2D>("Images/catPic");
         texture = new Texture2D(GraphicsDevice, 1, 1);
         texture.SetData(new[] { Color.White });

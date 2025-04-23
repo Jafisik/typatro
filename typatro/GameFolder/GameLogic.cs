@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Mime;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -125,7 +123,7 @@ namespace typatro.GameFolder
                     lastTime = (int)timeInSeconds;
                     KeyboardState keyboardState = Keyboard.GetState();
                     if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.J)){
-                        if(keyboardState.GetPressedKeyCount() > 0){
+                        if(keyboardState.GetPressedKeyCount() > 0 && keyboardState.IsKeyUp(Keys.Tab)){
                             window.Position = new Point(windowPos.X+random.Next(-5,6), windowPos.Y+random.Next(-5,6));
                         }
                         else window.Position = windowPos;
@@ -151,12 +149,10 @@ namespace typatro.GameFolder
                 if (Keyboard.GetState().IsKeyDown(Keys.Escape)){
                     gameState = GameState.MENU;
                     
-                    SettingsManager.Save(menu.selectedTheme.ToString(), menu.volume);
+                    SettingsManager.Save(SettingsManager.theme, SettingsManager.volume);
                 }
 
-                if(menu.selectedTheme == Menu.Themes.pink) ThemeColors.Apply("pink");
-                else if(menu.selectedTheme == Menu.Themes.red) ThemeColors.Apply("red");
-                else if(menu.selectedTheme == Menu.Themes.black) ThemeColors.Apply("black");
+                ThemeColors.Apply(SettingsManager.theme);
                     
                 menu.DrawOptionsMenu(graphicsDevice);
             }
@@ -231,11 +227,6 @@ namespace typatro.GameFolder
                                     }
                                     else dead = true;
                                 }
-                                if(selectedNode.type == NodeType.BOSS){
-                                    map.GenerateNodes();
-                                    selectedNode = map.GetFirstNode();
-                                    level++;
-                                }
                                 afterFightScreen = true;
 
                                 int valMin = 1, valMax = 4;
@@ -265,22 +256,29 @@ namespace typatro.GameFolder
                                 if(state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right)){
                                     afterFightMove = true;
                                 }
-                                Color cardColor;
-                                for(int i = 0; i < cards.Count; i++){
-                                    
-                                    cardColor = (i == afterFightSelect)? ThemeColors.Selected:ThemeColors.Foreground;
-                                    spriteBatch.Draw(texture, new Rectangle(100+300*i, 200, 160, 120), cardColor);
-                                    spriteBatch.DrawString(smallFont,  cards[i].letter + "  +" + cards[i].value, new Vector2(100+300*i+10, 200+10), ThemeColors.Text);
-                                }
-                                spriteBatch.DrawString(bigFont, "Fight won " + coins, new Vector2(100), ThemeColors.Text);
-                                if(state.IsKeyDown(Keys.Enter)){
-                                    if(cards[afterFightSelect].mult){
-                                        enhancements.MultiplyLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
-                                    } else{
-                                        enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
+                                if(state.IsKeyUp(Keys.Tab)){
+                                    Color cardColor;
+                                    for(int i = 0; i < cards.Count; i++){
+                                        cardColor = (i == afterFightSelect)? ThemeColors.Selected:ThemeColors.Foreground;
+                                        spriteBatch.Draw(texture, new Rectangle(100+300*i, 250, 160, 120), cardColor);
+                                        spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(100+300*i+10, 250+10), ThemeColors.Text);
                                     }
-                                    waitingForEnter = false;
-                                    enterReleased = false;
+                                    spriteBatch.DrawString(bigFont, "Fight won", new Vector2(350,70), ThemeColors.Text);
+                                    spriteBatch.DrawString(bigFont, "Choose your reward", new Vector2(240,130), ThemeColors.Text);
+                                    if(state.IsKeyDown(Keys.Enter)){
+                                        if(cards[afterFightSelect].mult){
+                                            enhancements.MultiplyLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
+                                        } else{
+                                            enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
+                                        }
+                                        waitingForEnter = false;
+                                        enterReleased = false;
+                                        if(selectedNode.type == NodeType.BOSS){
+                                            map.GenerateNodes();
+                                            selectedNode = map.GetFirstNode();
+                                            level++;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -372,7 +370,7 @@ namespace typatro.GameFolder
 
         private void TopBannerDisplay(bool map){
             spriteBatch.Draw(texture, topBanner, ThemeColors.Foreground);
-            string mapBanner = tabPressed?$"coins:{coins}":$"coins:{coins}      tab -> inventory";
+            string mapBanner = tabPressed?$"coins:{coins}":$"coins:{coins}                             tab -> inventory";
             if(map) spriteBatch.DrawString(smallFont, mapBanner, topBannerTextOffset, ThemeColors.Text);
             else spriteBatch.DrawString(smallFont, $"coins:{coins} {currentScore}/{fight.scoreNeeded} speed:-{damagePrint} reward:{fight.cashGain}", topBannerTextOffset, ThemeColors.Text);
         }
@@ -423,6 +421,7 @@ namespace typatro.GameFolder
                     correctWords++;
             }
 
+            Console.WriteLine($"Correct words {correctWords} LastWordCount {lastWordCount}");
             if(userWords.Length != lastWordCount){
                 bool under3Sec = timeInSeconds - timeSinceLastWord < 3;
                 if(!under3Sec && GlyphManager.IsActive(Glyph.N)) wordStreak = 0;
@@ -490,14 +489,14 @@ namespace typatro.GameFolder
                     spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(xOffset*columns++,yOffset,imageSize,imageSize), ThemeColors.Background);
                 }
             }
-            
-            
         }
 
         private void HealthBar(){
-            spriteBatch.Draw(texture, new Rectangle(40, 60, 930, 30), ThemeColors.Text);
+            spriteBatch.Draw(texture, new Rectangle(40, 60, 930, 30), ThemeColors.Selected);
             int redBarLength = (int)((double)Math.Min(fight.scoreNeeded, fight.scoreNeeded - currentScore) / fight.scoreNeeded * 920);
-            spriteBatch.Draw(texture, new Rectangle(45, 65, redBarLength, 20), ThemeColors.Extra);
+            spriteBatch.Draw(texture, new Rectangle(45, 65, redBarLength, 20), ThemeColors.Foreground);
+            string score = $"{currentScore}/{fight.scoreNeeded}";
+            spriteBatch.DrawString(smallFont, score, new Vector2(MainGame.screenWidth/2-score.Length*10,100), ThemeColors.Text);
         }
     }
 }

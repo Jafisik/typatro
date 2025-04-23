@@ -117,7 +117,7 @@ namespace typatro.GameFolder
 
             _spriteBatch.DrawString(font, correctText, position + rotationPoint, ThemeColors.Text, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
             _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, ThemeColors.Wrong, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            return new Vector2(charIndex*16-50, -50) + position;
+            return new Vector2(charIndex*font.MeasureString(" ").X-50, -50) + position;
         }
         Vector2 rotationPoint;
         

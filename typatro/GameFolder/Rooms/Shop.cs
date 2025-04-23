@@ -30,7 +30,7 @@ namespace typatro.GameFolder.Rooms{
         readonly int horizontalSpacing = 160, verticalSpacing = 100, cardHeight = 80, cardWidth = 150, cardTextTopOffset = 10, cardTextLeftOffset = 5;
         readonly int topOffset = 100, leftOffset = 30, cardCount = 5, glyphCount = 2;
         Vector2 descPos = new Vector2(50,320);
-        int rerollCost = 2, wordCost = 10, damageRedCost = 10, startingScoreCost = 1, glyphCost = 50;
+        int rerollCost = 5, wordCost = 10, damageRedCost = 10, startingScoreCost = 1, glyphCost = 50;
 
         bool topMove = true, downMove = true, leftMove = true, rightMove = true, enterPressed = false;
         Enhancements enhancements;
@@ -74,7 +74,7 @@ namespace typatro.GameFolder.Rooms{
 
         public void NewShop(){
             GenerateShop();
-            rerollCost = 2;
+            rerollCost = 5;
             selectedCol = 0;
             selectedRow = 0;
         }
@@ -94,6 +94,7 @@ namespace typatro.GameFolder.Rooms{
                     spriteBatch.Draw(texture, new Rectangle(col * horizontalSpacing + leftOffset, row * verticalSpacing+ topOffset, cardWidth, cardHeight), cardColor);
                     
                     if(cardIndex < cardCount){
+                        cards[cardIndex].cost = cards[cardIndex].mult ? (cards[cardIndex].value + enhancements.GetLetterScore(cards[cardIndex].letter))*3 : (cards[cardIndex].value + enhancements.GetLetterScore(cards[cardIndex].letter));
                         spriteBatch.DrawString(font, $" {cards[cardIndex].letter}:  {enhancements.GetLetterScore(cards[cardIndex].letter)}       {(cards[cardIndex].mult ? "*" : "+")} {cards[cardIndex].value}\n\n Cost:        {cards[cardIndex].cost}", 
                         new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if(selectedCardIndex < cardCount){

@@ -42,12 +42,15 @@ namespace typatro.GameFolder.Rooms{
                 if(state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right)){
                     keyDown = false;
                 }
-                if(state.IsKeyDown(Keys.Enter) && pickUp){
-                    GlyphManager.Add(glyph);
-                    if(glyph == Glyph.Hundred) coins += 100;
-                    enhancements.AddGlyphEnhancementsUpdate(glyph);
+                if(state.IsKeyDown(Keys.Enter)){
+                    if(pickUp){
+                        GlyphManager.Add(glyph);
+                        if(glyph == Glyph.Hundred) coins += 100;
+                        enhancements.AddGlyphEnhancementsUpdate(glyph);
+                    }
                     return true;
                 }
+                
 
                 spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset+descOffset, rectWidth, rectHeight), pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
                 spriteBatch.DrawString(bigFont, "yes", new Vector2(leftOffset+10, rectTopOffset+descOffset+5), ThemeColors.Text);
