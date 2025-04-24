@@ -1,6 +1,8 @@
+using System;
 using System.IO;
 using System.Text.Json;
 using Microsoft.Xna.Framework;
+using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder.UI{
     public static class ThemeColors
@@ -71,24 +73,54 @@ namespace typatro.GameFolder.UI{
         }
     }
 
-    public static class SettingsManager
+    public class GameSaveData{
+        public int[] mapNode {get;set;}
+        public long[] letterScores {get;set;}
+        public int[] enhancements {get;set;}
+        public Glyph[] glyphs {get;set;}
+        public long coins {get;set;}
+        public int level {get;set;}
+        public int seed {get;set;}
+    }
+
+    public static class SaveManager
     {
         public static int theme = 0;
         public static int volume = 10;
-        private static readonly string path = "settings.json";
+        private static readonly string settingsPath = "settings.json";
+        private static readonly string gameSavePath = "gameSave.json";
 
-        public static void Save(int theme, int volume)
-        {
+        public static void SaveSettings(int theme, int volume){
             int[] save = new int[] {theme, volume};
             var json = JsonSerializer.Serialize(save, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(path, json);
+            File.WriteAllText(settingsPath, json);
         }
 
-        public static int[] Load()
-        {
-            if (!File.Exists(path)) return new int[]{0,10};
-            var json = File.ReadAllText(path);
+        public static int[] LoadSettings(){
+            if (!File.Exists(settingsPath)) return new int[]{0,10};
+            var json = File.ReadAllText(settingsPath);
             return JsonSerializer.Deserialize<int[]>(json);
+        }
+
+        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements, Glyph[] glyphs){
+            int[] node = mapNode.NodePos();
+            GameSaveData gameSaveData = new GameSaveData(){
+                seed = seed,
+                level = level,
+                coins = coins,
+                mapNode = node,
+                letterScores = enhancements.letters,
+                enhancements = new int[]{enhancements.wordScore, enhancements.damageResist, enhancements.startingScore},
+                glyphs = glyphs
+            };
+            string json = JsonSerializer.Serialize(gameSaveData, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(gameSavePath, json);
+        }
+
+        public static GameSaveData LoadGame(){
+            if (!File.Exists(settingsPath)) return null;
+            var json = File.ReadAllText(settingsPath);
+            return JsonSerializer.Deserialize<GameSaveData>(json);
         }
     }
 }

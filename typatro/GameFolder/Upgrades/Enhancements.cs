@@ -4,17 +4,18 @@ using System.Linq;
 
 namespace typatro.GameFolder.Upgrades{
 
-    class Enhancements{
+    public class Enhancements{
         public long[] letters = new long[26];
         public long[] lettersChange = new long[26];
         public int wordScore = 2;
         public int damageResist = 0;
         public int startingScore = 0;
-        Random random = new Random();
+        Random random;
         public Enhancements(){
             for(int letter = 0; letter < letters.Length; letter++){
                 letters[letter] = 1;
             }
+            random = new Random(GameLogic.seed);
         }
 
         public void ResetLettersChange(){

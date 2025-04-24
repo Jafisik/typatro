@@ -29,7 +29,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for 'M', can symbolize owl, silence or wisdom.\n+ Gains 10 coins every 10 seconds in a fight\n- Text changes position every 5 seconds")]
         M,
 
-        [Description("Sound for 'N', ripple of water, also 'to' or 'for'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds count as 0 and break streak")]
+        [Description("Sound for 'N', ripple of water, also 'to' or 'for'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds break streak")]
         N,
 
         [Description("Sound for 'R', symbolizing mouth or one whole thing.\n+ Lets you correct your mistakes\n- Mistakes count as -5")]
@@ -96,7 +96,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Symbol for the number one hundred, coil of rope.\n+ Adds 100 coins")]
         Hundred,
 
-        [Description("Symbol for the number one thousand, water lily.\n+ Every 1000 letters add +1000 to score")]
+        [Description("Symbol for the number one thousand, water lily.\n+ Every 1000 letters automatically wins fight")]
         Thousand,
 
         [Description("'Bread', representing basic sustenance and offerings.\n+ Add +3 to 6 random letter scores")]

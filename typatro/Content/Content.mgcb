@@ -449,3 +449,9 @@
 /processorParam:TextureFormat=Color
 /build:Images/catPic.png
 
+#begin Music/glyphoraFr.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/glyphoraFr.mp3
+

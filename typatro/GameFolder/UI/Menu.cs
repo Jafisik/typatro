@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using typatro.GameFolder.UI;
 using System.Linq;
+using Microsoft.Xna.Framework.Media;
+using Microsoft.VisualBasic;
 
 
 namespace typatro.GameFolder
@@ -22,13 +24,14 @@ namespace typatro.GameFolder
         bool menuNav = true, optionNav = true;
         enum MenuSelect
         {
-            play,
+            load,
+            start,
             options,
             exit,
             empty
         }
-        private MenuSelect menuSelect = MenuSelect.play;
-        string[] menuTexts;
+        private MenuSelect menuSelect = MenuSelect.start;
+        string[] menuTexts = new string[] { "continue", "new game", "options", "exit"};
         
 
         enum OptionSelect{
@@ -36,7 +39,7 @@ namespace typatro.GameFolder
             volume
         }
         private OptionSelect optionSelect = OptionSelect.theme;
-        string[] optionTexts;
+        string[] optionTexts = new string[] { "theme", "volume"};
 
         public string[] themes = new string[]{ "black", "pink", "blue", "red"  };
 
@@ -45,31 +48,14 @@ namespace typatro.GameFolder
             this.spriteBatch = spriteBatch;
             this.font = font;
             this.texture = texture;
-
-            int menuSelectLength = Enum.GetValues(typeof(MenuSelect)).Length - 1;
-            List<string> tempMenuTexts = new List<string>(menuSelectLength);
-            for (int menuItems = 0; menuItems < menuSelectLength; menuItems++)
-            {
-                tempMenuTexts.Add(((MenuSelect)menuItems).ToString());
-            }
-            menuTexts = tempMenuTexts.ToArray();
-
-            int menuOptionLength = Enum.GetValues(typeof(OptionSelect)).Length;
-            List<string> tempOptionTexts = new List<string>(menuOptionLength);
-            for (int menuItems = 0; menuItems < menuOptionLength; menuItems++)
-            {
-                tempOptionTexts.Add(((OptionSelect)menuItems).ToString());
-            }
-            optionTexts = tempOptionTexts.ToArray();
             
-
-            int[] settings = SettingsManager.Load();
-            SettingsManager.theme = settings[0];
-            SettingsManager.volume = settings[1];
+            int[] settings = SaveManager.LoadSettings();
+            SaveManager.theme = settings[0];
+            SaveManager.volume = settings[1];
         }
 
         //To add new new menu item just add an item into enum MenuSelect and in the class MainGame add the same thing to enum GameState
-        public int DrawMainMenu(GraphicsDeviceManager graphicsDevice)
+        public int DrawMainMenu(GraphicsDeviceManager graphicsDevice, bool gameSaved)
         {
             Color[] menuColors = new Color[menuTexts.Length];
             KeyboardState state = Keyboard.GetState();
@@ -96,7 +82,7 @@ namespace typatro.GameFolder
             Vector2 screenCenter = new Vector2(275, 100);
 
             spriteBatch.DrawString(font, title, screenCenter, ThemeColors.Text, 0f, new Vector2(), 2f, SpriteEffects.None, 0.6f);
-            for (int line = 0; line < menuTexts.Length; line++)
+            for (int line = gameSaved?0:1; line < menuTexts.Length; line++)
             {
                 spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - menuRectWidth) / 2, topOffset + menuLineSpacing * line, menuRectWidth, menuRectHeight), menuColors[line]);
                 Vector2 textSize = font.MeasureString(menuTexts[line]);
@@ -136,22 +122,24 @@ namespace typatro.GameFolder
 
             if(optionNav){
                 if(state.IsKeyDown(Keys.Left)){
-                    if(optionSelect == OptionSelect.theme && SettingsManager.theme != 0){
-                        SettingsManager.theme--;
+                    if(optionSelect == OptionSelect.theme && SaveManager.theme != 0){
+                        SaveManager.theme--;
                         optionNav = false;
                     }
-                    if(optionSelect == OptionSelect.volume && SettingsManager.volume > 0){
-                        SettingsManager.volume--;
+                    if(optionSelect == OptionSelect.volume && SaveManager.volume > 0){
+                        SaveManager.volume--;
+                        MediaPlayer.Volume = SaveManager.volume / 10f;
                         optionNav = false;
                     }
                 }
                 if(state.IsKeyDown(Keys.Right)){
-                    if(optionSelect == OptionSelect.theme && SettingsManager.theme != themes.Length-1){
-                        SettingsManager.theme++;
+                    if(optionSelect == OptionSelect.theme && SaveManager.theme != themes.Length-1){
+                        SaveManager.theme++;
                         optionNav = false;
                     }
-                    if(optionSelect == OptionSelect.volume && SettingsManager.volume < 10){
-                        SettingsManager.volume++;
+                    if(optionSelect == OptionSelect.volume && SaveManager.volume < 10){
+                        SaveManager.volume++;
+                        MediaPlayer.Volume = SaveManager.volume / 10f;
                         optionNav = false;
                     }
                 }
@@ -169,11 +157,11 @@ namespace typatro.GameFolder
                 Vector2 textPos = new Vector2((graphicsDevice.PreferredBackBufferWidth - textSize.X) / 2 - leftOffset, topOffset + optionRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
                 spriteBatch.DrawString(font, optionTexts[line], textPos, ThemeColors.Text);
             }
-            spriteBatch.DrawString(font, themes[SettingsManager.theme], new Vector2((graphicsDevice.PreferredBackBufferWidth - optionRectWidth) / 2 + leftOffset+85, topOffset+20), ThemeColors.Text);
+            spriteBatch.DrawString(font, themes[SaveManager.theme], new Vector2((graphicsDevice.PreferredBackBufferWidth - optionRectWidth) / 2 + leftOffset+85, topOffset+20), ThemeColors.Text);
             spriteBatch.DrawString(font, "<             >", new Vector2((graphicsDevice.PreferredBackBufferWidth - optionRectWidth) / 2 + leftOffset+10, topOffset+20), ThemeColors.Text);
             spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - optionRectWidth) / 2 + leftOffset+20, topOffset + menuLineSpacing+20, optionRectWidth-40, 40), ThemeColors.Background);
             spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - optionRectWidth) / 2 + leftOffset+25, topOffset + menuLineSpacing+25, optionRectWidth-50, 30), ThemeColors.Background);
-            spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - optionRectWidth) / 2 + leftOffset+25, topOffset + menuLineSpacing+25, (optionRectWidth-50)/10*SettingsManager.volume, 30), ThemeColors.Selected);
+            spriteBatch.Draw(texture, new Rectangle((graphicsDevice.PreferredBackBufferWidth - optionRectWidth) / 2 + leftOffset+25, topOffset + menuLineSpacing+25, (optionRectWidth-50)/10*SaveManager.volume, 30), ThemeColors.Selected);
         }
     }
 }

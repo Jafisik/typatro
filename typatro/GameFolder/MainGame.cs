@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,8 +17,7 @@ public class MainGame : Game
     SpriteBatch spriteBatch;
     Texture2D texture;
     GameLogic gameLogic;
-    Color bgColor = new Color(255,133,222);
-    public readonly static int screenWidth = 1024, screenHeight = 576;
+    public readonly static int screenWidth = 1024, screenHeight = 768;
 
     public MainGame(){
         graphics = new GraphicsDeviceManager(this);
@@ -45,11 +45,16 @@ public class MainGame : Game
         SpriteFont textFont = Content.Load<SpriteFont>("Fonts/textFont");
         
         GlyphImageLoad();
-        int[] settings = SettingsManager.Load();
+        int[] settings = SaveManager.LoadSettings();
         ThemeColors.Apply(settings[0]);
         Texture2D catPic = Content.Load<Texture2D>("Images/catPic");
         texture = new Texture2D(GraphicsDevice, 1, 1);
         texture.SetData(new[] { Color.White });
+
+        Song backgroundMusic = Content.Load<Song>("Music/glyphoraFr");
+        MediaPlayer.IsRepeating = true;
+        MediaPlayer.Volume = settings[1]/10f;
+        MediaPlayer.Play(backgroundMusic);
 
         gameLogic = new GameLogic(spriteBatch, menuFont, gameFont, smallTextFont, textFont, texture, jsonStrings, Window.Position, catPic);
     }

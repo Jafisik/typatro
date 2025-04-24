@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using typatro.GameFolder.UI;
 
 namespace typatro.GameFolder{
-    enum NodeType{
+    public enum NodeType{
         FIGHT,
         ELITE,
         TREASURE,
@@ -17,7 +17,7 @@ namespace typatro.GameFolder{
         BOSS,
         NOTHING
     }
-    class MapNode{
+    public class MapNode{
         public Vector2 point;
         public List<MapNode> forward;
         public NodeType type;
@@ -29,6 +29,10 @@ namespace typatro.GameFolder{
             this.row = row;
             this.column = column;
         }
+
+        public int[] NodePos(){
+            return new int[] { row, column };
+        }
     }
     class Map{
         readonly SpriteBatch spriteBatch;
@@ -37,7 +41,7 @@ namespace typatro.GameFolder{
         readonly int rowSpacing = 75, columnSpacing = 55, randomChange = 12;
         readonly int topOffset = 60, leftOffset = 40;
         readonly int paths = 4;
-        readonly Random random = new Random();
+        Random random;
         readonly Texture2D texture;
         
         MapNode[,] mapNodes;
@@ -60,6 +64,7 @@ namespace typatro.GameFolder{
 
         public void GenerateNodes()
         {
+            random = new Random(GameLogic.seed);
             mapNodes = new MapNode[8, 13];
             int pos = random.Next(0, mapNodes.GetLength(0));
 
@@ -155,8 +160,7 @@ namespace typatro.GameFolder{
             }
         }
 
-        public static NodeType GenerateNodeType(){
-            Random random = new Random();
+        public NodeType GenerateNodeType(){
             int roll = random.Next(0,101);
             if(roll < 50) return NodeType.FIGHT;
             if(roll < 80) return NodeType.RANDOM;
@@ -165,9 +169,7 @@ namespace typatro.GameFolder{
             return NodeType.TREASURE;
         }
 
-        public static NodeType GenerateNodeTypeFromRandom()
-        {
-            Random random = new Random();
+        public NodeType GenerateNodeTypeFromRandom(){
             int roll = random.Next(0, 101);
             if (roll < 75) return NodeType.FIGHT;
             if (roll < 85) return NodeType.SHOP;

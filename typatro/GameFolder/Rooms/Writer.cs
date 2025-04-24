@@ -93,8 +93,7 @@ namespace typatro.GameFolder
 
         //Visualizes user input and highlights mistakes (prints user input and then prints wrongString,
         // which has ' ' for correct letters and the actual letters for wrong letters)
-        public Vector2 UserInputText(char[] printCharArray, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
-        {
+        public Vector2 UserInputText(char[] printCharArray, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0){
             StringBuilder writeLine = new StringBuilder();
             StringBuilder wrongString = new StringBuilder();
             int indexLine = 0, charIndex = 0;
