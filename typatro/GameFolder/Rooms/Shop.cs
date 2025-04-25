@@ -34,7 +34,6 @@ namespace typatro.GameFolder.Rooms{
 
         bool topMove = true, downMove = true, leftMove = true, rightMove = true, enterPressed = false;
         Enhancements enhancements;
-        Random random;
 
         public Shop(SpriteBatch spriteBatch, SpriteFont font, Texture2D texture, Enhancements enhancements)
         {
@@ -44,15 +43,14 @@ namespace typatro.GameFolder.Rooms{
             this.enhancements = enhancements;
             cards = new List<Card>(cardCount);
             glyphs = new List<Glyph>(glyphCount);
-            random = new Random(GameLogic.seed);
-            GenerateShop();
         }
 
-        private Card GenerateCard()
+        public Card GenerateCard()
         {
-            char letter = (char)(random.Next(0, 26) + 'a');
-            bool mult = random.Next(1, 101) >= 75;
-            long value = mult ? random.Next(2, 5) : random.Next(2, 11);
+            GameLogic.actions.Add(new UserAction("GenerateCard",""));
+            char letter = (char)(GameLogic.seededRandom.Next(0, 26) + 'a');
+            bool mult = GameLogic.seededRandom.Next(1, 101) >= 75;
+            long value = mult ? GameLogic.seededRandom.Next(2, 5) : GameLogic.seededRandom.Next(2, 11);
             return new Card(letter, mult, value, mult ? (value + enhancements.GetLetterScore(letter))*3 : (value + enhancements.GetLetterScore(letter)));
         }
 

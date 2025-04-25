@@ -14,7 +14,6 @@ namespace typatro.GameFolder.Rooms{
         Texture2D texture;
         Glyph currentGlyph;
         Enhancements enhancements;
-        Random random = new Random();
         bool pickUp = true, keyDown;
         readonly int topOffset = 80, leftOffset = 50, descOffset = 100, rectTopOffset = 200, rectWidth = 100, rectHeight = 50;
 

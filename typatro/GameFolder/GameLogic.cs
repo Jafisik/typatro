@@ -10,6 +10,23 @@ using typatro.GameFolder.Upgrades;
 
 namespace typatro.GameFolder
 {
+    public class UserAction{
+        public string action;
+        public string data;
+        public UserAction(string action, string data){
+            this.action = action;
+            this.data = data;
+        }
+
+        public string[] ToStringArray(){
+            return new string[]{ action, data };
+        }
+
+        public static UserAction FromStringArray(string[] data){
+            return new UserAction(data[0],data[1]);
+        }
+    }
+
     public class GameLogic
     {
         public enum GameState
@@ -27,7 +44,7 @@ namespace typatro.GameFolder
         string neededText;
         readonly List<int> diffIndexes = new List<int>();
         readonly List<string> jsonStrings;
-        readonly Map map;
+        Map map;
         MapNode selectedNode;
         bool firstEnter = true, waitingForEnter, enterReleased, startedTyping, finished, dead = false;
         readonly Menu menu;
@@ -38,7 +55,7 @@ namespace typatro.GameFolder
         double textRotation = 0, correctWordTimer = 0, letterTimer = 0;
         int xTextOffset = 0, yTextOffset = 0;
         bool eyeOfHorusActive = false, anubisActive = false, tabPressed = false, inventoryMove = true, afterFightScreen = false, afterFightMove = false;
-        long currentScore = 0, playerScore = 0, lastScore = 0, coins = 0, startCoins = 30, damagePrint = -1;
+        long currentScore = 0, playerScore = 0, lastScore = 0, coins = 0, startCoins = 500, damagePrint = -1;
         public static int seed;
         Rectangle topBanner = new Rectangle(0,0,1024,45);
         Vector2 topBannerTextOffset = new Vector2(10,10);
@@ -49,11 +66,12 @@ namespace typatro.GameFolder
         Texture2D texture, catPic;
         double timeInSeconds = 0, lastTime = -1, timeSinceLastWord = 0;
         Enhancements enhancements;
-        Random random = new Random();
+        public static Random seededRandom = new Random(), unseededRandom = new Random();
         Point windowPos;
         Vector2 catPos = Vector2.One;
         List<Card> cards = new List<Card>();
         GameSaveData gameSaveData;
+        public static List<UserAction> actions = new List<UserAction>();
 
         public GameLogic(SpriteBatch spriteBatch, SpriteFont bigFont, SpriteFont smallFont, SpriteFont smallTextFont, SpriteFont textFont, Texture2D texture, List<string> jsonStrings, Point windowPos, Texture2D catPic)
         {
@@ -65,14 +83,12 @@ namespace typatro.GameFolder
             this.windowPos = windowPos;
             this.catPic = catPic;
             this.smallTextFont = smallTextFont;
-            seed = random.Next();
-            random = new Random(seed);
+            seed = seededRandom.Next();
+            seededRandom = new Random(seed);
 
             menu = new Menu(spriteBatch, bigFont, texture);
 
             map = new Map(spriteBatch, bigFont, smallTextFont, texture);
-            map.GenerateNodes();
-            selectedNode = map.GetFirstNode();
 
             writer = new Writer(spriteBatch, textFont, diffIndexes, writtenText);
             neededText = RandomTextGenerate(wordsGenerated);
@@ -81,7 +97,7 @@ namespace typatro.GameFolder
             treasure = new Treasure(spriteBatch, bigFont, smallFont, texture, enhancements);
             shop = new Shop(spriteBatch, smallTextFont, texture, enhancements);
 
-            //gameSaveData = SaveManager.LoadGame();
+            gameSaveData = SaveManager.LoadGame();
         }
 
         public void Update(GameTime gameTime, GameWindow window){
@@ -118,8 +134,8 @@ namespace typatro.GameFolder
                         if((int)timeInSeconds % 5 == 0 && timeInSeconds != 0){
                             if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.EyeOfHorus)) eyeOfHorusActive = true;
                             if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.M)){
-                                xTextOffset = random.Next(-100,101);
-                                yTextOffset = random.Next(-100,101);
+                                xTextOffset = unseededRandom.Next(-100,101);
+                                yTextOffset = unseededRandom.Next(-100,101);
                             }
                             else{
                                 xTextOffset = 0;
@@ -131,7 +147,7 @@ namespace typatro.GameFolder
                     KeyboardState keyboardState = Keyboard.GetState();
                     if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.J)){
                         if(keyboardState.GetPressedKeyCount() > 0 && keyboardState.IsKeyUp(Keys.Tab)){
-                            window.Position = new Point(windowPos.X+random.Next(-5,6), windowPos.Y+random.Next(-5,6));
+                            window.Position = new Point(windowPos.X+unseededRandom.Next(-5,6), windowPos.Y+unseededRandom.Next(-5,6));
                         }
                         else window.Position = windowPos;
                     }
@@ -146,20 +162,76 @@ namespace typatro.GameFolder
             if (gameState == GameState.MENU){
                 gameState = (GameState)menu.DrawMainMenu(graphicsDevice, gameSaveData==null?false:true);
                 if(gameState == GameState.LOADGAME){
+                    actions.Clear();
+                    gameSaveData = SaveManager.LoadGame();
+                    seed = gameSaveData.seed;
+                    seededRandom = new Random(seed);
+                    map = new Map(spriteBatch, bigFont, smallTextFont, texture);
+                    map.GenerateNodes();
+                    selectedNode = map.GetNodeFromPos(gameSaveData.mapNode[0], gameSaveData.mapNode[1]);
+                    enhancements = new Enhancements();
+                    enhancements.letters = gameSaveData.letterScores;
+                    enhancements.wordScore = gameSaveData.enhancements[0];
+                    enhancements.damageResist = gameSaveData.enhancements[1];
+                    enhancements.startingScore = gameSaveData.enhancements[2];
+                    shop = new Shop(spriteBatch, smallTextFont, texture, enhancements);
+                    treasure = new Treasure(spriteBatch, bigFont, smallFont, texture, enhancements);
+                    coins = gameSaveData.coins;
+                    level = gameSaveData.level;
 
+                    
+                    UserAction[] UserActions = SaveManager.LoadActions();
+                    foreach (var entry in UserActions)
+                    {
+                        string action = entry.action;
+                        string data = entry.data;
+
+                        switch (action)
+                        {
+                            case "RandomTextGenerate":
+                                RandomTextGenerate(int.Parse(data));
+                                break;
+                            case "GenerateNodes":
+                                map.GenerateNodes();
+                                break;
+                            case "GenerateNodeType":
+                                map.GenerateNodeType();
+                                break;
+                            case "GenerateNodeTypeFromRandom":
+                                map.GenerateNodeTypeFromRandom();
+                                break;
+                            case "GenerateCard":
+                                shop.GenerateCard();
+                                break;
+                            case "GetRandomUnusedGlyph":
+                                GlyphManager.GetRandomUnusedGlyph();
+                                break;
+                            case "seededRandom.Next(0,26)":
+                                seededRandom.Next(0, 26);
+                                break;
+                            case "life":
+                                seededRandom.Next(0, 26);
+                                break;
+                            default:
+                                Console.WriteLine($"Neznámá metoda: {action}");
+                                break;
+                        }
+                    }
                 }
                 if(gameState == GameState.NEWGAME){
-                    seed = (int)DateTime.Now.Ticks;
-                    random = new Random(seed);
+                    actions.Clear();
+                    seed = 1;
+                    seededRandom = new Random(seed);
+                    map = new Map(spriteBatch, bigFont, smallTextFont, texture);
                     map.GenerateNodes();
                     selectedNode = map.GetFirstNode();
                     enhancements = new Enhancements();
                     shop = new Shop(spriteBatch, smallTextFont, texture, enhancements);
                     treasure = new Treasure(spriteBatch, bigFont, smallFont, texture, enhancements);
+                    coins = startCoins;
                 }
                 firstEnter = true;
                 waitingForEnter = false;
-                coins = startCoins;
             }
             else if (gameState == GameState.NEWGAME || gameState == GameState.LOADGAME){
                 Play();
@@ -185,9 +257,10 @@ namespace typatro.GameFolder
             KeyboardState state = Keyboard.GetState();
 
             if (state.IsKeyDown(Keys.Escape)){
-                map.GenerateNodes();
                 gameState = GameState.MENU;
-                SaveManager.SaveGame(seed, level, coins, selectedNode, enhancements, GlyphManager.GetGlyphs());
+                SaveManager.SaveGame(seed, level, coins, selectedNode, enhancements);
+                gameSaveData = SaveManager.LoadGame();
+                SaveManager.SaveActions();
                 dead = false;
                 return;
             }
@@ -237,13 +310,19 @@ namespace typatro.GameFolder
                                     double cashMultiply = (GlyphManager.IsActive(Glyph.Woman) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
                                     coins += (int)(fight.cashGain * cashMultiply);
                                     if(GlyphManager.IsActive(Glyph.B)) enhancements.startingScore += 5;
-                                    if(GlyphManager.IsActive(Glyph.Woman)) enhancements.MultiplyLetterScore((char)(random.Next(0,26)+'a'),2);
+                                    
+                                    if(GlyphManager.IsActive(Glyph.Woman)){
+                                        actions.Add(new UserAction("randomLetter",""));
+                                        enhancements.MultiplyLetterScore((char)(seededRandom.Next(0,26)+'a'),2);
+                                    }
                                 } 
                                 else{
                                     if(GlyphManager.IsActive(Glyph.Osiris)){
                                         enhancements.AllLettersMultiplyScore(0.8);
                                     }
-                                    else dead = true;
+                                    else{
+                                        dead = true;
+                                    }
                                 }
                                 afterFightScreen = true;
 
@@ -258,7 +337,9 @@ namespace typatro.GameFolder
                                     mult = true;
                                 }
                                 for(int i = 0; i < 3; i++){
-                                    cards.Add(new Card((char)(random.Next(0, 26)+'a'), mult, random.Next(valMin,valMax), 0));
+                                    actions.Add(new UserAction("randomLetter",""));
+                                    actions.Add(new UserAction("randomLetter",""));
+                                    cards.Add(new Card((char)(seededRandom.Next(0, 26)+'a'), mult, seededRandom.Next(valMin,valMax), 0));
                                 }
 
                             }
@@ -326,7 +407,7 @@ namespace typatro.GameFolder
                             inventoryGlyphSelect = 1;
                             afterFightSelect = 0;
                             cards.Clear();
-                            if(GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(random.Next(200,300),random.Next(200,300));
+                            if(GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(unseededRandom.Next(200,300),unseededRandom.Next(200,300));
                             if(GlyphManager.IsActive(Glyph.Sun)) ThemeColors.NotSelected = new Color(Color.Gray, 0.6f);
                             if(newNode.type == NodeType.RANDOM) newNode.type = map.GenerateNodeTypeFromRandom();
                             switch(newNode.type){
@@ -348,7 +429,8 @@ namespace typatro.GameFolder
                                 case NodeType.SHOP:
                                     shop.NewShop();
                                     if(GlyphManager.IsActive(Glyph.Life)){
-                                        enhancements.AddLetterScore((char)(random.Next(0,26)+'a'),5);
+                                        actions.Add(new UserAction("randomLetter",""));
+                                        enhancements.AddLetterScore((char)(seededRandom.Next(0,26)+'a'),5);
                                     }
                                     break;
                             }
@@ -372,17 +454,17 @@ namespace typatro.GameFolder
         }
 
         private string RandomTextGenerate(int length){
+            actions.Add(new UserAction("RandomTextGenerate", length.ToString()));
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < length; i++){
-                string word = jsonStrings[random.Next(0, jsonStrings.Count)];
-                if(GlyphManager.IsActive(Glyph.Snake) && random.Next(0,16) == 12){
+                string word = jsonStrings[seededRandom.Next(0, jsonStrings.Count)];
+                if(GlyphManager.IsActive(Glyph.Snake) && unseededRandom.Next(0,16) == 12){
                     char[] wordToChar = word.ToCharArray();
-                    wordToChar[random.Next(0,word.Length)] = (char)(random.Next(0,26) + 'a');
+                    wordToChar[unseededRandom.Next(0,word.Length)] = (char)(unseededRandom.Next(0,26) + 'a');
                     word = new string(wordToChar);
                 }
                 stringBuilder.Append(word + " ");
             }
-            stringBuilder.Append(jsonStrings[random.Next(0, jsonStrings.Count)]);
             return stringBuilder.ToString();
         }
 

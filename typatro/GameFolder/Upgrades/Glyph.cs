@@ -120,19 +120,28 @@ namespace typatro.GameFolder.Upgrades{
 
         public static Glyph GetRandomUnusedGlyph()
         {
-            Random random = new Random();
+            GameLogic.actions.Add(new UserAction("GetRandomUnusedGlyph", ""));
             var allGlyphs = Enum.GetValues(typeof(Glyph)).Cast<Glyph>();
             var unusedGlyphs = allGlyphs.Except(activeGlyphs).ToList();
 
             if (unusedGlyphs.Count == 0)
                 return Glyph.NoGlyphsLeft;
 
-            int index = random.Next(unusedGlyphs.Count);
+            int index = GameLogic.seededRandom.Next(unusedGlyphs.Count);
             return unusedGlyphs[index];
         }
 
         public static Glyph[] GetGlyphs(){
             return activeGlyphs.ToArray();
+        }
+
+        public static int[] GlyphNums(){
+            Glyph[] glyphs = activeGlyphs.ToArray();
+            List<int> ints = new List<int>();
+            for(int i = 0; i < glyphs.Length; i++){
+                ints.Add((int)glyphs[i]);
+            }
+            return ints.ToArray();
         }
 
         public static int GetGlyphCount(){

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using Microsoft.Xna.Framework;
 using typatro.GameFolder.Upgrades;
@@ -77,7 +79,7 @@ namespace typatro.GameFolder.UI{
         public int[] mapNode {get;set;}
         public long[] letterScores {get;set;}
         public int[] enhancements {get;set;}
-        public Glyph[] glyphs {get;set;}
+        public int[] glyphs {get;set;}
         public long coins {get;set;}
         public int level {get;set;}
         public int seed {get;set;}
@@ -89,6 +91,7 @@ namespace typatro.GameFolder.UI{
         public static int volume = 10;
         private static readonly string settingsPath = "settings.json";
         private static readonly string gameSavePath = "gameSave.json";
+        private static readonly string actionSavePath = "actionSave.json";
 
         public static void SaveSettings(int theme, int volume){
             int[] save = new int[] {theme, volume};
@@ -102,25 +105,53 @@ namespace typatro.GameFolder.UI{
             return JsonSerializer.Deserialize<int[]>(json);
         }
 
-        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements, Glyph[] glyphs){
-            int[] node = mapNode.NodePos();
+        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements){
             GameSaveData gameSaveData = new GameSaveData(){
                 seed = seed,
                 level = level,
                 coins = coins,
-                mapNode = node,
+                mapNode = mapNode.NodePos(),
                 letterScores = enhancements.letters,
                 enhancements = new int[]{enhancements.wordScore, enhancements.damageResist, enhancements.startingScore},
-                glyphs = glyphs
+                glyphs = GlyphManager.GlyphNums(),
             };
             string json = JsonSerializer.Serialize(gameSaveData, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(gameSavePath, json);
         }
 
         public static GameSaveData LoadGame(){
-            if (!File.Exists(settingsPath)) return null;
-            var json = File.ReadAllText(settingsPath);
-            return JsonSerializer.Deserialize<GameSaveData>(json);
+            if (!File.Exists(gameSavePath)) return null;
+            var json = File.ReadAllText(gameSavePath);
+            GameSaveData ret = null;
+            try{
+                ret = JsonSerializer.Deserialize<GameSaveData>(json);
+            } catch(Exception e){
+                Console.WriteLine("Couldn't read game data: " + e.Message);
+            }
+            return ret;
+        }
+
+        public static void SaveActions(){
+            UserAction[] userActions = GameLogic.actions.ToArray();
+            List<string[]> actionStrings = new List<string[]>();
+            foreach(UserAction action in userActions){
+                actionStrings.Add(action.ToStringArray());
+            }
+            string json = JsonSerializer.Serialize(actionStrings.ToArray(), new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(actionSavePath, json);
+        }
+
+        public static UserAction[] LoadActions(){
+            if (!File.Exists(actionSavePath)) return null;
+
+            var json = File.ReadAllText(actionSavePath);
+            try {
+                string[][] actionStrings = JsonSerializer.Deserialize<string[][]>(json);
+                return actionStrings.Select(UserAction.FromStringArray).ToArray();
+            } catch(Exception e){
+                Console.WriteLine("Couldn't read game data: " + e.Message);
+                return null;
+            }
         }
     }
 }
