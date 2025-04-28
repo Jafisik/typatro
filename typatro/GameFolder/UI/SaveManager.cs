@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -131,8 +132,8 @@ namespace typatro.GameFolder.UI{
             return ret;
         }
 
-        public static void SaveActions(){
-            UserAction[] userActions = GameLogic.actions.ToArray();
+        public static void SaveActions(List<UserAction> actions){
+            UserAction[] userActions = actions.ToArray();
             List<string[]> actionStrings = new List<string[]>();
             foreach(UserAction action in userActions){
                 actionStrings.Add(action.ToStringArray());

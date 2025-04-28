@@ -47,7 +47,7 @@ namespace typatro.GameFolder.Rooms{
 
         public Card GenerateCard()
         {
-            GameLogic.actions.Add(new UserAction("GenerateCard",""));
+            if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateCard",""));
             char letter = (char)(GameLogic.seededRandom.Next(0, 26) + 'a');
             bool mult = GameLogic.seededRandom.Next(1, 101) >= 75;
             long value = mult ? GameLogic.seededRandom.Next(2, 5) : GameLogic.seededRandom.Next(2, 11);

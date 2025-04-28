@@ -66,7 +66,7 @@ namespace typatro.GameFolder{
 
         public void GenerateNodes()
         {
-            GameLogic.actions.Add(new UserAction("GenerateNodes",""));
+            if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateNodes",""));
             random = new Random(GameLogic.seed);
             mapNodes = new MapNode[8, 13];
             int pos = random.Next(0, mapNodes.GetLength(0));
@@ -164,7 +164,7 @@ namespace typatro.GameFolder{
         }
 
         public NodeType GenerateNodeType(){
-            GameLogic.actions.Add(new UserAction("GenerateNodeType",""));
+            if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateNodeType",""));
             int roll = random.Next(0,101);
             if(roll < 50) return NodeType.FIGHT;
             if(roll < 80) return NodeType.RANDOM;
@@ -174,7 +174,7 @@ namespace typatro.GameFolder{
         }
 
         public NodeType GenerateNodeTypeFromRandom(){
-            GameLogic.actions.Add(new UserAction("GenerateNodeTypeFromRandom",""));
+            if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateNodeTypeFromRandom",""));
             int roll = random.Next(0, 101);
             if (roll < 75) return NodeType.FIGHT;
             if (roll < 85) return NodeType.SHOP;
