@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -90,18 +91,20 @@ namespace typatro.GameFolder.UI{
     {
         public static int theme = 0;
         public static int volume = 10;
+        public static int size = 0;
+        public static int fullscreen = 0;
         private static readonly string settingsPath = "settings.json";
         private static readonly string gameSavePath = "gameSave.json";
         private static readonly string actionSavePath = "actionSave.json";
 
-        public static void SaveSettings(int theme, int volume){
-            int[] save = new int[] {theme, volume};
+        public static void SaveSettings(int theme, int volume, int size, int fullScreen){
+            int[] save = new int[] {theme, volume, size, fullScreen};
             var json = JsonSerializer.Serialize(save, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsPath, json);
         }
 
         public static int[] LoadSettings(){
-            if (!File.Exists(settingsPath)) return new int[]{0,10};
+            if (!File.Exists(settingsPath)) return new int[]{0,10,0,0};
             var json = File.ReadAllText(settingsPath);
             return JsonSerializer.Deserialize<int[]>(json);
         }
@@ -118,6 +121,11 @@ namespace typatro.GameFolder.UI{
             };
             string json = JsonSerializer.Serialize(gameSaveData, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(gameSavePath, json);
+        }
+
+        public static void RemoveGameData(){
+            File.WriteAllText(gameSavePath, "");
+            File.WriteAllText(actionSavePath, "");
         }
 
         public static GameSaveData LoadGame(){

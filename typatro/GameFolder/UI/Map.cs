@@ -39,7 +39,7 @@ namespace typatro.GameFolder{
         readonly SpriteFont bigFont;
         readonly SpriteFont smallFont;
         readonly int rowSpacing = 75, columnSpacing = 55, randomChange = 12;
-        readonly int topOffset = 60, leftOffset = 40;
+        readonly int topOffset = 80, leftOffset = 40;
         readonly int paths = 4;
         Random random;
         readonly Texture2D texture;
@@ -54,6 +54,8 @@ namespace typatro.GameFolder{
             this.bigFont = bigFont;
             this.smallFont = smallFont;
             this.texture = texture;
+            columnSpacing = MainGame.screenHeight/10;
+            rowSpacing = MainGame.screenWidth/14+2;
         }
 
         public MapNode GetFirstNode(){
@@ -148,7 +150,8 @@ namespace typatro.GameFolder{
                     }
                 }
             }
-            spriteBatch.DrawString(smallFont, "F - Fight   E - Elite fight   ? - Random  $ - Shop   X - Treasure   B - Boss", new Vector2(leftOffset + 100,540), ThemeColors.Text);
+            string info = "F - Fight   E - Elite fight   ? - Random  $ - Shop   X - Treasure   B - Boss";
+            spriteBatch.DrawString(smallFont, info, new Vector2(MainGame.screenWidth/2-smallFont.MeasureString(info).X/2,MainGame.screenHeight-40), ThemeColors.Text);
         }
 
         private void DrawDottedPath(Vector2 start, Vector2 end)

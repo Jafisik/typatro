@@ -23,7 +23,7 @@ namespace typatro.GameFolder.Rooms{
         SpriteBatch spriteBatch;
         SpriteFont font;
         Texture2D texture;
-        readonly int rows = 2, cols = 6;
+        readonly int rows = 3, cols = 4;
         List<Card> cards;
         List<Glyph> glyphs;
         int selectedRow = 0, selectedCol = 0;

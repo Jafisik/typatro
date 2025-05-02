@@ -13,21 +13,24 @@ namespace typatro.GameFolder;
 
 public class MainGame : Game
 {
-    GraphicsDeviceManager graphics;
+    public static GraphicsDeviceManager graphics;
     SpriteBatch spriteBatch;
     Texture2D texture;
     GameLogic gameLogic;
-    public readonly static int screenWidth = 1024, screenHeight = 768;
-
+    public static int screenWidth = 800, screenHeight = 600;
+    
     public MainGame(){
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
+        graphics.IsFullScreen = false;
+        Window.IsBorderless = true;
     }
 
     protected override void Initialize(){
         graphics.PreferredBackBufferWidth = screenWidth;
         graphics.PreferredBackBufferHeight = screenHeight;
+        Window.IsBorderless = true;
         Window.Title = "GLYPHORA";
         graphics.ApplyChanges();
         base.Initialize();

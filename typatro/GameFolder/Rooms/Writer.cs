@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
@@ -12,7 +11,7 @@ namespace typatro.GameFolder
 {
     class Writer
     {
-        readonly int maxCharsPerLine = 40, yOffset = 250, leftOffset = 120;
+         int maxCharsPerLine = 40, yOffset = 150, leftOffset = 100;
         readonly SpriteBatch _spriteBatch;
         readonly SpriteFont font;
         List<char> writtenText;
@@ -94,6 +93,7 @@ namespace typatro.GameFolder
         //Visualizes user input and highlights mistakes (prints user input and then prints wrongString,
         // which has ' ' for correct letters and the actual letters for wrong letters)
         public Vector2 UserInputText(char[] printCharArray, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0){
+            
             StringBuilder writeLine = new StringBuilder();
             StringBuilder wrongString = new StringBuilder();
             int indexLine = 0, charIndex = 0;
@@ -122,6 +122,21 @@ namespace typatro.GameFolder
         
         public void WriteText(string printString, Color color, int line = 0, bool isHintText = false, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
         {
+            switch(SaveManager.size){
+                case 0:
+                    maxCharsPerLine = 35;
+                    break;
+                case 1:
+                    maxCharsPerLine = 50;
+                    break;
+                case 2:
+                    maxCharsPerLine = 60;
+                    break;
+                case 3:
+                    maxCharsPerLine = 90;
+                    break;
+
+            }
             char[] printCharArray = printString.ToCharArray();
             StringBuilder writeLine = new StringBuilder(printString.Length);
             int beginingOfWord = 0, currentLineLength = 0;
@@ -146,6 +161,22 @@ namespace typatro.GameFolder
             Vector2 size = font.MeasureString(finalText);
             rotationPoint = size / 2f;
 
+            if(GlyphManager.IsActive(Glyph.Sun)){
+                switch(SaveManager.theme){
+                    case 0:
+                        color = new Color(30,30,30);
+                        break;
+                    case 1:
+                        color = new Color(230,170,230);
+                        break;
+                    case 2:
+                        color = new Color(0x303030);
+                        break;
+                    case 3:
+                        color = new Color(0x303030);
+                        break;
+                }
+            }
             _spriteBatch.DrawString(font, finalText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
         }
     }
