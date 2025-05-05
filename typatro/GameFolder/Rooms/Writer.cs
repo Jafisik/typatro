@@ -31,6 +31,12 @@ namespace typatro.GameFolder
             this.diffIndexes = diffIndexes;
         }
 
+        public Writer(SpriteBatch _spriteBatch, SpriteFont font)
+        {
+            this._spriteBatch = _spriteBatch;
+            this.font = font;
+        }
+
         //Compare written text to needed text and then put indexes of the wrong characters into diffIndexes
         public void UpdateDiffIndexes(string compareText){
             if (writtenText.Count < lastCheckedIndex) lastCheckedIndex = writtenText.Count;
@@ -120,9 +126,10 @@ namespace typatro.GameFolder
         }
         Vector2 rotationPoint;
         
-        public void WriteText(string printString, Color color, int line = 0, bool isHintText = false, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0)
+        public void WriteText(string printString, Color color, int line = 0, bool isHintText = false, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0, bool treasure = false)
         {
-            switch(SaveManager.size){
+            switch (SaveManager.size)
+            {
                 case 0:
                     maxCharsPerLine = 35;
                     break;
@@ -137,7 +144,8 @@ namespace typatro.GameFolder
                     break;
 
             }
-            char[] printCharArray = printString.ToCharArray();
+
+                char[] printCharArray = printString.ToCharArray();
             StringBuilder writeLine = new StringBuilder(printString.Length);
             int beginingOfWord = 0, currentLineLength = 0;
             if(isHintText) endLineIndexes.Clear();
@@ -147,6 +155,7 @@ namespace typatro.GameFolder
 
                     if (currentLineLength + wordLength > maxCharsPerLine){
                         endLineIndexes.Add(writeLine.Length);
+                        if(treasure) writeLine.Append("\n");
                         if(isHintText) writeLine.Append('\n');
                         currentLineLength = 0;
                     }

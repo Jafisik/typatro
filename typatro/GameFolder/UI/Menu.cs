@@ -55,14 +55,19 @@ namespace typatro.GameFolder
             this.texture = texture;
             
             int[] settings = SaveManager.LoadSettings();
-            SaveManager.theme = settings[0];
-            SaveManager.volume = settings[1];
-            SaveManager.size = settings[2];
-            SaveManager.fullscreen = settings[3];
-            ChangeScreenSize(SaveManager.size);
-            if(SaveManager.fullscreen == 1) MainGame.graphics.IsFullScreen = true;
-            else MainGame.graphics.IsFullScreen = false;
-            MainGame.graphics.ApplyChanges();
+            try{
+                SaveManager.theme = settings[0];
+                SaveManager.volume = settings[1];
+                SaveManager.size = settings[2];
+                SaveManager.fullscreen = settings[3];
+                ChangeScreenSize(SaveManager.size);
+                if (SaveManager.fullscreen == 1) MainGame.graphics.IsFullScreen = true;
+                else MainGame.graphics.IsFullScreen = false;
+                MainGame.graphics.ApplyChanges();
+            } catch(Exception e){
+                Console.WriteLine("Couldn't load settings " + e.Message);
+            }
+            
         }
 
         //To add new new menu item just add an item into enum MenuSelect and in the class MainGame add the same thing to enum GameState

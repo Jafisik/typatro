@@ -388,8 +388,8 @@ namespace typatro.GameFolder
                                     Color cardColor;
                                     for(int i = 0; i < cards.Count; i++){
                                         cardColor = (i == afterFightSelect)? ThemeColors.Selected:ThemeColors.Foreground;
-                                        spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5+MainGame.screenWidth/4*i, 250, 160, 120), cardColor);
-                                        spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(MainGame.screenWidth/5+MainGame.screenWidth/4*i+10, 250+10), ThemeColors.Text);
+                                        spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5*(i+1), 250, 160, 120), cardColor);
+                                        spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(MainGame.screenWidth/5*(i+1)+10, 250+10), ThemeColors.Text);
                                     }
                                     string fightWon = "Fight won";
                                     spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
@@ -606,13 +606,14 @@ namespace typatro.GameFolder
         private void Inventory(KeyboardState state){
             tabPressed = true;
             int columns = 4, rows = 7;
+            int columnSpacing = MainGame.screenWidth / 5;
 
             for(int column = 0; column < columns; column++){
                 for(int row = 0; row < rows; row++){
                     if(column*rows+row >= 26) break;
-                    spriteBatch.DrawString(smallFont, (char)(column*rows+row+'a') + ": " + enhancements.letters[column*rows+row], new Vector2(100+column*220,70+row*40), ThemeColors.Text);
+                    spriteBatch.DrawString(smallFont, (char)(column*rows+row+'a') + ": " + enhancements.letters[column*rows+row], new Vector2(columnSpacing /2+ column*columnSpacing, 70+row*40), ThemeColors.Text);
                     long change = enhancements.lettersChange[column*rows+row];
-                    if(change != 0) spriteBatch.DrawString(smallFont, (change<0?"":"+") + change, new Vector2(210+column*220,70+row*40), change<0?ThemeColors.Wrong:ThemeColors.Correct);
+                    if(change != 0) spriteBatch.DrawString(smallFont, (change<0?"":"+") + change, new Vector2(columnSpacing + column*columnSpacing, 70+row*40), change<0?ThemeColors.Wrong:ThemeColors.Correct);
                 }
             }
             Glyph[] glyphs = GlyphManager.GetGlyphs();

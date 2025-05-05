@@ -11,101 +11,101 @@ namespace typatro.GameFolder.Upgrades{
     {
         [Description("No description available")]
         NoGlyphsLeft,
-        [Description("Sound for 'A', \nused for names or verbs.\n+ Adds 5 to all vowels")]
+        [Description("Sound for 'A', used for names or verbs.\n+ Adds 5 to all vowels")]
         A,
 
-        [Description("Sound for 'B', \nsymbol for foot or place.\n+ Adds +5 to the starting \nscore each fight")]
+        [Description("Sound for 'B', symbol for foot or place.\n+ Adds +5 to the starting score each fight")]
         B,
 
-        [Description("Sound for 'D', \nsymbol for hand.\n+ Multiplies 2 random letter \nscores by *5")]
+        [Description("Sound for 'D', symbol for hand.\n+ Multiplies 2 random letter scores by *5")]
         D,
 
-        [Description("Sound for 'H', \nsymbolizing shelter or building.\n+ Multiplies 10 random letters by *5\n- Rotates text upside down \nevery 10 seconds")]
+        [Description("Sound for 'H', symbolizing shelter or building.\n+ Multiplies 10 random letters by *5\n- Rotates text upside down every 10 seconds")]
         H,
 
-        [Description("Sound for 'J', \nalso symbol for reed \nor tall grass.\n+ Add +10 to all letter scores\n- Screen shakes with every input")]
+        [Description("Sound for 'J', also symbol for reed or tall grass.\n+ Add +10 to all letter scores\n- Screen shakes with every input")]
         J,
 
-        [Description("Sound for 'M', \ncan symbolize owl, \nsilence or wisdom.\n+ Gains 10 coins \nevery 10 seconds in a fight\n- Text changes position \nevery 5 seconds")]
+        [Description("Sound for 'M', can symbolize owl, silence or wisdom.\n+ Gains 10 coins \nevery 10 seconds in a fight\n- Text changes position every 5 seconds")]
         M,
 
-        [Description("Sound for 'N', \nripple of water, \nalso 'to' or 'for'.\n+ Words written under 3 seconds \nare doubled\n- Words written over 3 seconds \nbreak streak")]
+        [Description("Sound for 'N', ripple of water, also 'to' or 'for'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds \nbreak streak")]
         N,
 
-        [Description("Sound for 'R', \nsymbolizing mouth\n or one whole thing.\n+ Lets you correct your mistakes\n- Mistakes count as -5")]
+        [Description("Sound for 'R', symbolizing mouth or one whole thing.\n+ Lets you correct your mistakes\n- Mistakes count as -5")]
         
         R,
 
-        [Description("Sound for 'S', \nalso sufffix for \nshe, her, hers.\n+ Elite and boss fights \ndeal less damage")]
+        [Description("Sound for 'S', also sufffix for she, her, hers.\n+ Elite and boss fights deal less damage")]
 
         S,
         [Description("'Sun', representing Ra, \nthe sun god.\n+ Disables all visual glyphs\n- Letters are less visible")]
         Sun,
 
-        [Description("'House', \nrepresents domestic life \nor temples.\n+ Take only quarter damage\n- Every 8 seconds your \nkeyboard stops working")]
+        [Description("'House', represents domestic life or temples.\n+ Take only quarter damage\n- Every 8 seconds your \nkeyboard stops working")]
         House,
 
-        [Description("'Water', \noften representing rivers \nor offerings.\n+ Multiplies final score by *2\n- Add -5 to 5 random letter scores")]
+        [Description("'Water', often representing rivers or offerings.\n+ Multiplies final score by *2\n- Add -5 to 5 random letter scores")]
         Water,
 
-        [Description("'King', \nsignifying royalty \nor divine authority.\n+ Multiplies ALL highest \nletter scores by *5\n- Sets ALL letters with \nlowest letter score to 0 \n(only if max score is different to min score)")]
+        [Description("'King', signifying royalty or divine authority.\n+ Multiplies ALL highest letter scores by *5\n- Sets ALL letters with lowest letter score to 0 (only if max score is different to min score)")]
         King,
 
-        [Description("The Eye of Horus, \nsymbolizing protection and health.\n+ 2 mistakes per round do not count\n- You blink every 5 seconds")]
+        [Description("The Eye of Horus, symbolizing protection and health.\n+ 2 mistakes per round do not count\n- You blink every 5 seconds")]
         EyeOfHorus,
 
-        [Description("Osiris, \nthe god of the afterlife \nand resurrection.\n+ Revive once per run\n- After ressurection \nall letters multiplied by *0.8")]
+        [Description("Osiris, the god of the afterlife and resurrection.\n+ Revive once per run\n- After ressurection all letters multiplied by *0.8")]
         Osiris,
 
-        [Description("'Woman', \nsymbolizes feminine names \nor nurture.\n+ Multiplies random letter score\nby *2 after each fight\n- Earn only 80% coins")]
+        [Description("'Woman', symbolizes feminine names or nurture.\n+ Multiplies random letter scoreby *2 after each fight\n- Earn only 80% coins")]
         Woman,
 
-        [Description("'Man',\nused for writing \nthe word 'person'.\n+ Multiplies coin rewards by *1.5\n- Letter 'x' counts as a mistake")]
+        [Description("'Man', used for writing the word 'person'.\n+ Multiplies coin rewards by *1.5\n- Letter 'x' counts as a mistake")]
         Man,
 
-        [Description("'Flower', \nmeaning 'to be' or 'to exist'.\n+ Adds +0.1 to the final score multiplier \nfor each active glyph")]
+        [Description("'Flower', meaning 'to be' or 'to exist'.\n+ Adds +0.1 to the final score multiplier for each active glyph")]
         Flower,
 
-        [Description("'Cat', \nrepresenting the goddess Bastet, \nprotector of the home.\n+ Multiplies 9 random letter \nvalues by *2\n- A cat will be sleeping \non a random location")]
+        [Description("'Cat', representing the goddess Bastet, protector of the home.\n+ Multiplies 9 random letter values by *2\n- A cat will be sleeping on a random location")]
         Cat,
 
-        [Description("Anubis, \nthe god of mummification\nand protector of tombs.\n+ Gain 1 coin per 5 words")]
+        [Description("Anubis, the god of mummification and protector of tombs.\n+ Gain 1 coin per 5 words")]
         Anubis,
 
-        [Description("'Scarab', \nassociated with rebirth \nand regeneration.\n+ Streak bonus increases by +3 \nevery consecutive correct word")]
+        [Description("'Scarab', associated with rebirth and regeneration.\n+ Streak bonus increases by +3 every consecutive correct word")]
         Scarab,
 
-        [Description("'Snake', \noften signifying danger \nor protection.\n+ Mistakes do not \nsubtract from score\n- Some letters are wrong")]
+        [Description("'Snake', often signifying danger or protection.\n+ Mistakes do not \nsubtract from score\n- Some letters are wrong")]
         Snake,
 
-        [Description("'Life', \nrepresenting the eternal \nor divine life force.\n+ Add 5 to a random letter score \neach time you visit a shop")]
+        [Description("'Life', representing the eternal or divine life force.\n+ Add 5 to a random letter score each time you visit a shop")]
         Life,
 
-        [Description("'Heart', \nassociated with soul \nand divine judgment.\n+ Multiplies final score by \n*3 on perfect rounds\n- Halves score if you make a mistake")]
+        [Description("'Heart', associated with soul and divine judgment.\n+ Multiplies final score by *3 on perfect rounds\n- Halves score if you make a mistake")]
         Heart,
 
-        [Description("'Crocodile', \nassociated with danger.\n+ Multiplies random letter \nvalue by *20\n- Sets random letter \nvalue to 0")]
+        [Description("'Crocodile', associated with danger.\n+ Multiplies random letter value by *20\n- Sets random letter value to 0")]
         Crocodile,
 
         [Description("Symbol for the number one.\n+ Adds +1 to every letter value")]
         One,
 
-        [Description("Symbol for the number ten, \ncattle hobble.\n+ Multiplies random letter \nvalue by *10")]
+        [Description("Symbol for the number ten, cattle hobble.\n+ Multiplies random letter \nvalue by *10")]
         Ten,
 
-        [Description("Symbol for the number \none hundred, \ncoil of rope.\n+ Adds 100 coins")]
+        [Description("Symbol for the number one hundred, coil of rope.\n+ Adds 100 coins")]
         Hundred,
 
-        [Description("Symbol for the number \none thousand, \nwater lily.\n+ Every 1000 letters \nautomatically wins fight")]
+        [Description("Symbol for the number one thousand, water lily.\n+ Every 1000 letters automatically wins fight")]
         Thousand,
 
-        [Description("'Bread', \nrepresenting basic sustenance \nand offerings.\n+ Add +3 to 6 random letter scores")]
+        [Description("'Bread', representing basic sustenance and offerings.\n+ Add +3 to 6 random letter scores")]
         Bread,
 
-        [Description("'Papyrus', \nrepresenting writing, \nknowledge, and records.\n+ Adds +20 extra words in fights")]
+        [Description("'Papyrus', representing writing, knowledge, and records.\n+ Adds +20 extra words in fights")]
         Papyrus,
 
-        [Description("'Star', \noften associated with the divine \nor celestial bodies.\n+ Multiplies all letter scores by *20\n- If you make a single mistake, \nyou die instantly")]
+        [Description("'Star', often associated with the divine or celestial bodies.\n+ Multiplies all letter scores by *20\n- If you make a single mistake, you die instantly")]
         Star
     }
 

@@ -50,7 +50,7 @@ namespace typatro.GameFolder.Rooms{
             }
             else{
                 rows = 2;
-                cols = 5;
+                cols = 6;
                 leftOffset = 30;
             }
         }
