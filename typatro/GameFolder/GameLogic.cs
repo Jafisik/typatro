@@ -311,9 +311,9 @@ namespace typatro.GameFolder
                         CalculateScore(lastCharPos);
                         HealthBar();
                         
-                        if(eyeOfHorusActive) spriteBatch.Draw(texture, new Rectangle(0,0,1200,600), Color.Black);
+                        if(eyeOfHorusActive) spriteBatch.Draw(texture, new Rectangle(0,0,MainGame.screenWidth,MainGame.screenHeight), Color.Black);
                         if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.Cat)) spriteBatch.Draw(catPic, new Rectangle((int)catPos.X,(int)catPos.Y,80,60), ThemeColors.Background);
-                        if(writtenText.Count == neededText.Length || currentScore > fight.scoreNeeded) finished = true;
+                        if(writtenText.Count == neededText.Length || currentScore >= fight.scoreNeeded) finished = true;
                     }
                     else if(state.IsKeyDown(Keys.Tab)){
                         Inventory(state);
@@ -388,11 +388,13 @@ namespace typatro.GameFolder
                                     Color cardColor;
                                     for(int i = 0; i < cards.Count; i++){
                                         cardColor = (i == afterFightSelect)? ThemeColors.Selected:ThemeColors.Foreground;
-                                        spriteBatch.Draw(texture, new Rectangle(100+300*i, 250, 160, 120), cardColor);
-                                        spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(100+300*i+10, 250+10), ThemeColors.Text);
+                                        spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5+MainGame.screenWidth/4*i, 250, 160, 120), cardColor);
+                                        spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(MainGame.screenWidth/5+MainGame.screenWidth/4*i+10, 250+10), ThemeColors.Text);
                                     }
-                                    spriteBatch.DrawString(bigFont, "Fight won", new Vector2(350,70), ThemeColors.Text);
-                                    spriteBatch.DrawString(bigFont, "Choose your reward", new Vector2(240,130), ThemeColors.Text);
+                                    string fightWon = "Fight won";
+                                    spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
+                                    string chooseReward = "Choose your reward";
+                                    spriteBatch.DrawString(bigFont, chooseReward, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(chooseReward).X/2,130), ThemeColors.Text);
                                     if(state.IsKeyDown(Keys.Enter)){
                                         if(cards[afterFightSelect].mult){
                                             enhancements.MultiplyLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
@@ -437,7 +439,7 @@ namespace typatro.GameFolder
                             inventoryGlyphSelect = 1;
                             afterFightSelect = 0;
                             cards.Clear();
-                            if(GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(unseededRandom.Next(200,300),unseededRandom.Next(200,300));
+                            if(GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(unseededRandom.Next(100,MainGame.screenWidth-100),unseededRandom.Next(100,MainGame.screenHeight-100));
                             if(newNode.type == NodeType.RANDOM) newNode.type = map.GenerateNodeTypeFromRandom();
                             switch(newNode.type){
                                 case NodeType.FIGHT:
@@ -502,11 +504,8 @@ namespace typatro.GameFolder
             spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,40), ThemeColors.Foreground);
             spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,40), ThemeColors.Foreground);
             Vector2 textOffset = new Vector2(30,20);
-            if(map){
-                spriteBatch.DrawString(smallFont, $"coins:{coins}", textOffset, ThemeColors.Text);
-                if(!tabPressed) spriteBatch.DrawString(smallFont, "tab -> inventory", new Vector2(MainGame.screenWidth - smallFont.MeasureString("tab -> inventory").X - textOffset.X,textOffset.Y), ThemeColors.Text);
-            } 
-            else spriteBatch.DrawString(smallFont, $"coins:{coins} {currentScore}/{fight.scoreNeeded} speed:-{damagePrint} reward:{fight.cashGain}", textOffset, ThemeColors.Text);
+            spriteBatch.DrawString(smallFont, $"coins:{coins}", textOffset, ThemeColors.Text);
+            if(!tabPressed) spriteBatch.DrawString(smallFont, "tab -> inventory", new Vector2(MainGame.screenWidth - smallFont.MeasureString("tab -> inventory").X - textOffset.X,textOffset.Y), ThemeColors.Text);
         }
 
         private static bool IsFight(NodeType nodeType){
@@ -540,7 +539,9 @@ namespace typatro.GameFolder
                 letterTimer = timeInSeconds;
                 lastCharCount = writtenText.Count;
             }
-            spriteBatch.DrawString(smallFont, $"Streak:{wordStreak}".ToString(), new Vector2(50,100), ThemeColors.Text);    
+            spriteBatch.DrawString(smallFont, $"Streak:{wordStreak}".ToString(), new Vector2(50,100), ThemeColors.Text);
+            string rewardText = "Reward: " + fight.cashGain;
+            spriteBatch.DrawString(smallFont, rewardText, new Vector2(MainGame.screenWidth-50-smallFont.MeasureString(rewardText).X,100), ThemeColors.Text); 
 
             int mistakeCount = Math.Max(diffIndexes.Count - (GlyphManager.IsActive(Glyph.EyeOfHorus)?2:0),0);
             if(GlyphManager.IsActive(Glyph.Star) && mistakeCount > 0) dead = true;
@@ -584,7 +585,7 @@ namespace typatro.GameFolder
                     wordStreak = 0;
                 }
             }
-            if(timeInSeconds - correctWordTimer < 1 && correctWordTimer != 0) spriteBatch.DrawString(smallFont, $"Correct word: +{enhancements.wordScore}".ToString(), new Vector2(50,150), ThemeColors.Correct);
+            //if(timeInSeconds - correctWordTimer < 1 && correctWordTimer != 0) spriteBatch.DrawString(smallFont, $"Correct word: +{enhancements.wordScore}".ToString(), new Vector2(50,150), ThemeColors.Correct);
 
             if(GlyphManager.IsActive(Glyph.Anubis) && wordCounter % 5 == 0){
                 if(!anubisActive && wordCounter > 0) coins++;
@@ -640,9 +641,9 @@ namespace typatro.GameFolder
 
         private void HealthBar(){
             spriteBatch.Draw(texture, new Rectangle(40, 60, MainGame.screenWidth-80, 30), ThemeColors.Selected);
-            int redBarLength = (int)((double)Math.Min(fight.scoreNeeded, fight.scoreNeeded - currentScore) / fight.scoreNeeded * MainGame.screenWidth-90);
+            int redBarLength = (int)((double)Math.Min(fight.scoreNeeded, fight.scoreNeeded - currentScore) / fight.scoreNeeded * (MainGame.screenWidth-90));
             spriteBatch.Draw(texture, new Rectangle(45, 65, redBarLength, 20), ThemeColors.Foreground);
-            string score = $"{currentScore}/{fight.scoreNeeded}";
+            string score = $"{currentScore}/{fight.scoreNeeded}  -{fight.speed}/s";
             spriteBatch.DrawString(smallFont, score, new Vector2(MainGame.screenWidth/2-score.Length*10,100), ThemeColors.Text);
         }
     }

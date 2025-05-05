@@ -45,7 +45,7 @@ namespace typatro.GameFolder
 
         public string[] themes = new string[]{ "black", "pink", "blue", "red"  };
 
-        public string[] sizes = new string[]{ "800/600", "1152/648", "1280/720", "1920/1080"};
+        public string[] sizes = new string[]{ "800/600", "1152/648", "1280/720"};
         public bool fullscreen = false;
 
         public Menu(SpriteBatch spriteBatch, SpriteFont font, Texture2D texture)
@@ -199,17 +199,18 @@ namespace typatro.GameFolder
             {
                 spriteBatch.Draw(texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset, optionTopOffset + menuLineSpacing * line, optionRectWidth, optionRectHeight), menuColors[line]);
                 Vector2 textSize = font.MeasureString(optionTexts[line]);
-                Vector2 textPos = new Vector2((MainGame.screenWidth - textSize.X) / 2 - leftOffset, optionTopOffset + optionRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
+                Vector2 textPos = new Vector2(MainGame.screenWidth/2 - textSize.X - 40, optionTopOffset + optionRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
                 spriteBatch.DrawString(font, optionTexts[line], textPos, ThemeColors.Text);
             }
-            spriteBatch.DrawString(font, themes[SaveManager.theme], new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+85, optionTopOffset+20), ThemeColors.Text);
+            spriteBatch.DrawString(font, themes[SaveManager.theme], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- font.MeasureString(themes[SaveManager.theme]).X/2-10, optionTopOffset+20), ThemeColors.Text);
             spriteBatch.DrawString(font, "<             >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20), ThemeColors.Text);
             spriteBatch.Draw(texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+20, optionTopOffset + menuLineSpacing+20, optionRectWidth-40, 40), ThemeColors.Background);
             spriteBatch.Draw(texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, optionRectWidth-50, 30), ThemeColors.Background);
             spriteBatch.Draw(texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, (optionRectWidth-50)/10*SaveManager.volume, 30), ThemeColors.Selected);
-            spriteBatch.DrawString(font, sizes[SaveManager.size], new Vector2(MainGame.screenWidth/2, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
+            spriteBatch.DrawString(font, sizes[SaveManager.size], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- font.MeasureString(sizes[SaveManager.size]).X/2-10, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
             spriteBatch.DrawString(font, "<             >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
-            spriteBatch.DrawString(font, SaveManager.fullscreen == 0?"off":"on", new Vector2(MainGame.screenWidth/2, optionTopOffset+20 + menuLineSpacing*3),ThemeColors.Text);
+            string fullScr = SaveManager.fullscreen == 0?"off":"on";
+            spriteBatch.DrawString(font, fullScr, new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- font.MeasureString(fullScr).X/2-10, optionTopOffset+20 + menuLineSpacing*3),ThemeColors.Text);
         }
         private void ChangeScreenSize(int size){
             switch(size){
@@ -230,13 +231,6 @@ namespace typatro.GameFolder
                 case 2:
                     MainGame.screenWidth = 1280;
                     MainGame.screenHeight = 720;
-                    MainGame.graphics.PreferredBackBufferWidth = MainGame.screenWidth;
-                    MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
-                    MainGame.graphics.ApplyChanges();
-                    break;
-                case 3:
-                    MainGame.screenWidth = 1920;
-                    MainGame.screenHeight = 1080;
                     MainGame.graphics.PreferredBackBufferWidth = MainGame.screenWidth;
                     MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
                     MainGame.graphics.ApplyChanges();

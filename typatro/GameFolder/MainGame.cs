@@ -32,6 +32,7 @@ public class MainGame : Game
         graphics.PreferredBackBufferHeight = screenHeight;
         Window.IsBorderless = true;
         Window.Title = "GLYPHORA";
+
         graphics.ApplyChanges();
         base.Initialize();
     }
@@ -48,6 +49,7 @@ public class MainGame : Game
         SpriteFont textFont = Content.Load<SpriteFont>("Fonts/textFont");
         
         GlyphImageLoad();
+        
         int[] settings = SaveManager.LoadSettings();
         ThemeColors.Apply(settings[0]);
         Texture2D catPic = Content.Load<Texture2D>("Images/catPic");
