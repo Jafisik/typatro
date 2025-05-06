@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using typatro.GameFolder.Rooms;
+using typatro.GameFolder.Runes;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
@@ -35,7 +37,8 @@ namespace typatro.GameFolder
             NEWGAME,
             OPTIONS,
             EXIT,
-            MENU
+            MENU,
+            RUNES,
         }
 
         public GameState gameState = GameState.MENU;
@@ -49,12 +52,13 @@ namespace typatro.GameFolder
         bool firstEnter = true, waitingForEnter, enterReleased, startedTyping, finished, dead = false, isDragging;
         readonly Menu menu;
         readonly SpriteBatch spriteBatch;
-        readonly int wordsGenerated = 10;
+        readonly int wordsGenerated = 10, maxRunes;
         int level = 1, extraScore = 0, inventoryGlyphSelect = 1, afterFightSelect = 0;
         int charCounter = 0, lastCharCount = 0, wordCounter = 0, lastWordCount = 1, wordStreak = 0, lastCorrectWord = 0;
+        int selectedRune = 0;
         double textRotation = 0, correctWordTimer = 0, letterTimer = 0;
         int xTextOffset = 0, yTextOffset = 0;
-        bool eyeOfHorusActive = false, anubisActive = false, tabPressed = false, inventoryMove = true, afterFightScreen = false, afterFightMove = false;
+        bool eyeOfHorusActive = false, anubisActive = false, tabPressed = false, inventoryMove = true, afterFightScreen = false, afterFightMove = false, runeMove = false;
         long currentScore = 0, playerScore = 0, lastScore = 0, coins = 0, startCoins = 500, damagePrint = -1;
         public static int seed;
         Fight fight;
@@ -84,6 +88,7 @@ namespace typatro.GameFolder
             this.windowPos = windowPos;
             this.catPic = catPic;
             this.smallTextFont = smallTextFont;
+            maxRunes = Enum.GetValues(typeof(Runes.Runes)).Length;
             seed = seededRandom.Next();
             seededRandom = new Random(seed);
 
@@ -252,11 +257,15 @@ namespace typatro.GameFolder
                     shop = new Shop(spriteBatch, smallTextFont, texture, enhancements);
                     treasure = new Treasure(spriteBatch, bigFont, smallFont, texture, enhancements);
                     coins = startCoins;
+                    gameState = GameState.RUNES;
                 }
                 firstEnter = true;
                 waitingForEnter = false;
+                enterReleased = false;
+            } else if (gameState == GameState.RUNES){
+                CharacterChoose();
             }
-            else if (gameState == GameState.NEWGAME || gameState == GameState.LOADGAME){
+            else if (gameState == GameState.LOADGAME){
                 Play();
             }
             else if (gameState == GameState.OPTIONS){
@@ -613,7 +622,7 @@ namespace typatro.GameFolder
                     if(column*rows+row >= 26) break;
                     spriteBatch.DrawString(smallFont, (char)(column*rows+row+'a') + ": " + enhancements.letters[column*rows+row], new Vector2(columnSpacing /2+ column*columnSpacing, 70+row*40), ThemeColors.Text);
                     long change = enhancements.lettersChange[column*rows+row];
-                    if(change != 0) spriteBatch.DrawString(smallFont, (change<0?"":"+") + change, new Vector2(columnSpacing + column*columnSpacing, 70+row*40), change<0?ThemeColors.Wrong:ThemeColors.Correct);
+                    if(change != 0) spriteBatch.DrawString(smallFont, (change<0?"":"+") + change, new Vector2(columnSpacing + column*columnSpacing+16, 70+row*40), change<0?ThemeColors.Wrong:ThemeColors.Correct);
                 }
             }
             Glyph[] glyphs = GlyphManager.GetGlyphs();
@@ -646,6 +655,54 @@ namespace typatro.GameFolder
             spriteBatch.Draw(texture, new Rectangle(45, 65, redBarLength, 20), ThemeColors.Foreground);
             string score = $"{currentScore}/{fight.scoreNeeded}  -{fight.speed}/s";
             spriteBatch.DrawString(smallFont, score, new Vector2(MainGame.screenWidth/2-score.Length*10,100), ThemeColors.Text);
+        }
+
+        private void CharacterChoose(){
+            KeyboardState state = Keyboard.GetState();
+            if(state.IsKeyDown(Keys.Escape)){
+                gameState = GameState.MENU;
+            }
+            
+            int rectWidth = MainGame.screenWidth/3, rectHeight = MainGame.screenHeight/2;
+            if(runeMove){
+                if(state.IsKeyDown(Keys.Left) && selectedRune != 0){
+                    selectedRune--;
+                    runeMove = false;
+                }
+                if(state.IsKeyDown(Keys.Right) && selectedRune != maxRunes-1){
+                    selectedRune++;
+                    runeMove = false;
+                }
+            }
+            if(!runeMove){
+                if(state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right)) runeMove = true;
+            }
+
+            if(selectedRune != 0) {
+                spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5-rectWidth/4, MainGame.screenHeight/3- rectHeight/4, rectWidth/2, rectHeight/2), ThemeColors.NotSelected);
+                string runeName = ((Runes.Runes)selectedRune-1).ToString().Substring(0,1);
+                spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth/4 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y/2), ThemeColors.Text);
+            }
+            {
+                spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/2-rectWidth/2, MainGame.screenHeight/3- rectHeight/2, rectWidth, rectHeight), ThemeColors.Selected);
+                string runeName = ((Runes.Runes)selectedRune).ToString();
+                spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth/2 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y*3), ThemeColors.Text);
+                var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
+                var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+                string[] descStrings = attribute.Description.Split('\n');
+                int line = 0;
+                foreach(string desc in descStrings){
+                    spriteBatch.DrawString(smallFont, desc, new Vector2(MainGame.screenWidth/2 - smallFont.MeasureString(desc).X/2, MainGame.screenHeight/3 - smallFont.MeasureString(runeName).Y*(2-line++)), ThemeColors.Text);
+                }
+                
+            }
+            if(selectedRune != maxRunes-1){
+                spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth - MainGame.screenWidth/5-rectWidth/4, MainGame.screenHeight/3- rectHeight/4, rectWidth/2, rectHeight/2), ThemeColors.NotSelected);
+                string runeName = ((Runes.Runes)selectedRune+1).ToString().Substring(0,1);;
+                spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth - MainGame.screenWidth/4 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y/2), ThemeColors.Text);
+            } 
+
+            spriteBatch.DrawString(bigFont, "Difficulty: " , new Vector2(MainGame.screenWidth/2-bigFont.MeasureString("Difficulty: ").X, MainGame.screenHeight-100), ThemeColors.Text);
         }
     }
 }

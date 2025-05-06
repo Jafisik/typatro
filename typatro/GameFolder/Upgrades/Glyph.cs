@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -39,10 +38,10 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for 'S', also sufffix for she, her, hers.\n+ Elite and boss fights deal less damage")]
 
         S,
-        [Description("'Sun', representing Ra, \nthe sun god.\n+ Disables all visual glyphs\n- Letters are less visible")]
+        [Description("'Sun', representing Ra, the sun god.\n+ Disables all visual glyphs\n- Letters are less visible")]
         Sun,
 
-        [Description("'House', represents domestic life or temples.\n+ Take only quarter damage\n- Every 8 seconds your \nkeyboard stops working")]
+        [Description("'House', represents domestic life or temples.\n+ Take only quarter damage\n- Every 8 seconds your keyboard stops working")]
         House,
 
         [Description("'Water', often representing rivers or offerings.\n+ Multiplies final score by *2\n- Add -5 to 5 random letter scores")]
@@ -75,7 +74,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("'Scarab', associated with rebirth and regeneration.\n+ Streak bonus increases by +3 every consecutive correct word")]
         Scarab,
 
-        [Description("'Snake', often signifying danger or protection.\n+ Mistakes do not \nsubtract from score\n- Some letters are wrong")]
+        [Description("'Snake', often signifying danger or protection.\n+ Mistakes do not subtract from score\n- Some letters are wrong")]
         Snake,
 
         [Description("'Life', representing the eternal or divine life force.\n+ Add 5 to a random letter score each time you visit a shop")]
