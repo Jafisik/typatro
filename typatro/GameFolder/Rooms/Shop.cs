@@ -29,7 +29,7 @@ namespace typatro.GameFolder.Rooms{
         int selectedRow = 0, selectedCol = 0;
         readonly int horizontalSpacing = 160, verticalSpacing = 100, cardHeight = 80, cardWidth = 150, cardTextTopOffset = 10, cardTextLeftOffset = 5;
         readonly int topOffset = 100, leftOffset = 30, cardCount = 5, glyphCount = 2;
-        Vector2 descPos = new Vector2(50,400);
+        Vector2 descPos;
         int rerollCost = 5, wordCost = 10, damageRedCost = 10, startingScoreCost = 1, glyphCost = 50;
 
         bool topMove = true, downMove = true, leftMove = true, rightMove = true, enterPressed = false;
@@ -47,11 +47,13 @@ namespace typatro.GameFolder.Rooms{
                 rows = 3;
                 cols = 4;
                 leftOffset = 80;
+                descPos = new Vector2(80,400);
             }
             else{
                 rows = 2;
                 cols = 6;
                 leftOffset = 30;
+                descPos = new Vector2(50,300);
             }
         }
 
