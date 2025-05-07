@@ -85,6 +85,8 @@ namespace typatro.GameFolder.UI{
         public long coins {get;set;}
         public int level {get;set;}
         public int seed {get;set;}
+        public int difficulty {get;set;}
+        public int rune {get;set;}
     }
 
     public static class SaveManager
@@ -96,6 +98,7 @@ namespace typatro.GameFolder.UI{
         private static readonly string settingsPath = "settings.json";
         private static readonly string gameSavePath = "gameSave.json";
         private static readonly string actionSavePath = "actionSave.json";
+        private static readonly string progressSavePath = "progressSave.json";
 
         public static void SaveSettings(int theme, int volume, int size, int fullScreen){
             int[] save = new int[] {theme, volume, size, fullScreen};
@@ -109,7 +112,7 @@ namespace typatro.GameFolder.UI{
             return JsonSerializer.Deserialize<int[]>(json);
         }
 
-        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements){
+        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements, int difficulty, int rune){
             GameSaveData gameSaveData = new GameSaveData(){
                 seed = seed,
                 level = level,
@@ -118,6 +121,8 @@ namespace typatro.GameFolder.UI{
                 letterScores = enhancements.letters,
                 enhancements = new int[]{enhancements.wordScore, enhancements.damageResist, enhancements.startingScore},
                 glyphs = GlyphManager.GlyphNums(),
+                difficulty = difficulty,
+                rune = rune,
             };
             string json = JsonSerializer.Serialize(gameSaveData, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(gameSavePath, json);
@@ -161,6 +166,10 @@ namespace typatro.GameFolder.UI{
                 Console.WriteLine("Couldn't read game data: " + e.Message);
                 return null;
             }
+        }
+
+        public static void SaveProgress(){
+            
         }
     }
 }

@@ -46,7 +46,7 @@ namespace typatro.GameFolder.Rooms{
     }
 
     class NormalFight : Fight{
-        public override int words { get; set; } = 10;
+        public override int words { get; set; } = 15;
         public NormalFight(int level, int floor) : base(1) {
             cashGain = CashGainGen(level, floor, difficulty);
             speed = SpeedGen(level, floor, difficulty);
@@ -55,7 +55,7 @@ namespace typatro.GameFolder.Rooms{
     }
 
     class EliteFight : Fight{
-        public override int words { get; set;} = 20;
+        public override int words { get; set;} = 25;
         public EliteFight(int level, int floor) : base(2) {
             cashGain = CashGainGen(level, floor, difficulty);
             speed = SpeedGen(level, floor, difficulty);
@@ -64,7 +64,7 @@ namespace typatro.GameFolder.Rooms{
     }
 
     class BossFight : Fight{
-        public override int words { get; set;} = 40;
+        public override int words { get; set;} = 45;
 
         public BossFight(int level, int floor) : base(3) {
             cashGain = CashGainGen(level, floor, difficulty);
