@@ -28,7 +28,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for 'M', can symbolize owl, silence or wisdom.\n+ Gains 10 coins \nevery 10 seconds in a fight\n- Text changes position every 5 seconds")]
         M,
 
-        [Description("Sound for 'N', ripple of water, also 'to' or 'for'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds \nbreak streak")]
+        [Description("Sound for 'N', ripple of water, also 'to' or 'for'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds break streak")]
         N,
 
         [Description("Sound for 'R', symbolizing mouth or one whole thing.\n+ Lets you correct your mistakes\n- Mistakes count as -5")]

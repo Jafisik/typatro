@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -259,8 +260,9 @@ namespace typatro.GameFolder
                     enhancements = new Enhancements();
                     shop = new Shop(spriteBatch, smallTextFont, texture, enhancements);
                     treasure = new Treasure(spriteBatch, bigFont, smallFont, texture, enhancements);
-                    coins = startCoins;
+                    coins = difficulty>=1?15:startCoins;
                     gameState = GameState.RUNES;
+                    if(difficulty>=3) enhancements.wordScore -= 1;
                 }
                 firstEnter = true;
                 waitingForEnter = false;
@@ -397,30 +399,41 @@ namespace typatro.GameFolder
                                     afterFightMove = true;
                                 }
                                 if(state.IsKeyUp(Keys.Tab)){
-                                    Color cardColor;
-                                    for(int i = 0; i < cards.Count; i++){
-                                        cardColor = (i == afterFightSelect)? ThemeColors.Selected:ThemeColors.Foreground;
-                                        spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5*(i+1), 250, 160, 120), cardColor);
-                                        spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(MainGame.screenWidth/5*(i+1)+10, 250+10), ThemeColors.Text);
-                                    }
-                                    string fightWon = "Fight won";
-                                    spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
-                                    string chooseReward = "Choose your reward";
-                                    spriteBatch.DrawString(bigFont, chooseReward, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(chooseReward).X/2,130), ThemeColors.Text);
-                                    if(state.IsKeyDown(Keys.Enter)){
-                                        if(cards[afterFightSelect].mult){
-                                            enhancements.MultiplyLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
-                                        } else{
-                                            enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
+                                    if(selectedNode.type == NodeType.BOSS && level == 3){
+                                        string fightWon = "You win";
+                                        spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
+                                        SaveManager.UnlockAchievement((((Runes.Runes)selectedRune).ToString()+difficulty+1).ToString().ToLower());
+                                        if(state.IsKeyDown(Keys.Enter)){
+                                            gameState = GameState.MENU;
                                         }
-                                        waitingForEnter = false;
-                                        enterReleased = false;
-                                        if(selectedNode.type == NodeType.BOSS){
-                                            map.GenerateNodes();
-                                            selectedNode = map.GetFirstNode();
-                                            level++;
+                                    } else{
+                                        Color cardColor;
+                                        for(int i = 0; i < cards.Count; i++){
+                                            cardColor = (i == afterFightSelect)? ThemeColors.Selected:ThemeColors.Foreground;
+                                            spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5*(i+1), 250, 160, 120), cardColor);
+                                            spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(MainGame.screenWidth/5*(i+1)+10, 250+10), ThemeColors.Text);
+                                        }
+                                        SaveManager.UnlockAchievement("first_kill");
+                                        string fightWon = "Fight won";
+                                        spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
+                                        string chooseReward = "Choose your reward";
+                                        spriteBatch.DrawString(bigFont, chooseReward, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(chooseReward).X/2,130), ThemeColors.Text);
+                                        if(state.IsKeyDown(Keys.Enter)){
+                                            if(cards[afterFightSelect].mult){
+                                                enhancements.MultiplyLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
+                                            } else{
+                                                enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
+                                            }
+                                            waitingForEnter = false;
+                                            enterReleased = false;
+                                            if(selectedNode.type == NodeType.BOSS){
+                                                map.GenerateNodes();
+                                                selectedNode = map.GetFirstNode();
+                                                level++;
+                                            }
                                         }
                                     }
+                                    
                                 }
                             }
                         }
@@ -474,8 +487,8 @@ namespace typatro.GameFolder
                                     }
                                     break;
                             }
-                            if(IsFight(newNode.type)) neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus)?20:0) - (difficulty >= 3?5:0));
-                            if(difficulty >= 1) fight.speed *= 2;
+                            if(IsFight(newNode.type)) neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus)?20:0) - (difficulty >= 5?5:0));
+                            if(difficulty >= 4) fight.speed *= 2;
                             if(fight != null) damagePrint = (long)((GlyphManager.IsActive(Glyph.House) ? 0.25:1)* (fight.speed - enhancements.damageResist));
                             writtenText.Clear();
                             startedTyping = false;
@@ -676,6 +689,7 @@ namespace typatro.GameFolder
                 if(state.IsKeyDown(Keys.Left)){
                     if(!diffMove && selectedRune != 0){
                         selectedRune--;
+                        difficulty = 0;
                     } else if(diffMove && difficulty != 0){
                         difficulty--;
                     }
@@ -685,6 +699,7 @@ namespace typatro.GameFolder
                 if(state.IsKeyDown(Keys.Right)){
                     if(!diffMove && selectedRune != maxRunes-1){
                         selectedRune++;
+                        difficulty = 0;
                     } else if(diffMove && difficulty != 10){
                         difficulty++;
                     }
@@ -708,14 +723,25 @@ namespace typatro.GameFolder
                 spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/2-rectWidth/2, MainGame.screenHeight/3- rectHeight/2, rectWidth, rectHeight), diffMove?ThemeColors.NotSelected:ThemeColors.Selected);
                 string runeName = ((Runes.Runes)selectedRune).ToString();
                 spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth/2 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y*3), ThemeColors.Text);
-                var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
-                var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
-                string[] descStrings = attribute.Description.Split('\n');
-                int line = 0;
-                foreach(string desc in descStrings){
-                    spriteBatch.DrawString(smallFont, desc, new Vector2(MainGame.screenWidth/2 - smallFont.MeasureString(desc).X/2, MainGame.screenHeight/3 - smallFont.MeasureString(runeName).Y*(2-line++)), ThemeColors.Text);
+                if(SaveManager.IsAchievementUnlocked((((Runes.Runes)selectedRune).ToString()+0).ToString().ToLower())){
+                    var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
+                    var attribute = (DisplayAttribute)Attribute.GetCustomAttribute(field, typeof(DisplayAttribute));
+                    
+                    string[] descStrings = attribute.GetDescription().Split('\n');
+                    int line = 0;
+                    foreach(string desc in descStrings){
+                        spriteBatch.DrawString(smallFont, desc, new Vector2(MainGame.screenWidth/2 - smallFont.MeasureString(desc).X/2, MainGame.screenHeight/3 - smallFont.MeasureString(runeName).Y*(2-line++)), ThemeColors.Text);
+                    }
+                } else{
+                    var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
+                    var attribute = (DisplayAttribute)Attribute.GetCustomAttribute(field, typeof(DisplayAttribute));
+                    
+                    string[] descStrings = attribute.GetPrompt().Split('\n');
+                    int line = 0;
+                    foreach(string desc in descStrings){
+                        spriteBatch.DrawString(smallFont, desc, new Vector2(MainGame.screenWidth/2 - smallFont.MeasureString(desc).X/2, MainGame.screenHeight/3 - smallFont.MeasureString(runeName).Y*(2-line++)), ThemeColors.Wrong);
+                    }
                 }
-                
             }
             if(selectedRune != maxRunes-1){
                 spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth - MainGame.screenWidth/5-rectWidth/4, MainGame.screenHeight/3- rectHeight/4, rectWidth/2, rectHeight/2), ThemeColors.NotSelected);
@@ -725,10 +751,14 @@ namespace typatro.GameFolder
             } 
 
             spriteBatch.DrawString(bigFont, "Difficulty: " , new Vector2(MainGame.screenWidth/2.5f-bigFont.MeasureString("Difficulty: ").X, MainGame.screenHeight-100), ThemeColors.Text);
+
             string diffString = $"<{difficulty}{DifficultyText(difficulty)}>";
+            if(difficulty != 0 && !SaveManager.IsAchievementUnlocked((((Runes.Runes)selectedRune).ToString()+difficulty).ToString().ToLower())){
+                diffString = "?";
+            }
             Vector2 diffStringSize = bigFont.MeasureString(diffString);
             int padding = 10;
-            if(diffMove) spriteBatch.Draw(texture, new Rectangle((int)(MainGame.screenWidth/2.5f)-padding, MainGame.screenHeight-100-padding,(int)diffStringSize.X+padding*2,(int)diffStringSize.Y+padding), ThemeColors.Selected);
+            if(diffMove) spriteBatch.Draw(texture, new Rectangle((int)(MainGame.screenWidth/2.5f)-padding, MainGame.screenHeight-100-padding,(int)diffStringSize.X+padding*2,(int)diffStringSize.Y+padding), (diffString == "?")?ThemeColors.Wrong:ThemeColors.Selected);
             spriteBatch.DrawString(bigFont, diffString, new Vector2(MainGame.screenWidth/2.5f, MainGame.screenHeight-100), ThemeColors.Text);
         }
 
@@ -759,9 +789,12 @@ namespace typatro.GameFolder
         private string DifficultyText(int difficulty){
             return difficulty switch
             {
-                1 => " Double damage",
+                0 => " Normal",
+                1 => " 15 coins",
                 2 => " Mistakes -5",
-                3 => " -5 words",
+                3 => " Word score -1",
+                4 => " Double damage",
+                5 => " -5 words",
                 _ => "",
             };
         }

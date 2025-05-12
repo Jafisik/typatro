@@ -1,16 +1,19 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace typatro.GameFolder.Runes{
 
     public enum Runes{
-        [Description("Strength\nof will\n\nAdds +1 to\nall letters")]
+        [Display(Description = "Strength\nof will\n\nAdds +1 to\nall letters", Prompt = "First unlock")]
         Uruz,
-        [Description("Destruction\nor chaos\n\nHalf is +5\nother half -3")]
+        [Display(Description = "Destruction\nor chaos\n\nHalf is +5\nother half -3", Prompt = "Get negative\nletter score")]
         Halagaz,
-        [Description("Need\nor desire\n\nStart with\n50 score")]
+        [Display(Description = "Need\nor desire\n\nStart with\n50 score", Prompt = "Reach\n100 coins")]
         Naudhiz,
-        [Description("Harvest\nor Reward\n\nStart with\n60 coins")]
+        [Display(Description = "Harvest\nor Reward\n\nStart with\n60 coins", Prompt = "Reach\n100 coins")]
         Jera,
     }
+
+
 
 }

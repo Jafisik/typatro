@@ -95,81 +95,156 @@ namespace typatro.GameFolder.UI{
         public static int volume = 10;
         public static int size = 0;
         public static int fullscreen = 0;
+
         private static readonly string settingsPath = "settings.json";
         private static readonly string gameSavePath = "gameSave.json";
         private static readonly string actionSavePath = "actionSave.json";
-        private static readonly string progressSavePath = "progressSave.json";
+        private static readonly string achievementsPath = "achievements.json";
 
-        public static void SaveSettings(int theme, int volume, int size, int fullScreen){
-            int[] save = new int[] {theme, volume, size, fullScreen};
+        private static Dictionary<string, bool> achievements = new();
+
+        private static readonly string[] allAchievements = new[]
+        {
+
+            "first_kill",
+            "played_100_games",
+            "beat_final_boss",
+            "typed_10000_chars",
+            "uruz0", "uruz1", "uruz2", "uruz3", "uruz4", "uruz5", "uruz6", "uruz7", "uruz8", "uruz9", "uruz10",
+            "halagaz0", "halagaz1", "halagaz2", "halagaz3", "halagaz4", "halagaz5", "halagaz6", "halagaz7", "halagaz8", "halagaz9", "halagaz10",
+            "naudhiz0", "naudhiz1", "naudhiz2", "naudhiz3", "naudhiz4", "naudhiz5", "naudhiz6", "naudhiz7", "naudhiz8", "naudhiz9", "naudhiz10",
+            "jera0", "jera1", "jera2", "jera3", "jera4", "jera5", "jera6", "jera7", "jera8", "jera9", "jera10",
+        };
+
+        static SaveManager()
+        {
+            LoadAchievements();
+            EnsureAllAchievementsExist();
+        }
+
+        public static void SaveSettings(int theme, int volume, int size, int fullScreen)
+        {
+            int[] save = new int[] { theme, volume, size, fullScreen };
             var json = JsonSerializer.Serialize(save, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsPath, json);
         }
 
-        public static int[] LoadSettings(){
-            if (!File.Exists(settingsPath)) return new int[]{0,10,0,0};
+        public static int[] LoadSettings()
+        {
+            if (!File.Exists(settingsPath)) return new int[] { 0, 10, 0, 0 };
             var json = File.ReadAllText(settingsPath);
             return JsonSerializer.Deserialize<int[]>(json);
         }
 
-        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements, int difficulty, int rune){
-            GameSaveData gameSaveData = new GameSaveData(){
+        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements, int difficulty, int rune)
+        {
+            GameSaveData gameSaveData = new GameSaveData()
+            {
                 seed = seed,
                 level = level,
                 coins = coins,
                 mapNode = mapNode.NodePos(),
                 letterScores = enhancements.letters,
-                enhancements = new int[]{enhancements.wordScore, enhancements.damageResist, enhancements.startingScore},
+                enhancements = new int[] { enhancements.wordScore, enhancements.damageResist, enhancements.startingScore },
                 glyphs = GlyphManager.GlyphNums(),
                 difficulty = difficulty,
                 rune = rune,
             };
             string json = JsonSerializer.Serialize(gameSaveData, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(gameSavePath, json);
+            Console.WriteLine("Game saved");
         }
 
-        public static void RemoveGameData(){
+        public static void RemoveGameData()
+        {
             File.WriteAllText(gameSavePath, "");
             File.WriteAllText(actionSavePath, "");
         }
 
-        public static GameSaveData LoadGame(){
+        public static GameSaveData LoadGame()
+        {
+            Console.WriteLine("Game loaded");
             if (!File.Exists(gameSavePath)) return null;
             var json = File.ReadAllText(gameSavePath);
-            GameSaveData ret = null;
-            try{
-                ret = JsonSerializer.Deserialize<GameSaveData>(json);
-            } catch(Exception e){
-                Console.WriteLine("Couldn't read game data: " + e.Message);
+            try
+            {
+                return JsonSerializer.Deserialize<GameSaveData>(json);
             }
-            return ret;
-        }
-
-        public static void SaveActions(List<UserAction> actions){
-            UserAction[] userActions = actions.ToArray();
-            List<string[]> actionStrings = new List<string[]>();
-            foreach(UserAction action in userActions){
-                actionStrings.Add(action.ToStringArray());
-            }
-            string json = JsonSerializer.Serialize(actionStrings.ToArray(), new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(actionSavePath, json);
-        }
-
-        public static UserAction[] LoadActions(){
-            if (!File.Exists(actionSavePath)) return null;
-
-            var json = File.ReadAllText(actionSavePath);
-            try {
-                string[][] actionStrings = JsonSerializer.Deserialize<string[][]>(json);
-                return actionStrings.Select(UserAction.FromStringArray).ToArray();
-            } catch(Exception e){
+            catch (Exception e)
+            {
                 Console.WriteLine("Couldn't read game data: " + e.Message);
                 return null;
             }
         }
 
-        public static void SaveProgress(){
-            
+        public static void SaveActions(List<UserAction> actions)
+        {
+            var actionStrings = actions.Select(a => a.ToStringArray()).ToArray();
+            string json = JsonSerializer.Serialize(actionStrings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(actionSavePath, json);
+            Console.WriteLine("Actions saved");
+        }
+
+        public static UserAction[] LoadActions()
+        {
+            if (!File.Exists(actionSavePath)) return null;
+            Console.WriteLine("Actions loaded");
+            var json = File.ReadAllText(actionSavePath);
+            try
+            {
+                string[][] actionStrings = JsonSerializer.Deserialize<string[][]>(json);
+                return actionStrings.Select(UserAction.FromStringArray).ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Couldn't read actions: " + e.Message);
+                return null;
+            }
+        }
+
+        public static void UnlockAchievement(string id)
+        {
+            if (achievements.ContainsKey(id) && !achievements[id])
+            {
+                achievements[id] = true;
+                SaveAchievements();
+                Console.WriteLine($"Achievement unlocked: {id}");
+            }
+        }
+
+        public static bool IsAchievementUnlocked(string id)
+        {
+            return achievements.TryGetValue(id, out bool value) && value;
+        }
+
+        public static Dictionary<string, bool> GetAllAchievements()
+        {
+            return new Dictionary<string, bool>(achievements);
+        }
+
+        private static void SaveAchievements()
+        {
+            var json = JsonSerializer.Serialize(achievements, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(achievementsPath, json);
+        }
+
+        private static void LoadAchievements()
+        {
+            if (File.Exists(achievementsPath))
+            {
+                var json = File.ReadAllText(achievementsPath);
+                achievements = JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new();
+            }
+        }
+
+        private static void EnsureAllAchievementsExist()
+        {
+            foreach (var id in allAchievements)
+            {
+                if (!achievements.ContainsKey(id))
+                    achievements[id] = false;
+            }
+            SaveAchievements();
         }
     }
 }
