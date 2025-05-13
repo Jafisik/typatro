@@ -155,11 +155,11 @@ namespace typatro.GameFolder
 
                     if (currentLineLength + wordLength > maxCharsPerLine){
                         endLineIndexes.Add(writeLine.Length);
-                        if(treasure) writeLine.Append('\n');
+                        //if(treasure) writeLine.Append('\n');
                         if(isHintText) writeLine.Append('\n');
                         currentLineLength = 0;
                     }
-                    if(printCharArray[i] == '\n') currentLineLength = 0;
+                    
 
                     writeLine.Append(new string(printCharArray, beginingOfWord, wordLength));
                     currentLineLength += wordLength;

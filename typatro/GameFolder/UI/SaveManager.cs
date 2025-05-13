@@ -92,7 +92,7 @@ namespace typatro.GameFolder.UI{
     public static class SaveManager
     {
         public static int theme = 0;
-        public static int volume = 10;
+        public static int volume = 5;
         public static int size = 0;
         public static int fullscreen = 0;
 

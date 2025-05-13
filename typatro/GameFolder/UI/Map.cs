@@ -22,6 +22,7 @@ namespace typatro.GameFolder{
         public List<MapNode> forward;
         public NodeType type;
         public int row, column;
+        public bool visited = false;
         public MapNode(List<MapNode> forward, NodeType type, Vector2 point, int row, int column){
             this.forward = forward;
             this.type = type;
@@ -147,6 +148,10 @@ namespace typatro.GameFolder{
                         }
 
                         spriteBatch.DrawString(bigFont, MapIcon(node.type), node.point, ThemeColors.Text);
+                        if (node.visited && node.type != NodeType.NOTHING)
+                        {
+                            spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X - 5, (int)node.point.Y - 5, 30, 40), ThemeColors.Background);
+                        }
                     }
                 }
             }
@@ -202,6 +207,7 @@ namespace typatro.GameFolder{
                 if(state.IsKeyDown(Keys.Enter) && enterUp){
                     enterUp = false;
                     nodeSelectIndex = 0;
+                    selectedNode.visited = true;
                     return selectedNode;
                 }
                 else if(state.IsKeyUp(Keys.Enter)) enterUp = true;

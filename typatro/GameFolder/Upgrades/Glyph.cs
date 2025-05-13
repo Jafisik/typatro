@@ -22,7 +22,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for 'H', symbolizing shelter or building.\n+ Multiplies 10 random letters by *5\n- Rotates text upside down every 10 seconds")]
         H,
 
-        [Description("Sound for 'J', also symbol for reed or tall grass.\n+ Add +10 to all letter scores\n- Screen shakes with every input")]
+        [Description("Sound for 'J', also symbol for reed or tall grass. \n+ Add +10 to all letter scores\n- Screen shakes with every input")]
         J,
 
         [Description("Sound for 'M', can symbolize owl, silence or wisdom.\n+ Gains 10 coins \nevery 10 seconds in a fight\n- Text changes position every 5 seconds")]

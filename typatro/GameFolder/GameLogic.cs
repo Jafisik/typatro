@@ -267,6 +267,7 @@ namespace typatro.GameFolder
                 firstEnter = true;
                 waitingForEnter = false;
                 enterReleased = false;
+                SaveManager.UnlockAchievement("uruz0");
             } else if (gameState == GameState.RUNES){
                 CharacterChoose();
             }
