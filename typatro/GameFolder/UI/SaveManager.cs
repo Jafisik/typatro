@@ -105,15 +105,15 @@ namespace typatro.GameFolder.UI{
 
         private static readonly string[] allAchievements = new[]
         {
-
+            "characterTutorial", "mapTutorial", "fightTutorial", "shopTutorial",
             "first_kill",
             "played_100_games",
             "beat_final_boss",
             "typed_10000_chars",
-            "uruz0", "uruz1", "uruz2", "uruz3", "uruz4", "uruz5", "uruz6", "uruz7", "uruz8", "uruz9", "uruz10",
-            "halagaz0", "halagaz1", "halagaz2", "halagaz3", "halagaz4", "halagaz5", "halagaz6", "halagaz7", "halagaz8", "halagaz9", "halagaz10",
-            "naudhiz0", "naudhiz1", "naudhiz2", "naudhiz3", "naudhiz4", "naudhiz5", "naudhiz6", "naudhiz7", "naudhiz8", "naudhiz9", "naudhiz10",
-            "jera0", "jera1", "jera2", "jera3", "jera4", "jera5", "jera6", "jera7", "jera8", "jera9", "jera10",
+            "uruz0", "uruz1", "uruz2", "uruz3", "uruz4", "uruz5", "uruz6",
+            "halagaz0", "halagaz1", "halagaz2", "halagaz3", "halagaz4", "halagaz5", "halagaz6",
+            "naudhiz0", "naudhiz1", "naudhiz2", "naudhiz3", "naudhiz4", "naudhiz5", "naudhiz6",
+            "jera0", "jera1", "jera2", "jera3", "jera4", "jera5", "jera6"
         };
 
         static SaveManager()

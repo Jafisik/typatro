@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using typatro.GameFolder.UI;
 
 namespace typatro.GameFolder.Upgrades{
 
@@ -27,6 +28,9 @@ namespace typatro.GameFolder.Upgrades{
         public void AddLetterScore(char letter, long score){
             letters[letter-'a'] += score;
             lettersChange[letter-'a'] += score;
+            foreach(long lette in letters){
+                if(lette < 0) SaveManager.UnlockAchievement("halagaz0");
+            }
         }
 
         public void AllLettersAddScore(long score){
@@ -39,7 +43,9 @@ namespace typatro.GameFolder.Upgrades{
         public void MultiplyLetterScore(char letter, double score){
             lettersChange[letter-'a'] += (int)(letters[letter-'a'] * score);
             letters[letter-'a'] = (int)(letters[letter-'a'] * score);
-            
+            foreach(long lette in letters){
+                if(lette < 0) SaveManager.UnlockAchievement("halagaz0");
+            }
         }
 
         public void AllLettersMultiplyScore(double score){
@@ -63,14 +69,14 @@ namespace typatro.GameFolder.Upgrades{
                     AddLetterScore('u',5);
                     break;
                 case Glyph.D:
-                    GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
-                    GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
+                    GameLogic.actions.Add(new UserAction("randomLetter",""));
+                    GameLogic.actions.Add(new UserAction("randomLetter",""));
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0,26)+'a'),5);
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0,26)+'a'),5);
                     break;
                 case Glyph.H:
                     for(int i = 0; i < 10; i++){
-                        GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
+                        GameLogic.actions.Add(new UserAction("randomLetter",""));
                         MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0,26)+'a'),5);
                     }
                     break;
@@ -79,7 +85,7 @@ namespace typatro.GameFolder.Upgrades{
                     break;
                 case Glyph.Water:
                     for(int i = 0; i < 5; i++){
-                        GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
+                        GameLogic.actions.Add(new UserAction("randomLetter",""));
                         AddLetterScore((char)(GameLogic.seededRandom.Next(0,26)+'a'),-5);
                     }
                     break;
@@ -100,14 +106,14 @@ namespace typatro.GameFolder.Upgrades{
                     break;
                 case Glyph.Cat:
                     for(int i = 0; i < 9; i++){
-                        GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
+                        GameLogic.actions.Add(new UserAction("randomLetter",""));
                         MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0,26)+'a'),2);
                     }
                     break;
                 case Glyph.Crocodile:
-                GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
+                GameLogic.actions.Add(new UserAction("randomLetter",""));
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0,26)+'a'),20);
-                    GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
+                    GameLogic.actions.Add(new UserAction("randomLetter",""));
                     char letter = (char)GameLogic.seededRandom.Next(0,26);
                     lettersChange[letter] -= letters[letter];
                     letters[letter] = 0;
@@ -116,18 +122,21 @@ namespace typatro.GameFolder.Upgrades{
                     AllLettersAddScore(1);
                     break;
                 case Glyph.Ten:
-                GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
+                GameLogic.actions.Add(new UserAction("randomLetter",""));
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0,26)+'a'),10);
                     break;
                 case Glyph.Bread:
                     for(int i = 0; i < 6; i++){
-                        GameLogic.actions.Add(new UserAction("seededRandom.Next(0,26)",""));
+                        GameLogic.actions.Add(new UserAction("randomLetter",""));
                         MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0,26)+'a'),3);
                     }
                     break;
                 case Glyph.Star:
                     AllLettersMultiplyScore(20);
                     break;
+            }
+            foreach(long letter in letters){
+                if(letter < 0) SaveManager.UnlockAchievement("halagaz0");
             }
         }
 

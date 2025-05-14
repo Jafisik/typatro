@@ -24,11 +24,11 @@ namespace typatro.GameFolder.Rooms{
         }
 
         public static int SpeedGen(int level, int floor, int difficulty){
-            return (int)((level*level + floor*0.2) * (difficulty*multPerDiff*(GlyphManager.IsActive(Glyph.S)?0.5:0.8)));
+            return (int)((level*level*0.8 + floor*0.2) * (difficulty*multPerDiff*(GlyphManager.IsActive(Glyph.S)?0.5:0.8)));
         }
 
         public static int ScoreNeddedGen(int level, int floor, int difficulty){
-            return (int)(50+((level-1)*(level-1)*(level-1)*100 + floor*floor*1.5) * (difficulty*multPerDiff));
+            return (int)(50+((level-1)*(level-1)*(level-1)*60 + floor*floor*1.2) * (difficulty*multPerDiff));
         }
     }
 
