@@ -138,7 +138,7 @@ namespace typatro.GameFolder
                     spriteBatch.DrawString(font, menuTexts[line], linePos, textColor);
                 }
             }
-            if(totalSeconds >= 6) introFinished = true;
+            if(totalSeconds >= 5) introFinished = true;
             
             return (int)MenuSelect.empty;
         }
