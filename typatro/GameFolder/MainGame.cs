@@ -15,6 +15,7 @@ public class MainGame : Game
     SpriteBatch spriteBatch;
     Texture2D texture;
     GameLogic gameLogic;
+    public static GameTime time;
     public static int screenWidth = 800, screenHeight = 600;
     
     public MainGame(){
@@ -63,13 +64,14 @@ public class MainGame : Game
     }
 
     protected override void Update(GameTime gameTime){
-        gameLogic.Update(gameTime, Window);
-        base.Update(gameTime);
+        time = gameTime;
+        gameLogic.Update(Window);
+        base.Update(time);
     }
 
     protected override void Draw(GameTime gameTime){
         gameLogic.Draw(graphics);
-        base.Draw(gameTime);
+        base.Draw(time);
     }
 
     private void GlyphImageLoad(){

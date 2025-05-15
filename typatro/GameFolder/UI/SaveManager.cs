@@ -107,9 +107,6 @@ namespace typatro.GameFolder.UI{
         {
             "characterTutorial", "mapTutorial", "fightTutorial", "shopTutorial",
             "first_kill",
-            "played_100_games",
-            "beat_final_boss",
-            "typed_10000_chars",
             "uruz0", "uruz1", "uruz2", "uruz3", "uruz4", "uruz5", "uruz6",
             "halagaz0", "halagaz1", "halagaz2", "halagaz3", "halagaz4", "halagaz5", "halagaz6",
             "naudhiz0", "naudhiz1", "naudhiz2", "naudhiz3", "naudhiz4", "naudhiz5", "naudhiz6",

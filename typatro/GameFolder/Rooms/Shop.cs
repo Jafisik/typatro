@@ -63,7 +63,7 @@ namespace typatro.GameFolder.Rooms{
             char letter = (char)(GameLogic.seededRandom.Next(0, 26) + 'a');
             bool mult = GameLogic.seededRandom.Next(1, 101) >= 75;
             long value = mult ? GameLogic.seededRandom.Next(2, 5) : GameLogic.seededRandom.Next(2, 11);
-            return new Card(letter, mult, value, mult ? (value + enhancements.GetLetterScore(letter))*3 : (value + enhancements.GetLetterScore(letter)));
+            return new Card(letter, mult, value, mult ? (value/2 + enhancements.GetLetterScore(letter))*3 : (value/2 + enhancements.GetLetterScore(letter)));
         }
 
         private void GenerateShop(){

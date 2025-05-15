@@ -32,7 +32,8 @@ namespace typatro.GameFolder.Rooms{
             Glyph glyph = currentGlyph;
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
             spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Background);
-            writer.WriteText(treasureDescriptionText, ThemeColors.Text, line : 3, xExtraOffset : -50, yExtraOffset: -50, treasure:true);
+            //writer.WriteText(treasureDescriptionText, ThemeColors.Text, line : 3, xExtraOffset : -50, yExtraOffset: -50, treasure:true);
+            spriteBatch.DrawString(smallFont, treasureDescriptionText, new Vector2(leftOffset, topOffset+descOffset), ThemeColors.Text);
 
             if(glyph != Glyph.NoGlyphsLeft){
                 var state = Keyboard.GetState();

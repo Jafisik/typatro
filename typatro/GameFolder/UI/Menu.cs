@@ -21,7 +21,7 @@ namespace typatro.GameFolder
         int menuRectWidth = 400, menuRectHeight = 80;
         int leftOffset = 140, optionRectWidth = 300, optionRectHeight = 80;
 
-        bool menuNav = true, optionNav = true;
+        bool menuNav = true, optionNav = true, introFinished = false, introSkip = false;
         enum MenuSelect
         {
             load,
@@ -92,19 +92,54 @@ namespace typatro.GameFolder
                 if ((int)menuSelect == menuIndex) menuColors[menuIndex] = ThemeColors.Selected;
                 else menuColors[menuIndex] = ThemeColors.NotSelected;
             }
-            if (state.IsKeyDown(Keys.Enter)) return (int)menuSelect;
+            
+            double totalSeconds = MainGame.time.TotalGameTime.TotalSeconds;
+            if (state.IsKeyDown(Keys.Enter) && ((introFinished && introSkip) || totalSeconds >= 6)) return (int)menuSelect;
+            if(state.IsKeyDown(Keys.Enter)){
+                introFinished = true;
+            }
+            if(introFinished && state.IsKeyUp(Keys.Enter)){
+                introSkip = true;
+            }
 
             string title = "GLYPHORA";
-            Vector2 screenCenter = new Vector2(MainGame.screenWidth/2, MainGame.screenHeight/5);
+            Vector2 start = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 2f);
+            Vector2 end = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 5f);
+            Vector2 current = start;
 
-            spriteBatch.DrawString(font, title, screenCenter-font.MeasureString(title), ThemeColors.Text, 0f, new Vector2(), 2f, SpriteEffects.None, 0.6f);
-            for (int line = 0; line < menuTexts.Length; line++)
-            {
-                spriteBatch.Draw(texture, new Rectangle((MainGame.screenWidth - menuRectWidth) / 2, (int)(MainGame.screenHeight/5*1.5) + (int)(MainGame.screenHeight/6.5) * line, menuRectWidth, menuRectHeight), line == 0 && !gameSaved?ThemeColors.Background:menuColors[line]);
-                Vector2 textSize = font.MeasureString(menuTexts[line]);
-                Vector2 textPos = new Vector2((MainGame.screenWidth - textSize.X) / 2, (int)(MainGame.screenHeight/5*1.5) + (int)(MainGame.screenHeight/6.5) * line + menuRectHeight/2-textSize.Y/3);
-                spriteBatch.DrawString(font, menuTexts[line], textPos, ThemeColors.Text);
+            if (totalSeconds >= 2 && totalSeconds <= 4){
+                float t = (float)((totalSeconds - 2) / 2);
+                current = Vector2.Lerp(start, end, t);
             }
+            else if (totalSeconds > 4){
+                current = end;
+            }
+
+            Vector2 textSize = font.MeasureString(title);
+            Vector2 drawPos = current - textSize;
+
+            if(!introFinished) spriteBatch.DrawString(font, title, drawPos, ThemeColors.Text, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.6f);
+            else spriteBatch.DrawString(font, title, end-textSize, ThemeColors.Text, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.6f);
+
+            if (totalSeconds >= 4 || introFinished){
+                float alpha = MathHelper.Clamp((float)((totalSeconds - 4) / 2), 0f, 1f);
+
+                for (int line = 0; line < menuTexts.Length; line++){
+                    Color rectColor = (line == 0 && !gameSaved ? ThemeColors.Background : menuColors[line]) * (introFinished?1:alpha);
+                    Color textColor = ThemeColors.Text * (introFinished?1:alpha);
+
+                    spriteBatch.Draw(texture,new Rectangle((MainGame.screenWidth - menuRectWidth) / 2,(int)(MainGame.screenHeight / 5 * 1.5f) + 
+                    (int)(MainGame.screenHeight / 6.5f) * line,menuRectWidth,menuRectHeight),rectColor);
+
+                    Vector2 lineSize = font.MeasureString(menuTexts[line]);
+                    Vector2 linePos = new Vector2((MainGame.screenWidth - lineSize.X) / 2,(int)(MainGame.screenHeight / 5 * 1.5f) + 
+                    (int)(MainGame.screenHeight / 6.5f) * line + menuRectHeight / 2 - lineSize.Y / 3);
+
+                    spriteBatch.DrawString(font, menuTexts[line], linePos, textColor);
+                }
+            }
+            if(totalSeconds >= 6) introFinished = true;
+            
             return (int)MenuSelect.empty;
         }
 
