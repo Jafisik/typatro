@@ -67,6 +67,15 @@ namespace typatro.GameFolder{
             return mapNodes[row, column];
         }
 
+        public void NodeVisit(List<int[]> visitedList){
+            foreach(int[] nodePos in visitedList){
+                if(nodePos[0] != 0){
+                    Console.WriteLine(nodePos[0] +" , "+ nodePos[1]);
+                    mapNodes[nodePos[1],nodePos[0]].visited = true;
+                }
+            }
+        }
+
         public void GenerateNodes()
         {
             if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateNodes",""));
@@ -150,7 +159,7 @@ namespace typatro.GameFolder{
                         spriteBatch.DrawString(bigFont, MapIcon(node.type), node.point, ThemeColors.Text);
                         if (node.visited && node.type != NodeType.NOTHING)
                         {
-                            spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X - 5, (int)node.point.Y - 5, 30, 40), ThemeColors.Background);
+                            spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X - 5, (int)node.point.Y - 5, 30, 40), ThemeColors.Selected);
                         }
                     }
                 }
@@ -202,6 +211,11 @@ namespace typatro.GameFolder{
                 if (state.IsKeyUp(Keys.Up) && state.IsKeyUp(Keys.Down)){
                     nodeMove = true;
                 }
+
+                foreach(MapNode fwdNode in node.forward){
+                    spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)fwdNode.point.X-5, (int)fwdNode.point.Y-5, 30, 40), ThemeColors.Background);
+                    spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)fwdNode.point.X-5, (int)fwdNode.point.Y-5, 30, 40), ThemeColors.Background);
+                }
                 
                 MapNode selectedNode = node.forward[nodeSelectIndex];
                 if(state.IsKeyDown(Keys.Enter) && enterUp){
@@ -215,7 +229,7 @@ namespace typatro.GameFolder{
                 spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), ThemeColors.NotSelected);
             }
             if(node.type != NodeType.NOTHING){
-                spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), ThemeColors.Background);
+                spriteBatch.Draw(texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), ThemeColors.NotSelected);
             }
             
             return node;

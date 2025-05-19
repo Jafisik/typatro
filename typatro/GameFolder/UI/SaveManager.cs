@@ -87,6 +87,7 @@ namespace typatro.GameFolder.UI{
         public int seed {get;set;}
         public int difficulty {get;set;}
         public int rune {get;set;}
+        public List<int[]> visitedNodes {get;set;}
     }
 
     public static class SaveManager
@@ -133,7 +134,7 @@ namespace typatro.GameFolder.UI{
             return JsonSerializer.Deserialize<int[]>(json);
         }
 
-        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements, int difficulty, int rune)
+        public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements, int difficulty, int rune, List<int[]> visited)
         {
             GameSaveData gameSaveData = new GameSaveData()
             {
@@ -146,6 +147,7 @@ namespace typatro.GameFolder.UI{
                 glyphs = GlyphManager.GlyphNums(),
                 difficulty = difficulty,
                 rune = rune,
+                visitedNodes = visited,
             };
             string json = JsonSerializer.Serialize(gameSaveData, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(gameSavePath, json);

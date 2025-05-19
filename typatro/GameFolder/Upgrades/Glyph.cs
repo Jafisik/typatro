@@ -156,5 +156,9 @@ namespace typatro.GameFolder.Upgrades{
         public static Texture2D GetGlyphImage(Glyph glyph){
             return glyphImage[(int)glyph];
         }
+
+        public static void RemoveAllGlyphs(){
+            activeGlyphs = new HashSet<Glyph>();
+        }
     }
 }

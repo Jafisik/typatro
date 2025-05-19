@@ -73,6 +73,7 @@ namespace typatro.GameFolder
         Point windowPos, dragOffset;
         Vector2 catPos = Vector2.One;
         List<Card> cards = new List<Card>();
+        List<int[]> visitedNodes = new List<int[]>();
         GameSaveData gameSaveData;
         public static List<UserAction> actions = new List<UserAction>();
         List<UserAction> lastActions = actions;
@@ -198,7 +199,7 @@ namespace typatro.GameFolder
 
                     seed = gameSaveData.seed;
                     seededRandom = new Random(seed);
-                    map = new Map(spriteBatch, bigFont, smallTextFont, texture);       
+                    map = new Map(spriteBatch, bigFont, smallTextFont, texture);
                     enhancements = new Enhancements();
                     enhancements.letters = gameSaveData.letterScores;
                     enhancements.wordScore = gameSaveData.enhancements[0];
@@ -245,6 +246,9 @@ namespace typatro.GameFolder
                                 break;
                         }
                     }
+                    map.NodeVisit(gameSaveData.visitedNodes);
+                    visitedNodes = new List<int[]>();
+                    visitedNodes = gameSaveData.visitedNodes;
                     isReplay = false;
                     selectedNode = map.GetNodeFromPos(gameSaveData.mapNode[0], gameSaveData.mapNode[1]);
                     lastSelectedNode = selectedNode;
@@ -263,6 +267,8 @@ namespace typatro.GameFolder
                     coins = difficulty>=1?15:startCoins;
                     gameState = GameState.RUNES;
                     if(difficulty>=3) enhancements.wordScore -= 1;
+                    GlyphManager.RemoveAllGlyphs();
+                    visitedNodes = new List<int[]>();
                 }
                 firstEnter = true;
                 waitingForEnter = false;
@@ -320,7 +326,7 @@ namespace typatro.GameFolder
             if (state.IsKeyDown(Keys.Escape)){
                 gameState = GameState.MENU;
                 if(!dead){
-                    SaveManager.SaveGame(seed, level, coins, lastSelectedNode, enhancements, difficulty, selectedRune);
+                    SaveManager.SaveGame(seed, level, coins, lastSelectedNode, enhancements, difficulty, selectedRune, visitedNodes);
                     gameSaveData = SaveManager.LoadGame();
                     SaveManager.SaveActions(lastActions);
                 }
@@ -331,6 +337,7 @@ namespace typatro.GameFolder
             if(dead){
                 spriteBatch.DrawString(bigFont, "You are dead", new Vector2(100), ThemeColors.Text);
                 SaveManager.RemoveGameData();
+                GlyphManager.RemoveAllGlyphs();
                 gameSaveData = null;
                 return;
             }
@@ -536,6 +543,7 @@ namespace typatro.GameFolder
                             MapNode newNode = map.NodeSelect(selectedNode);
 
                             if (newNode != selectedNode){
+                                visitedNodes.Add(new int[] {selectedNode.column,selectedNode.row});
                                 lastActions = new List<UserAction>(actions);
                                 enhancements.ResetLettersChange();
                                 finished = false;
@@ -615,7 +623,8 @@ namespace typatro.GameFolder
             spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,40), ThemeColors.Foreground);
             Vector2 textOffset = new Vector2(30,20);
             spriteBatch.DrawString(smallFont, $"coins:{coins}", textOffset, ThemeColors.Text);
-            if(!tabPressed) spriteBatch.DrawString(smallFont, "tab -> inventory", new Vector2(MainGame.screenWidth - smallFont.MeasureString("tab -> inventory").X - textOffset.X,textOffset.Y), ThemeColors.Text);
+            if(!tabPressed) spriteBatch.DrawString(smallFont, "tab -> inventory", new Vector2(MainGame.screenWidth/2 - smallFont.MeasureString("tab -> inventory").X/2,textOffset.Y), ThemeColors.Text);
+            if(map) spriteBatch.DrawString(smallFont, $"level:{level}/3", new Vector2(MainGame.screenWidth - smallFont.MeasureString($"level:{level}/3").X-textOffset.X,textOffset.Y), ThemeColors.Text);
         }
 
         private static bool IsFight(NodeType nodeType){
@@ -834,7 +843,7 @@ namespace typatro.GameFolder
             }
             if(selectedRune != maxRunes-1){
                 spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth - MainGame.screenWidth/5-rectWidth/4, MainGame.screenHeight/3- rectHeight/4, rectWidth/2, rectHeight/2), ThemeColors.NotSelected);
-                string runeName = ((Runes.Runes)selectedRune+1).ToString().Substring(0,1);;
+                string runeName = ((Runes.Runes)selectedRune+1).ToString().Substring(0,1);
                 spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth - MainGame.screenWidth/4 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y/2), ThemeColors.Text);
                 spriteBatch.DrawString(bigFont, ">", new Vector2(MainGame.screenWidth - MainGame.screenWidth/3 + bigFont.MeasureString(">").X, MainGame.screenHeight/3.5f), ThemeColors.Text);
             } 
