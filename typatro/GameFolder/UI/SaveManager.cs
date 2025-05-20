@@ -100,11 +100,11 @@ namespace typatro.GameFolder.UI{
         private static readonly string settingsPath = "settings.json";
         private static readonly string gameSavePath = "gameSave.json";
         private static readonly string actionSavePath = "actionSave.json";
-        private static readonly string achievementsPath = "achievements.json";
+        private static readonly string unlocksPath = "unlocks.json";
 
-        private static Dictionary<string, bool> achievements = new();
+        private static Dictionary<string, bool> unlocks = new();
 
-        private static readonly string[] allAchievements = new[]
+        private static readonly string[] allUnlocks = new[]
         {
             "characterTutorial", "mapTutorial", "fightTutorial", "shopTutorial",
             "first_kill",
@@ -116,8 +116,8 @@ namespace typatro.GameFolder.UI{
 
         static SaveManager()
         {
-            LoadAchievements();
-            EnsureAllAchievementsExist();
+            LoadUnlocks();
+            EnsureAllUnlocksExist();
         }
 
         public static void SaveSettings(int theme, int volume, int size, int fullScreen)
@@ -203,47 +203,47 @@ namespace typatro.GameFolder.UI{
 
         public static void UnlockAchievement(string id)
         {
-            if (achievements.ContainsKey(id) && !achievements[id])
+            if (unlocks.ContainsKey(id) && !unlocks[id])
             {
-                achievements[id] = true;
-                SaveAchievements();
-                Console.WriteLine($"Achievement unlocked: {id}");
+                unlocks[id] = true;
+                SaveUnlocks();
+                Console.WriteLine($"Achievement unlocksed: {id}");
             }
         }
 
         public static bool IsAchievementUnlocked(string id)
         {
-            return achievements.TryGetValue(id, out bool value) && value;
+            return unlocks.TryGetValue(id, out bool value) && value;
         }
 
-        public static Dictionary<string, bool> GetAllAchievements()
+        public static Dictionary<string, bool> GetAllUnlocks()
         {
-            return new Dictionary<string, bool>(achievements);
+            return new Dictionary<string, bool>(unlocks);
         }
 
-        private static void SaveAchievements()
+        private static void SaveUnlocks()
         {
-            var json = JsonSerializer.Serialize(achievements, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(achievementsPath, json);
+            var json = JsonSerializer.Serialize(unlocks, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(unlocksPath, json);
         }
 
-        private static void LoadAchievements()
+        private static void LoadUnlocks()
         {
-            if (File.Exists(achievementsPath))
+            if (File.Exists(unlocksPath))
             {
-                var json = File.ReadAllText(achievementsPath);
-                achievements = JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new();
+                var json = File.ReadAllText(unlocksPath);
+                unlocks = JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new();
             }
         }
 
-        private static void EnsureAllAchievementsExist()
+        private static void EnsureAllUnlocksExist()
         {
-            foreach (var id in allAchievements)
+            foreach (var id in allUnlocks)
             {
-                if (!achievements.ContainsKey(id))
-                    achievements[id] = false;
+                if (!unlocks.ContainsKey(id))
+                    unlocks[id] = false;
             }
-            SaveAchievements();
+            SaveUnlocks();
         }
     }
 }

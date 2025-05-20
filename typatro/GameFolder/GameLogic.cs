@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Steamworks;
 using typatro.GameFolder.Rooms;
 using typatro.GameFolder.Runes;
 using typatro.GameFolder.UI;
@@ -273,11 +274,11 @@ namespace typatro.GameFolder
                 firstEnter = true;
                 waitingForEnter = false;
                 enterReleased = false;
-                SaveManager.UnlockAchievement("uruz0");
+                SaveManager.UnlockUnlock("uruz0");
             } else if (gameState == GameState.RUNES){
                 KeyboardState state = Keyboard.GetState();
 
-                if(!SaveManager.IsAchievementUnlocked("characterTutorial")){
+                if(!SaveManager.IsUnlockUnlocked("characterTutorial")){
                     if(state.IsKeyUp(Keys.Enter)){
                         tutorial = true;
                     }
@@ -290,7 +291,7 @@ namespace typatro.GameFolder
                         "New difficulties become available\nonce you complete a run with\na specific rune.\n\n" +
                         "Press Enter to continue.", ThemeColors.Text, treasure:true, xExtraOffset:-30, yExtraOffset:-70);
                     if(tutorial && state.IsKeyDown(Keys.Enter)){
-                        SaveManager.UnlockAchievement("characterTutorial");
+                        SaveManager.UnlockUnlock("characterTutorial");
                         tutorial = false;
                     }
                     
@@ -315,6 +316,7 @@ namespace typatro.GameFolder
                 menu.DrawOptionsMenu();
             }
             else if (gameState == GameState.EXIT){
+                SteamAPI.Shutdown();
                 Environment.Exit(0);
             }
             spriteBatch.End();
@@ -350,7 +352,7 @@ namespace typatro.GameFolder
 
                 if (enterReleased){
                     if(IsFight(selectedNode.type) && !afterFightScreen){
-                        if(!SaveManager.IsAchievementUnlocked("fightTutorial")){
+                        if(!SaveManager.IsUnlockUnlocked("fightTutorial")){
                             if(state.IsKeyUp(Keys.Enter)){
                                 tutorial = true;
                             }
@@ -363,7 +365,7 @@ namespace typatro.GameFolder
                                 "Mistakes subtract your score.\n\n" +
                                 "Press Enter to continue.", ThemeColors.Text, treasure:true, xExtraOffset:-30, yExtraOffset:-70);
                             if(tutorial && state.IsKeyDown(Keys.Enter)){
-                                SaveManager.UnlockAchievement("fightTutorial");
+                                SaveManager.UnlockUnlock("fightTutorial");
                                 tutorial = false;
                             }
                             
@@ -391,7 +393,7 @@ namespace typatro.GameFolder
                         TopBannerDisplay(true);
                     }
                     else if(selectedNode.type == NodeType.SHOP){
-                        if(!SaveManager.IsAchievementUnlocked("shopTutorial")){
+                        if(!SaveManager.IsUnlockUnlocked("shopTutorial")){
                             if(state.IsKeyUp(Keys.Enter)){
                                 tutorial = true;
                             }
@@ -403,7 +405,7 @@ namespace typatro.GameFolder
                                 "The prices are calculated based\non previous upgrades.\n\n" +
                                 "Press Enter to continue.", ThemeColors.Text, treasure:true, xExtraOffset:-30, yExtraOffset:-70);
                             if(tutorial && state.IsKeyDown(Keys.Enter)){
-                                SaveManager.UnlockAchievement("shopTutorial");
+                                SaveManager.UnlockUnlock("shopTutorial");
                                 tutorial = false;
                             }
                             
@@ -424,7 +426,10 @@ namespace typatro.GameFolder
                                 if(currentScore >= fight.scoreNeeded){
                                     double cashMultiply = (GlyphManager.IsActive(Glyph.Woman) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
                                     coins += (int)(fight.cashGain * cashMultiply);
-                                    if(coins >= 100) SaveManager.UnlockAchievement("jera0");
+                                    if(coins >= 100){
+                                        SaveManager.UnlockUnlock("jera0");
+                                        SteamUserStats.SetAchievement("JERA_0");
+                                    }
                                     if(GlyphManager.IsActive(Glyph.B)) enhancements.startingScore += 5;
                                     
                                     if(GlyphManager.IsActive(Glyph.Woman)){
@@ -475,7 +480,9 @@ namespace typatro.GameFolder
                                     if(selectedNode.type == NodeType.BOSS && level == 3){
                                         string fightWon = "You win";
                                         spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
-                                        SaveManager.UnlockAchievement((((Runes.Runes)selectedRune).ToString()+(difficulty+1)).ToString().ToLower());
+                                        string achievmentName = (((Runes.Runes)selectedRune).ToString()+(difficulty+1)).ToString().ToLower();
+                                        SaveManager.UnlockUnlock(achievmentName);
+                                        SteamUserStats.SetAchievement(achievmentName.ToUpper());
                                         if(state.IsKeyDown(Keys.Enter)){
                                             gameState = GameState.MENU;
                                         }
@@ -486,7 +493,7 @@ namespace typatro.GameFolder
                                             spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5*(i+1), 250, 160, 120), cardColor);
                                             spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(MainGame.screenWidth/5*(i+1)+10, 250+10), ThemeColors.Text);
                                         }
-                                        SaveManager.UnlockAchievement("first_kill");
+                                        SaveManager.UnlockUnlock("first_kill");
                                         string fightWon = "Fight won";
                                         spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
                                         string chooseReward = "Choose your reward";
@@ -500,7 +507,8 @@ namespace typatro.GameFolder
                                             waitingForEnter = false;
                                             enterReleased = false;
                                             if(selectedNode.type == NodeType.BOSS){
-                                                SaveManager.UnlockAchievement("naudhiz0");
+                                                SaveManager.UnlockUnlock("naudhiz0");
+                                                SteamUserStats.SetAchievement("NAUDHIZ0");
                                                 map.GenerateNodes();
                                                 selectedNode = map.GetFirstNode();
                                                 level++;
@@ -519,7 +527,7 @@ namespace typatro.GameFolder
                 }
             }
             else{
-                if(!SaveManager.IsAchievementUnlocked("mapTutorial")){
+                if(!SaveManager.IsUnlockUnlocked("mapTutorial")){
                     if(state.IsKeyUp(Keys.Enter)){
                         tutorial = true;
                     }
@@ -532,7 +540,7 @@ namespace typatro.GameFolder
                         "?-Random turns into a random room.\n\n" +
                         "Press Enter to continue.", ThemeColors.Text, treasure:true, xExtraOffset:-30, yExtraOffset:-70);
                     if(tutorial && state.IsKeyDown(Keys.Enter)){
-                        SaveManager.UnlockAchievement("mapTutorial");
+                        SaveManager.UnlockUnlock("mapTutorial");
                         tutorial = false;
                     }
                     
@@ -773,7 +781,7 @@ namespace typatro.GameFolder
                 gameState = GameState.MENU;
             }
             if(enterReleased && state.IsKeyDown(Keys.Enter)){
-                if(SaveManager.IsAchievementUnlocked((((Runes.Runes)selectedRune).ToString()+difficulty).ToString().ToLower())){
+                if(SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString()+difficulty).ToString().ToLower())){
                     NewGameChoiceUpdate();
                     gameState = GameState.LOADGAME;
                 }
@@ -821,7 +829,7 @@ namespace typatro.GameFolder
                 string runeName = ((Runes.Runes)selectedRune).ToString();
                 int topOffset = 10;
                 spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth/2 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y*3+topOffset*2), ThemeColors.Text);
-                if(SaveManager.IsAchievementUnlocked((((Runes.Runes)selectedRune).ToString()+0).ToString().ToLower())){
+                if(SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString()+0).ToString().ToLower())){
                     var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
                     var attribute = (DisplayAttribute)Attribute.GetCustomAttribute(field, typeof(DisplayAttribute));
                     
@@ -851,7 +859,7 @@ namespace typatro.GameFolder
             spriteBatch.DrawString(bigFont, "Difficulty: " , new Vector2(MainGame.screenWidth/2.5f-bigFont.MeasureString("Difficulty: ").X, MainGame.screenHeight-100), ThemeColors.Text);
 
             string diffString = $"<{difficulty}>{DifficultyText(difficulty)}";
-            if(difficulty != 0 && !SaveManager.IsAchievementUnlocked((((Runes.Runes)selectedRune).ToString()+difficulty).ToString().ToLower())){
+            if(difficulty != 0 && !SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString()+difficulty).ToString().ToLower())){
                 diffString = "?";
             }
             Vector2 diffStringSize = bigFont.MeasureString(diffString);

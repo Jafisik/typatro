@@ -6,6 +6,7 @@ using System.IO;
 using System.Text.Json;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
+using Steamworks;
 
 namespace typatro.GameFolder;
 
@@ -31,7 +32,7 @@ public class MainGame : Game
         graphics.PreferredBackBufferHeight = screenHeight;
         Window.IsBorderless = true;
         Window.Title = "GLYPHORA";
-
+        SteamAPI.Init();
         graphics.ApplyChanges();
         base.Initialize();
     }
