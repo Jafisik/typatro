@@ -29,7 +29,7 @@ namespace typatro.GameFolder.Upgrades{
             letters[letter-'a'] += score;
             lettersChange[letter-'a'] += score;
             foreach(long lette in letters){
-                if(lette < 0) SaveManager.UnlockAchievement("halagaz0");
+                if(lette < 0) SaveManager.UnlockUnlock("halagaz0");
             }
         }
 
@@ -44,7 +44,7 @@ namespace typatro.GameFolder.Upgrades{
             lettersChange[letter-'a'] += (int)(letters[letter-'a'] * score);
             letters[letter-'a'] = (int)(letters[letter-'a'] * score);
             foreach(long lette in letters){
-                if(lette < 0) SaveManager.UnlockAchievement("halagaz0");
+                if(lette < 0) SaveManager.UnlockUnlock("halagaz0");
             }
         }
 
@@ -136,7 +136,7 @@ namespace typatro.GameFolder.Upgrades{
                     break;
             }
             foreach(long letter in letters){
-                if(letter < 0) SaveManager.UnlockAchievement("halagaz0");
+                if(letter < 0) SaveManager.UnlockUnlock("halagaz0");
             }
         }
 

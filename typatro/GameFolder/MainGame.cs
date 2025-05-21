@@ -7,6 +7,7 @@ using System.Text.Json;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 using Steamworks;
+using System;
 
 namespace typatro.GameFolder;
 
@@ -32,7 +33,10 @@ public class MainGame : Game
         graphics.PreferredBackBufferHeight = screenHeight;
         Window.IsBorderless = true;
         Window.Title = "GLYPHORA";
-        SteamAPI.Init();
+        if (!SteamAPI.Init())
+        {
+            Console.WriteLine("SteamAPI.Init() selhalo.");
+        }
         graphics.ApplyChanges();
         base.Initialize();
     }

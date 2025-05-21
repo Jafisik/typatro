@@ -201,17 +201,17 @@ namespace typatro.GameFolder.UI{
             }
         }
 
-        public static void UnlockAchievement(string id)
+        public static void UnlockUnlock(string id)
         {
             if (unlocks.ContainsKey(id) && !unlocks[id])
             {
                 unlocks[id] = true;
                 SaveUnlocks();
-                Console.WriteLine($"Achievement unlocksed: {id}");
+                Console.WriteLine($"Unlock unlocked: {id}");
             }
         }
 
-        public static bool IsAchievementUnlocked(string id)
+        public static bool IsUnlockUnlocked(string id)
         {
             return unlocks.TryGetValue(id, out bool value) && value;
         }

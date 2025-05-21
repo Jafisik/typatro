@@ -494,24 +494,40 @@ namespace typatro.GameFolder
                                             spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(MainGame.screenWidth/5*(i+1)+10, 250+10), ThemeColors.Text);
                                         }
                                         SaveManager.UnlockUnlock("first_kill");
+                                        SteamUserStats.SetAchievement("FIRST_KILL");
+                                        SteamUserStats.StoreStats();
                                         string fightWon = "Fight won";
                                         spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
                                         string chooseReward = "Choose your reward";
                                         spriteBatch.DrawString(bigFont, chooseReward, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(chooseReward).X/2,130), ThemeColors.Text);
-                                        if(state.IsKeyDown(Keys.Enter)){
-                                            if(cards[afterFightSelect].mult){
+                                        if (state.IsKeyDown(Keys.Enter))
+                                        {
+                                            if (cards[afterFightSelect].mult)
+                                            {
                                                 enhancements.MultiplyLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
-                                            } else{
+                                            }
+                                            else
+                                            {
                                                 enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
                                             }
                                             waitingForEnter = false;
                                             enterReleased = false;
-                                            if(selectedNode.type == NodeType.BOSS){
+                                            if (selectedNode.type == NodeType.BOSS)
+                                            {
                                                 SaveManager.UnlockUnlock("naudhiz0");
                                                 SteamUserStats.SetAchievement("NAUDHIZ0");
                                                 map.GenerateNodes();
                                                 selectedNode = map.GetFirstNode();
                                                 level++;
+                                            }
+                                            if (SteamUserStats.GetStat("fights_won", out int current))
+                                            {
+                                                current += 1;
+                                                SteamUserStats.SetStat("fights_won", current);
+                                                if (current == 1) SteamUserStats.SetAchievement("FIRST_KILL");
+                                                if (current == 10) SteamUserStats.SetAchievement("10_KILLS");
+                                                SteamUserStats.StoreStats();
+                                                Console.WriteLine(current);
                                             }
                                         }
                                     }
