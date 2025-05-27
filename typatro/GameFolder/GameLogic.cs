@@ -269,6 +269,7 @@ namespace typatro.GameFolder
                     gameState = GameState.RUNES;
                     if(difficulty>=3) enhancements.wordScore -= 1;
                     GlyphManager.RemoveAllGlyphs();
+                    GlyphManager.Add(Glyph.NoGlyphsLeft);
                     visitedNodes = new List<int[]>();
                 }
                 firstEnter = true;
@@ -527,7 +528,6 @@ namespace typatro.GameFolder
                                                 if (current == 1) SteamUserStats.SetAchievement("FIRST_KILL");
                                                 if (current == 10) SteamUserStats.SetAchievement("10_KILLS");
                                                 SteamUserStats.StoreStats();
-                                                Console.WriteLine(current);
                                             }
                                         }
                                     }
