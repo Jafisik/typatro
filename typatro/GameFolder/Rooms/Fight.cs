@@ -28,7 +28,7 @@ namespace typatro.GameFolder.Rooms{
         }
 
         public static int ScoreNeddedGen(int level, int floor, int difficulty){
-            return (int)(50+((level-1)*(level-1)*(level-1)*60 + floor*floor*1.2) * (difficulty*multPerDiff));
+            return (int)(50+((level-1)*(level-1)*60 + floor*floor*1.2) * (difficulty*multPerDiff));
         }
     }
 

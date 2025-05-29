@@ -20,9 +20,7 @@ namespace typatro.GameFolder.Rooms{
 
     }
     class Shop{
-        SpriteBatch spriteBatch;
-        SpriteFont font;
-        Texture2D texture;
+        MainGame.Gfx gfx;
         readonly int rows = 3, cols = 4;
         List<Card> cards;
         List<Glyph> glyphs;
@@ -35,11 +33,9 @@ namespace typatro.GameFolder.Rooms{
         bool topMove = true, downMove = true, leftMove = true, rightMove = true, enterPressed = false;
         Enhancements enhancements;
 
-        public Shop(SpriteBatch spriteBatch, SpriteFont font, Texture2D texture, Enhancements enhancements)
+        public Shop(MainGame.Gfx gfx, Enhancements enhancements)
         {
-            this.spriteBatch = spriteBatch;
-            this.font = font;
-            this.texture = texture;
+            this.gfx = gfx;
             this.enhancements = enhancements;
             cards = new List<Card>(cardCount);
             glyphs = new List<Glyph>(glyphCount);
@@ -103,48 +99,48 @@ namespace typatro.GameFolder.Rooms{
                     int selectedCardIndex =  selectedRow * cols + selectedCol;
                     Color cardColor = (row == selectedRow && col == selectedCol) ? ThemeColors.Selected : ThemeColors.NotSelected;
 
-                    spriteBatch.Draw(texture, new Rectangle(col * horizontalSpacing + leftOffset, row * verticalSpacing+ topOffset, cardWidth, cardHeight), cardColor);
+                    gfx.spriteBatch.Draw(gfx.texture, new Rectangle(col * horizontalSpacing + leftOffset, row * verticalSpacing+ topOffset, cardWidth, cardHeight), cardColor);
                     
                     if(cardIndex < cardCount){
                         cards[cardIndex].cost = cards[cardIndex].mult ? (cards[cardIndex].value + enhancements.GetLetterScore(cards[cardIndex].letter))*3 : (cards[cardIndex].value + enhancements.GetLetterScore(cards[cardIndex].letter));
-                        spriteBatch.DrawString(font, $" {cards[cardIndex].letter}:  {enhancements.GetLetterScore(cards[cardIndex].letter)}       {(cards[cardIndex].mult ? "*" : "+")} {cards[cardIndex].value}\n\n Cost:        {cards[cardIndex].cost}", 
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" {cards[cardIndex].letter}:  {enhancements.GetLetterScore(cards[cardIndex].letter)}       {(cards[cardIndex].mult ? "*" : "+")} {cards[cardIndex].value}\n\n Cost:        {cards[cardIndex].cost}", 
                         new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if(selectedCardIndex < cardCount){
                             Card selectedCard = cards[selectedCardIndex];
                             string description;
                             if(selectedCard.mult) description = $"Muliplies letter value of '{selectedCard.letter}' by *{selectedCard.value}\n\nCurrent letter score value:{enhancements.GetLetterScore(selectedCard.letter)}    Price of upgrade:{selectedCard.cost}";
                             else description = $"Adds +{selectedCard.value} to the letter value of '{selectedCard.letter}'\n\nCurrent letter score value:{enhancements.GetLetterScore(selectedCard.letter)}    Price of upgrade:{selectedCard.cost}";
-                            //spriteBatch.DrawString(font, description, descPos, ThemeColors.Text);
-                            if(selectedCardIndex == cardIndex) spriteBatch.DrawString(font, description, descPos, ThemeColors.Text);
+                            //gfx.spriteBatch.DrawString(gfx.smallTextFont, description, descPos, ThemeColors.Text);
+                            if(selectedCardIndex == cardIndex) gfx.spriteBatch.DrawString(gfx.smallTextFont, description, descPos, ThemeColors.Text);
                         }
                     }
                     else if(cardIndex == 5){
-                        spriteBatch.DrawString(font, $" reroll\n\n cost:  {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if(selectedCardIndex == 5)spriteBatch.DrawString(font, $"Rerolls all items in the shop for {rerollCost}", descPos, ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" reroll\n\n cost:  {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if(selectedCardIndex == 5)gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Rerolls all items in the shop for {rerollCost}", descPos, ThemeColors.Text);
                     }
                     else if(cardIndex == 6){
-                        spriteBatch.DrawString(font, $" Word\n score:  +1\n Cost: {wordCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if(selectedCardIndex == 6)spriteBatch.DrawString(font, $"Adds +1 score per each correct word\n\nCurrent bonus: {enhancements.wordScore}    Cost:{wordCost}", descPos, ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" Word\n score:  +1\n Cost: {wordCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if(selectedCardIndex == 6)gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Adds +1 score per each correct word\n\nCurrent bonus: {enhancements.wordScore}    Cost:{wordCost}", descPos, ThemeColors.Text);
                     }
                     else if(cardIndex == 7){
-                        spriteBatch.DrawString(font, $" Incoming\n damage:  -1\n Cost: {damageRedCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if(selectedCardIndex == 7)spriteBatch.DrawString(font, $"Reduces the incoming damage from enemies\n\nCurrent bonus: {enhancements.damageResist}    Cost:{damageRedCost}", descPos, ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" Incoming\n damage:  -1\n Cost: {damageRedCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if(selectedCardIndex == 7)gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Reduces the incoming damage from enemies\n\nCurrent bonus: {enhancements.damageResist}    Cost:{damageRedCost}", descPos, ThemeColors.Text);
                     }
                     else if(cardIndex == 8){
-                        spriteBatch.DrawString(font, $" Startng\n score:  +10\n Cost: {startingScoreCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if(selectedCardIndex == 8)spriteBatch.DrawString(font, $"Adds +10 to the score at begining of the fight\n\nCurrent bonus: {enhancements.startingScore}    Cost:{startingScoreCost}", descPos, ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" Startng\n score:  +10\n Cost: {startingScoreCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if(selectedCardIndex == 8)gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Adds +10 to the score at begining of the fight\n\nCurrent bonus: {enhancements.startingScore}    Cost:{startingScoreCost}", descPos, ThemeColors.Text);
                     }
                     else if(cardIndex == 9){
-                        spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
-                        spriteBatch.DrawString(font, $"   Cost:\n\n     {glyphCost}", new Vector2(64+col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if(selectedCardIndex == 9) spriteBatch.DrawString(font, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
+                        gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64+col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if(selectedCardIndex == 9) gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
                     } 
                     else if(cardIndex == 10){
-                        spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
-                        spriteBatch.DrawString(font, $"   Cost:\n\n     {glyphCost}", new Vector2(64+col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if(selectedCardIndex == 10) spriteBatch.DrawString(font, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
+                        gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64+col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if(selectedCardIndex == 10) gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
                     }
-                    else if(cardIndex == 11) spriteBatch.DrawString(font, "\n exit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                    else if(cardIndex == 11) gfx.spriteBatch.DrawString(gfx.smallTextFont, "\n exit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                 }
             }
             return false;

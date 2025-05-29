@@ -14,8 +14,12 @@ namespace typatro.GameFolder;
 public class MainGame : Game
 {
     public static GraphicsDeviceManager graphics;
-    SpriteBatch spriteBatch;
-    Texture2D texture;
+    public struct Gfx
+    {
+        public SpriteBatch spriteBatch;
+        public Texture2D texture, catPic;
+        public SpriteFont gameFont, smallTextFont, menuFont, textFont;
+    }
     GameLogic gameLogic;
     public static GameTime time;
     public static int screenWidth = 800, screenHeight = 600;
@@ -45,27 +49,29 @@ public class MainGame : Game
         string jsonText = File.ReadAllText("Content/wordlist.json");
         jsonText = jsonText.Trim();
         List<string> jsonStrings = JsonSerializer.Deserialize<List<string>>(jsonText);
-        
-        spriteBatch = new SpriteBatch(GraphicsDevice);
-        SpriteFont gameFont = Content.Load<SpriteFont>("Fonts/pixelFont");
-        SpriteFont smallTextFont = Content.Load<SpriteFont>("Fonts/smallPixelFont");
-        SpriteFont menuFont = Content.Load<SpriteFont>("Fonts/menuFont");
-        SpriteFont textFont = Content.Load<SpriteFont>("Fonts/textFont");
-        
+        Gfx gfx = new()
+        {
+            spriteBatch = new SpriteBatch(GraphicsDevice),
+            gameFont = Content.Load<SpriteFont>("Fonts/pixelFont"),
+            smallTextFont = Content.Load<SpriteFont>("Fonts/smallPixelFont"),
+            menuFont = Content.Load<SpriteFont>("Fonts/menuFont"),
+            textFont = Content.Load<SpriteFont>("Fonts/textFont"),
+            catPic = Content.Load<Texture2D>("Images/catPic"),
+            texture = new Texture2D(GraphicsDevice, 1, 1),
+        };
+        gfx.texture.SetData(new[] { Color.White });
+
         GlyphImageLoad();
         
         int[] settings = SaveManager.LoadSettings();
         ThemeColors.Apply(settings[0]);
-        Texture2D catPic = Content.Load<Texture2D>("Images/catPic");
-        texture = new Texture2D(GraphicsDevice, 1, 1);
-        texture.SetData(new[] { Color.White });
 
         Song backgroundMusic = Content.Load<Song>("Music/glyphoraFr");
         MediaPlayer.IsRepeating = true;
         MediaPlayer.Volume = settings[1]/10f;
         MediaPlayer.Play(backgroundMusic);
 
-        gameLogic = new GameLogic(spriteBatch, menuFont, gameFont, smallTextFont, textFont, texture, jsonStrings, Window.Position, catPic);
+        gameLogic = new GameLogic(gfx, jsonStrings, Window.Position);
     }
 
     protected override void Update(GameTime gameTime){

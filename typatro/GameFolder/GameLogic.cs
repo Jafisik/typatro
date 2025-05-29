@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Microsoft.Xna.Framework;
@@ -8,7 +7,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Steamworks;
 using typatro.GameFolder.Rooms;
-using typatro.GameFolder.Runes;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
@@ -44,76 +42,86 @@ namespace typatro.GameFolder
         }
 
         public GameState gameState = GameState.MENU;
-        Writer writer;
-        readonly List<char> writtenText = new List<char>();
-        string neededText;
-        readonly List<int> diffIndexes = new List<int>();
-        readonly List<string> jsonStrings;
-        Map map;
-        MapNode selectedNode, lastSelectedNode;
-        bool firstEnter = true, waitingForEnter, enterReleased, startedTyping, finished, dead = false, isDragging;
+
+        //Graphics - contains spriteBatch, fonts and textures
+        MainGame.Gfx gfx = new MainGame.Gfx();
+
+        //Other
         readonly Menu menu;
-        readonly SpriteBatch spriteBatch;
-        readonly int wordsGenerated = 10, maxRunes;
-        int level = 1, extraScore = 0, inventoryGlyphSelect = 1, afterFightSelect = 0;
-        int charCounter = 0, lastCharCount = 0, wordCounter = 0, lastWordCount = 1, wordStreak = 0, lastCorrectWord = 0;
-        int selectedRune = 0, difficulty = 0;
-        double textRotation = 0, correctWordTimer = 0, letterTimer = 0;
-        int xTextOffset = 0, yTextOffset = 0;
-        bool eyeOfHorusActive = false, anubisActive = false, tabPressed = false, inventoryMove = true, afterFightScreen = false, afterFightMove = false, runeMove = false, diffMove = false, tutorial = false;
-        long currentScore = 0, playerScore = 0, lastScore = 0, coins = 0, startCoins = 30, damagePrint = -1;
-        public static int seed;
+        double timeInSeconds = 0, lastTime = -1;
+        Point windowPos, dragOffset;
+        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging;
+
+        //Player
+        Enhancements enhancements;
+        long coins = 0, startCoins = 30;
+        int selectedRune = 0, difficulty = 0, inventoryGlyphSelect = 1;
+        bool dead, inventoryMove = true, tabPressed;
+
+        //Score calculator
+        int charCounter = 0, lastCharCount = 0, wordCounter = 0, lastWordCount = 1, wordStreak = 0, lastCorrectWord = 0, extraScore = 0;
+        long currentScore = 0, playerScore = 0, lastScore = 0;
+        double letterTimer = 0, timeSinceLastWord = 0;
+        
+        //Rooms
         Fight fight;
+        bool canStartFight, startedTyping, roomSelected, isFightFinished;
+        bool afterFightScreen, afterFightMove;
+        int afterFightSelect = 0;
+        List<Card> cards = new List<Card>();
         Treasure treasure;
         Shop shop;
-        SpriteFont bigFont, smallFont, smallTextFont;
-        Texture2D texture, catPic;
-        double timeInSeconds = 0, lastTime = -1, timeSinceLastWord = 0;
-        Enhancements enhancements;
-        public static Random seededRandom = new Random(), unseededRandom = new Random();
-        Point windowPos, dragOffset;
-        Vector2 catPos = Vector2.One;
-        List<Card> cards = new List<Card>();
-        List<int[]> visitedNodes = new List<int[]>();
+        
+
+        //Saving
         GameSaveData gameSaveData;
         public static List<UserAction> actions = new List<UserAction>();
         List<UserAction> lastActions = actions;
         public static bool isReplay = false;
-        private Rectangle draggableZone = new Rectangle(0,0,MainGame.screenWidth, MainGame.screenHeight);
+        public static int seed;
+        public static Random seededRandom = new Random(), unseededRandom = new Random();
 
-        public GameLogic(SpriteBatch spriteBatch, SpriteFont bigFont, SpriteFont smallFont, SpriteFont smallTextFont, SpriteFont textFont, Texture2D texture, List<string> jsonStrings, Point windowPos, Texture2D catPic)
+        //Writer
+        readonly Writer writer;
+        string neededText;
+        readonly List<string> jsonStrings;
+        int xTextOffset = 0, yTextOffset = 0;
+        double textRotation = 0;
+        Vector2 catPos = Vector2.One;
+
+        //Map
+        Map map;
+        List<int[]> visitedNodes = new List<int[]>();
+        MapNode selectedNode, lastSelectedNode;
+        int level = 1;
+        bool firstEnter = true;
+
+        public GameLogic(MainGame.Gfx gfx, List<string> jsonStrings, Point windowPos)
         {
-            this.spriteBatch = spriteBatch;
+            this.gfx = gfx;
             this.jsonStrings = jsonStrings;
-            this.bigFont = bigFont;
-            this.texture = texture;
-            this.smallFont = smallFont;
             this.windowPos = windowPos;
-            this.catPic = catPic;
-            this.smallTextFont = smallTextFont;
-            maxRunes = Enum.GetValues(typeof(Runes.Runes)).Length;
+
             seed = seededRandom.Next();
             seededRandom = new Random(seed);
 
-            menu = new Menu(spriteBatch, bigFont, texture);
+            menu = new Menu(gfx);
             gameSaveData = SaveManager.LoadGame();
 
-            map = new Map(spriteBatch, bigFont, smallTextFont, texture);
+            map = new Map(gfx);
 
-            writer = new Writer(spriteBatch, textFont, diffIndexes, writtenText);
-            neededText = RandomTextGenerate(wordsGenerated);
+            writer = new Writer(gfx.spriteBatch, gfx.textFont);
+            neededText = RandomTextGenerate(10);
 
             enhancements = new Enhancements();
-            treasure = new Treasure(spriteBatch, bigFont, textFont, texture, enhancements);
-            shop = new Shop(spriteBatch, smallTextFont, texture, enhancements);
-
-            
+            treasure = new Treasure(gfx, enhancements);
+            shop = new Shop(gfx, enhancements);
         }
 
         public void Update(GameWindow window){
             MouseState mouseState = Mouse.GetState();
             if (mouseState.LeftButton == ButtonState.Pressed){
-                if (draggableZone.Contains(mouseState.Position)){
+                if (new Rectangle(0,0,MainGame.screenWidth, MainGame.screenHeight).Contains(mouseState.Position)){
                     if (!isDragging){
                         isDragging = true;
                         dragOffset = new Point(mouseState.X, mouseState.Y);
@@ -139,19 +147,18 @@ namespace typatro.GameFolder
                     writer.ReadKeyboardInput(MainGame.time);
                     writer.UpdateDiffIndexes(neededText);
                 }
-                if (!startedTyping && writtenText.Count > 0){
+                if (!startedTyping && Writer.writtenText.Count > 0){
                     startedTyping = true;
                     timeInSeconds = 0;
                 }
                 
 
                 if (startedTyping) {
-                    if(!finished){
+                    if(!isFightFinished){
                         timeInSeconds += MainGame.time.ElapsedGameTime.TotalSeconds;
                     }
                     else{
                         letterTimer = 0;
-                        correctWordTimer = 0;
                     }
                     if((int)timeInSeconds != lastTime){
                         if((int)timeInSeconds % 10 == 0){
@@ -184,14 +191,15 @@ namespace typatro.GameFolder
         }
 
         public void Draw(GraphicsDeviceManager graphicsDevice){
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
-            spriteBatch.GraphicsDevice.Clear(ThemeColors.Background);
+            gfx.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            gfx.spriteBatch.GraphicsDevice.Clear(ThemeColors.Background);
             int lineWidth = 15;
-            spriteBatch.Draw(texture, new Rectangle(0,0,MainGame.screenWidth,lineWidth), ThemeColors.Foreground);
-            spriteBatch.Draw(texture, new Rectangle(0,0,lineWidth,MainGame.screenHeight), ThemeColors.Foreground);
-            spriteBatch.Draw(texture, new Rectangle(0,MainGame.screenHeight-lineWidth,MainGame.screenWidth,lineWidth), ThemeColors.Foreground);
-            spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth-lineWidth,0,lineWidth,MainGame.screenHeight), ThemeColors.Foreground);
-            if(SaveManager.fullscreen == 1) graphicsDevice.IsFullScreen = true;
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0,0,MainGame.screenWidth,lineWidth), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0,0,lineWidth,MainGame.screenHeight), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0,MainGame.screenHeight-lineWidth,MainGame.screenWidth,lineWidth), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(MainGame.screenWidth-lineWidth,0,lineWidth,MainGame.screenHeight), ThemeColors.Foreground);
+
+            if (SaveManager.fullscreen == 1) graphicsDevice.IsFullScreen = true;
             else graphicsDevice.IsFullScreen = false;
             if (gameState == GameState.MENU){
                 gameState = (GameState)menu.DrawMainMenu(gameSaveData==null?false:true);
@@ -200,27 +208,30 @@ namespace typatro.GameFolder
 
                     seed = gameSaveData.seed;
                     seededRandom = new Random(seed);
-                    map = new Map(spriteBatch, bigFont, smallTextFont, texture);
+                    map = new Map(gfx);
                     enhancements = new Enhancements();
                     enhancements.letters = gameSaveData.letterScores;
                     enhancements.wordScore = gameSaveData.enhancements[0];
                     enhancements.damageResist = gameSaveData.enhancements[1];
                     enhancements.startingScore = gameSaveData.enhancements[2];
-                    shop = new Shop(spriteBatch, smallTextFont, texture, enhancements);
-                    treasure = new Treasure(spriteBatch, bigFont, smallTextFont, texture, enhancements);
+                    shop = new Shop(gfx, enhancements);
+                    treasure = new Treasure(gfx, enhancements);
                     coins = gameSaveData.coins;
                     level = gameSaveData.level;
                     selectedRune = gameSaveData.rune;
                     difficulty = gameSaveData.difficulty;
                     
+                    //Use the random from the seed same amount of times like saved game so that it's on the same random.next
                     UserAction[] UserActions = SaveManager.LoadActions();
                     actions = new List<UserAction>(UserActions);
                     isReplay = true;
-                    foreach (var entry in UserActions){
+                    foreach (var entry in UserActions)
+                    {
                         string action = entry.action;
                         string data = entry.data;
 
-                        switch (action){
+                        switch (action)
+                        {
                             case "RandomTextGenerate":
                                 RandomTextGenerate(int.Parse(data));
                                 break;
@@ -258,13 +269,13 @@ namespace typatro.GameFolder
                     actions.Clear();
                     seed = unseededRandom.Next();
                     seededRandom = new Random(seed);
-                    map = new Map(spriteBatch, bigFont, smallTextFont, texture);
+                    map = new Map(gfx);
                     map.GenerateNodes();
                     selectedNode = map.GetFirstNode();
                     lastSelectedNode = map.GetFirstNode();
                     enhancements = new Enhancements();
-                    shop = new Shop(spriteBatch, smallTextFont, texture, enhancements);
-                    treasure = new Treasure(spriteBatch, bigFont, smallTextFont, texture, enhancements);
+                    shop = new Shop(gfx, enhancements);
+                    treasure = new Treasure(gfx, enhancements);
                     coins = difficulty>=1?15:startCoins;
                     gameState = GameState.RUNES;
                     if(difficulty>=3) enhancements.wordScore -= 1;
@@ -273,8 +284,8 @@ namespace typatro.GameFolder
                     visitedNodes = new List<int[]>();
                 }
                 firstEnter = true;
-                waitingForEnter = false;
-                enterReleased = false;
+                roomSelected = false;
+                canStartFight = false;
                 SaveManager.UnlockUnlock("uruz0");
             } else if (gameState == GameState.RUNES){
                 KeyboardState state = Keyboard.GetState();
@@ -283,10 +294,8 @@ namespace typatro.GameFolder
                     if(state.IsKeyUp(Keys.Enter)){
                         tutorial = true;
                     }
-                    spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,MainGame.screenHeight-30), Color.Black);
-                    spriteBatch.DrawString(bigFont, "New game tutorial", new Vector2(70,50), ThemeColors.Text);
-                    //spriteBatch.DrawString(smallFont, "With arrows, choose your rune,\nwhich gives you specific bonuses,\nand then choose your difficulty." +
-                    //"\n\nNew runes unlock under\nspecific conditions.\n\nNew difficulties unlock after\nwinning a run with\na specific rune.", new Vector2(70,130), ThemeColors.Text);
+                    gfx.spriteBatch.Draw(gfx.texture, new Rectangle(15,15,MainGame.screenWidth-30,MainGame.screenHeight-30), Color.Black);
+                    gfx.spriteBatch.DrawString(gfx.gameFont, "New game tutorial", new Vector2(70,50), ThemeColors.Text);
                     writer.WriteText("Use the arrows to select a rune\nthat grants unique bonuses,\nthen choose your difficulty.\n\n" +
                         "New runes are unlocked by meeting\nspecific conditions.\n\n" +
                         "New difficulties become available\nonce you complete a run with\na specific rune.\n\n" +
@@ -320,15 +329,18 @@ namespace typatro.GameFolder
                 SteamAPI.Shutdown();
                 Environment.Exit(0);
             }
-            spriteBatch.End();
+            gfx.spriteBatch.End();
         }
 
         public void Play(){
-            KeyboardState state = Keyboard.GetState();
+            KeyboardState kBState = Keyboard.GetState();
 
-            if (state.IsKeyDown(Keys.Escape)){
+            //Return to menu on pressing escape
+            if (kBState.IsKeyDown(Keys.Escape))
+            {
                 gameState = GameState.MENU;
-                if(!dead){
+                if (!dead)
+                {
                     SaveManager.SaveGame(seed, level, coins, lastSelectedNode, enhancements, difficulty, selectedRune, visitedNodes);
                     gameSaveData = SaveManager.LoadGame();
                     SaveManager.SaveActions(lastActions);
@@ -337,304 +349,387 @@ namespace typatro.GameFolder
                 return;
             }
 
-            if(dead){
-                spriteBatch.DrawString(bigFont, "You are dead", new Vector2(100), ThemeColors.Text);
+            //Checking if the player died
+            if (dead)
+            {
+                gfx.spriteBatch.DrawString(gfx.gameFont, "You are dead", new Vector2(100), ThemeColors.Text);
                 SaveManager.RemoveGameData();
                 GlyphManager.RemoveAllGlyphs();
                 gameSaveData = null;
                 return;
             }
 
-            if (waitingForEnter){
-                if (!enterReleased && state.IsKeyUp(Keys.Enter)){
+            //roomSelected is true if a room is selected and then it does the room logic, 
+            // if roomSelected is false it does the map logic
+            if (roomSelected)
+            {
+                //Can start typing only after enter from selecting the room is released
+                if (!canStartFight && kBState.IsKeyUp(Keys.Enter))
+                {
                     timeInSeconds = 0;
-                    enterReleased = true;
+                    canStartFight = true;
                 }
 
-                if (enterReleased){
-                    if(IsFight(selectedNode.type) && !afterFightScreen){
-                        if(!SaveManager.IsUnlockUnlocked("fightTutorial")){
-                            if(state.IsKeyUp(Keys.Enter)){
-                                tutorial = true;
-                            }
-                            spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,MainGame.screenHeight-30), Color.Black);
-                            spriteBatch.DrawString(bigFont, "Fight tutorial", new Vector2(70,50), ThemeColors.Text);
-                            writer.WriteText("In fights you type to get\nenemy health to 0.\n\n" +
-                                "Each letter gives you score based on\nyour letter score upgrades.\n\n" +
-                                "Correct words give you extra score.\n\n" +
-                                "Each consecutive correct word\nadds to your word streak\nand gives you extra score.\n\n" +
-                                "Mistakes subtract your score.\n\n" +
-                                "Press Enter to continue.", ThemeColors.Text, treasure:true, xExtraOffset:-30, yExtraOffset:-70);
-                            if(tutorial && state.IsKeyDown(Keys.Enter)){
-                                SaveManager.UnlockUnlock("fightTutorial");
-                                tutorial = false;
-                            }
-                            
-                        } else{
-                            if(state.IsKeyDown(Keys.Tab) && timeInSeconds == 0){
-                                Inventory(state);
-                            } else{
-                                writer.WriteText(neededText, ThemeColors.NotSelected, isHintText: true, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
-                                Vector2 lastCharPos = writer.UserInputText(writtenText.ToArray(), rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
-                                TopBannerDisplay(false);
-                                CalculateScore(lastCharPos);
-                                HealthBar();
-                                
-                                if(eyeOfHorusActive) spriteBatch.Draw(texture, new Rectangle(0,0,MainGame.screenWidth,MainGame.screenHeight), Color.Black);
-                                if(!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.Cat)) spriteBatch.Draw(catPic, new Rectangle((int)catPos.X,(int)catPos.Y,80,60), ThemeColors.Background);
-                                if(writtenText.Count == neededText.Length || currentScore >= fight.scoreNeeded) finished = true;
-                            }
-                        }
-                    }
-                    else if(state.IsKeyDown(Keys.Tab)){
-                        Inventory(state);
-                    }
-                    else if(selectedNode.type == NodeType.TREASURE){
-                        finished = treasure.DisplayTreasure(ref coins);
-                        TopBannerDisplay(true);
-                    }
-                    else if(selectedNode.type == NodeType.SHOP){
-                        if(!SaveManager.IsUnlockUnlocked("shopTutorial")){
-                            if(state.IsKeyUp(Keys.Enter)){
-                                tutorial = true;
-                            }
-                            spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,MainGame.screenHeight-30), Color.Black);
-                            spriteBatch.DrawString(bigFont, "Shop tutorial", new Vector2(70,50), ThemeColors.Text);
-                            writer.WriteText("Navigate with arrow keys\nthrough the shop.\n\n" +
-                                "Purchase upgrades by pressing enter.\n\n" +
-                                "Check inventory by pressing tab.\n\n" +
-                                "The prices are calculated based\non previous upgrades.\n\n" +
-                                "Press Enter to continue.", ThemeColors.Text, treasure:true, xExtraOffset:-30, yExtraOffset:-70);
-                            if(tutorial && state.IsKeyDown(Keys.Enter)){
-                                SaveManager.UnlockUnlock("shopTutorial");
-                                tutorial = false;
-                            }
-                            
-                        } else{
-                            finished = shop.DisplayShop(ref coins);
-                            TopBannerDisplay(true);
-                        }
-                    }
-                    
-                
-                    if (finished){
-                        lastSelectedNode = selectedNode;
-                        lastActions = actions;
-                        if(IsFight(selectedNode.type)){
-                            if(!afterFightScreen){
-                                currentScore *= (long)((GlyphManager.IsActive(Glyph.Flower)?(1+0.1*GlyphManager.GetGlyphCount()):1) *
-                                    (GlyphManager.IsActive(Glyph.Water)?2:1) * (GlyphManager.IsActive(Glyph.Heart)?(diffIndexes.Count>0?3:0.5):1));
-                                if(currentScore >= fight.scoreNeeded){
-                                    double cashMultiply = (GlyphManager.IsActive(Glyph.Woman) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
-                                    coins += (int)(fight.cashGain * cashMultiply);
-                                    if(coins >= 100){
-                                        SaveManager.UnlockUnlock("jera0");
-                                        SteamUserStats.SetAchievement("JERA_0");
-                                    }
-                                    if(GlyphManager.IsActive(Glyph.B)) enhancements.startingScore += 5;
-                                    
-                                    if(GlyphManager.IsActive(Glyph.Woman)){
-                                        if(!isReplay) actions.Add(new UserAction("randomLetter",""));
-                                        enhancements.MultiplyLetterScore((char)(seededRandom.Next(0,26)+'a'),2);
-                                    }
-                                } 
-                                else{
-                                    if(GlyphManager.IsActive(Glyph.Osiris)){
-                                        enhancements.AllLettersMultiplyScore(0.8);
-                                    }
-                                    else{
-                                        dead = true;
-                                    }
-                                }
-                                afterFightScreen = true;
-
-                                int valMin = 1, valMax = 4;
-                                bool mult = false;
-                                if(selectedNode.type == NodeType.ELITE){
-                                    valMin = 3;
-                                    valMax = 6;
-                                }
-                                if(selectedNode.type == NodeType.BOSS){
-                                    valMin = 2;
-                                    mult = true;
-                                }
-                                for(int i = 0; i < 3; i++){
-                                    if(!isReplay) actions.Add(new UserAction("randomLetter",""));
-                                    if(!isReplay) actions.Add(new UserAction("randomLetter",""));
-                                    cards.Add(new Card((char)(seededRandom.Next(0, 26)+'a'), mult, seededRandom.Next(valMin,valMax), 0));
-                                }
-
-                            }
-                            else{
-                                if(afterFightMove && state.IsKeyDown(Keys.Left) && afterFightSelect > 0){
-                                    afterFightSelect--;
-                                    afterFightMove = false;
-                                }
-                                if(afterFightMove && state.IsKeyDown(Keys.Right) && afterFightSelect < cards.Count-1){
-                                    afterFightSelect++;
-                                    afterFightMove = false;
-                                }
-                                if(state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right)){
-                                    afterFightMove = true;
-                                }
-                                if(state.IsKeyUp(Keys.Tab)){
-                                    if(selectedNode.type == NodeType.BOSS && level == 3){
-                                        string fightWon = "You win";
-                                        spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
-                                        string achievmentName = (((Runes.Runes)selectedRune).ToString()+(difficulty+1)).ToString().ToLower();
-                                        SaveManager.UnlockUnlock(achievmentName);
-                                        SteamUserStats.SetAchievement(achievmentName.ToUpper());
-                                        if(state.IsKeyDown(Keys.Enter)){
-                                            gameState = GameState.MENU;
-                                        }
-                                    } else{
-                                        Color cardColor;
-                                        for(int i = 0; i < cards.Count; i++){
-                                            cardColor = (i == afterFightSelect)? ThemeColors.Selected:ThemeColors.Foreground;
-                                            spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5*(i+1), 250, 160, 120), cardColor);
-                                            spriteBatch.DrawString(smallFont,  cards[i].letter + (cards[i].mult?"  *":"  +") + cards[i].value, new Vector2(MainGame.screenWidth/5*(i+1)+10, 250+10), ThemeColors.Text);
-                                        }
-                                        SaveManager.UnlockUnlock("first_kill");
-                                        SteamUserStats.SetAchievement("FIRST_KILL");
-                                        SteamUserStats.StoreStats();
-                                        string fightWon = "Fight won";
-                                        spriteBatch.DrawString(bigFont, fightWon, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(fightWon).X/2,70), ThemeColors.Text);
-                                        string chooseReward = "Choose your reward";
-                                        spriteBatch.DrawString(bigFont, chooseReward, new Vector2(MainGame.screenWidth/2-bigFont.MeasureString(chooseReward).X/2,130), ThemeColors.Text);
-                                        if (state.IsKeyDown(Keys.Enter))
-                                        {
-                                            if (cards[afterFightSelect].mult)
-                                            {
-                                                enhancements.MultiplyLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
-                                            }
-                                            else
-                                            {
-                                                enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
-                                            }
-                                            waitingForEnter = false;
-                                            enterReleased = false;
-                                            if (selectedNode.type == NodeType.BOSS)
-                                            {
-                                                SaveManager.UnlockUnlock("naudhiz0");
-                                                SteamUserStats.SetAchievement("NAUDHIZ0");
-                                                map.GenerateNodes();
-                                                selectedNode = map.GetFirstNode();
-                                                level++;
-                                            }
-                                            if (SteamUserStats.GetStat("fights_won", out int current))
-                                            {
-                                                current += 1;
-                                                SteamUserStats.SetStat("fights_won", current);
-                                                if (current == 1) SteamUserStats.SetAchievement("FIRST_KILL");
-                                                if (current == 10) SteamUserStats.SetAchievement("10_KILLS");
-                                                SteamUserStats.StoreStats();
-                                            }
-                                        }
-                                    }
-                                    
-                                }
-                            }
-                        }
-                        else{
-                            waitingForEnter = false;
-                            enterReleased = false;
-                        }
+                if (canStartFight)
+                {
+                    RoomHandler(kBState);
+                    if (isFightFinished)
+                    {
+                        FightFinished(kBState);
                     }
                 }
             }
-            else{
-                if(!SaveManager.IsUnlockUnlocked("mapTutorial")){
-                    if(state.IsKeyUp(Keys.Enter)){
+            else
+            {
+                MapHandler(kBState);
+            }
+        }
+
+        //Does the room logic based on the selectedNode.type
+        private void RoomHandler(KeyboardState state)
+        {
+            if (IsFight(selectedNode.type) && !afterFightScreen)
+            {
+                if (!SaveManager.IsUnlockUnlocked("fightTutorial"))
+                {
+                    if (state.IsKeyUp(Keys.Enter))
+                    {
                         tutorial = true;
                     }
-                    spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,MainGame.screenHeight-30), Color.Black);
-                    spriteBatch.DrawString(bigFont, "Map tutorial", new Vector2(70,50), ThemeColors.Text);
-                    writer.WriteText("Press up or down to choose which room \nto go to on your current floor.\n\n" +
-                        "F-Fight E-Elite B-Boss are fights.\nHere you type to defeat the enemies\nto get to the new floor.\n\n" +
-                        "$-Shop lets you buy upgrades for coins.\n\n" +
-                        "X-Treasure gives you a free glyph.\n\n" +
-                        "?-Random turns into a random room.\n\n" +
-                        "Press Enter to continue.", ThemeColors.Text, treasure:true, xExtraOffset:-30, yExtraOffset:-70);
-                    if(tutorial && state.IsKeyDown(Keys.Enter)){
-                        SaveManager.UnlockUnlock("mapTutorial");
+                    gfx.spriteBatch.Draw(gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), Color.Black);
+                    gfx.spriteBatch.DrawString(gfx.gameFont, "Fight tutorial", new Vector2(70, 50), ThemeColors.Text);
+                    writer.WriteText("In fights you type to get\nenemy health to 0.\n\n" +
+                        "Each letter gives you score based on\nyour letter score upgrades.\n\n" +
+                        "Correct words give you extra score.\n\n" +
+                        "Each consecutive correct word\nadds to your word streak\nand gives you extra score.\n\n" +
+                        "Mistakes subtract your score.\n\n" +
+                        "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
+                    if (tutorial && state.IsKeyDown(Keys.Enter))
+                    {
+                        SaveManager.UnlockUnlock("fightTutorial");
                         tutorial = false;
                     }
-                    
-                } else{
-                    if (!firstEnter || state.IsKeyUp(Keys.Enter)){
-                        firstEnter = false;
-                        if(state.IsKeyUp(Keys.Tab)){
-                            MapNode newNode = map.NodeSelect(selectedNode);
 
-                            if (newNode != selectedNode){
-                                visitedNodes.Add(new int[] {selectedNode.column,selectedNode.row});
-                                lastActions = new List<UserAction>(actions);
-                                enhancements.ResetLettersChange();
-                                finished = false;
-                                afterFightScreen = false;
-                                lastCharCount = 0;
-                                lastWordCount = 1;
-                                lastCorrectWord = 0;
-                                extraScore = 0;
-                                lastScore = 0;
-                                wordStreak = 0;
-                                inventoryGlyphSelect = 1;
-                                afterFightSelect = 0;
-                                cards.Clear();
-                                if(GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(unseededRandom.Next(100,MainGame.screenWidth-100),unseededRandom.Next(100,MainGame.screenHeight-100));
-                                if(newNode.type == NodeType.RANDOM) newNode.type = map.GenerateNodeTypeFromRandom();
-                                switch(newNode.type){
-                                    case NodeType.FIGHT:
-                                        fight = new NormalFight(level, newNode.column);
-                                        break;
-                                    case NodeType.ELITE:
-                                        fight = new EliteFight(level, newNode.column);
-                                        break;
-                                    case NodeType.BOSS:
-                                        fight = new BossFight(level, newNode.column);
-                                        break;
-                                    case NodeType.TREASURE:
-                                        treasure.NewGlyph();
-                                        break;
-                                    case NodeType.SHOP:
-                                        shop.NewShop();
-                                        if(GlyphManager.IsActive(Glyph.Life)){
-                                            if(!isReplay) actions.Add(new UserAction("randomLetter",""));
-                                            enhancements.AddLetterScore((char)(seededRandom.Next(0,26)+'a'),5);
-                                        }
-                                        break;
-                                }
-                                if(IsFight(newNode.type)) neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus)?20:0) - (difficulty >= 5?5:0));
-                                if(difficulty >= 4) fight.speed *= 2;
-                                if(fight != null) damagePrint = (long)((GlyphManager.IsActive(Glyph.House) ? 0.25:1)* (fight.speed - enhancements.damageResist));
-                                writtenText.Clear();
-                                startedTyping = false;
-                                lastSelectedNode = selectedNode;
-                                selectedNode = newNode;
-                                waitingForEnter = true;
-                            }
-                        }
-                        
-                    }
-                    TopBannerDisplay(true);
-                    if(state.IsKeyDown(Keys.Tab)){
+                }
+                else
+                {
+                    if (state.IsKeyDown(Keys.Tab) && timeInSeconds == 0)
+                    {
                         Inventory(state);
                     }
-                    else{
-                        map.DrawNodes();
+                    else
+                    {
+                        writer.WriteText(neededText, ThemeColors.NotSelected, isHintText: true, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
+                        Vector2 lastCharPos = writer.UserInputText(Writer.writtenText.ToArray(), rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
+                        TopBannerDisplay(false);
+                        CalculateScore(lastCharPos);
+                        HealthBar();
+
+                        if (eyeOfHorusActive) gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0, 0, MainGame.screenWidth, MainGame.screenHeight), Color.Black);
+                        if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.Cat))
+                        {
+                            Console.WriteLine("true");
+                            gfx.spriteBatch.Draw(gfx.catPic, new Rectangle((int)catPos.X, (int)catPos.Y, 80, 60), ThemeColors.Background);
+                        }
+                        if (Writer.writtenText.Count == neededText.Length || currentScore >= fight.scoreNeeded) isFightFinished = true;
                     }
+                }
+            }
+            else if (state.IsKeyDown(Keys.Tab))
+            {
+                Inventory(state);
+            }
+            else if (selectedNode.type == NodeType.TREASURE)
+            {
+                isFightFinished = treasure.DisplayTreasure(ref coins);
+                TopBannerDisplay(true);
+            }
+            else if (selectedNode.type == NodeType.SHOP)
+            {
+                if (!SaveManager.IsUnlockUnlocked("shopTutorial"))
+                {
+                    if (state.IsKeyUp(Keys.Enter))
+                    {
+                        tutorial = true;
+                    }
+                    gfx.spriteBatch.Draw(gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), Color.Black);
+                    gfx.spriteBatch.DrawString(gfx.gameFont, "Shop tutorial", new Vector2(70, 50), ThemeColors.Text);
+                    writer.WriteText("Navigate with arrow keys\nthrough the shop.\n\n" +
+                        "Purchase upgrades by pressing enter.\n\n" +
+                        "Check inventory by pressing tab.\n\n" +
+                        "The prices are calculated based\non previous upgrades.\n\n" +
+                        "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
+                    if (tutorial && state.IsKeyDown(Keys.Enter))
+                    {
+                        SaveManager.UnlockUnlock("shopTutorial");
+                        tutorial = false;
+                    }
+
+                }
+                else
+                {
+                    isFightFinished = shop.DisplayShop(ref coins);
+                    TopBannerDisplay(true);
                 }
             }
         }
 
-        private string RandomTextGenerate(int length){
-            if(!isReplay) actions.Add(new UserAction("RandomTextGenerate", length.ToString()));
+        //After fight checks if the player beat the needed score, and handles the rewards
+        private void FightFinished(KeyboardState state)
+        {
+            lastSelectedNode = selectedNode;
+            lastActions = actions;
+            if (IsFight(selectedNode.type))
+            {
+                if (!afterFightScreen)
+                {
+                    currentScore *= (long)((GlyphManager.IsActive(Glyph.Flower) ? (1 + 0.1 * GlyphManager.GetGlyphCount()) : 1) *
+                        (GlyphManager.IsActive(Glyph.Water) ? 2 : 1) * (GlyphManager.IsActive(Glyph.Heart) ? (Writer.diffIndexes.Count > 0 ? 3 : 0.5) : 1));
+                    if (currentScore >= fight.scoreNeeded)
+                    {
+                        double cashMultiply = (GlyphManager.IsActive(Glyph.Woman) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
+                        coins += (int)(fight.cashGain * cashMultiply);
+                        if (coins >= 100)
+                        {
+                            SaveManager.UnlockUnlock("jera0");
+                            SteamUserStats.SetAchievement("JERA_0");
+                        }
+                        if (GlyphManager.IsActive(Glyph.B)) enhancements.startingScore += 5;
+
+                        if (GlyphManager.IsActive(Glyph.Woman))
+                        {
+                            if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                            enhancements.MultiplyLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 2);
+                        }
+                    }
+                    else
+                    {
+                        if (GlyphManager.IsActive(Glyph.Osiris))
+                        {
+                            enhancements.AllLettersMultiplyScore(0.8);
+                        }
+                        else
+                        {
+                            dead = true;
+                        }
+                    }
+                    afterFightScreen = true;
+
+                    int valMin = 1, valMax = 4;
+                    bool mult = false;
+                    if (selectedNode.type == NodeType.ELITE)
+                    {
+                        valMin = 3;
+                        valMax = 6;
+                    }
+                    if (selectedNode.type == NodeType.BOSS)
+                    {
+                        valMin = 2;
+                        mult = true;
+                    }
+                    for (int i = 0; i < 3; i++)
+                    {
+                        if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                        if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                        cards.Add(new Card((char)(seededRandom.Next(0, 26) + 'a'), mult, seededRandom.Next(valMin, valMax), 0));
+                    }
+
+                }
+                else
+                {
+                    if (afterFightMove && state.IsKeyDown(Keys.Left) && afterFightSelect > 0)
+                    {
+                        afterFightSelect--;
+                        afterFightMove = false;
+                    }
+                    if (afterFightMove && state.IsKeyDown(Keys.Right) && afterFightSelect < cards.Count - 1)
+                    {
+                        afterFightSelect++;
+                        afterFightMove = false;
+                    }
+                    if (state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right))
+                    {
+                        afterFightMove = true;
+                    }
+                    if (state.IsKeyUp(Keys.Tab))
+                    {
+                        if (selectedNode.type == NodeType.BOSS && level == 3)
+                        {
+                            string fightWon = "You win";
+                            gfx.spriteBatch.DrawString(gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
+                            string achievmentName = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
+                            SaveManager.UnlockUnlock(achievmentName);
+                            SteamUserStats.SetAchievement(achievmentName.ToUpper());
+                            if (state.IsKeyDown(Keys.Enter))
+                            {
+                                gameState = GameState.MENU;
+                            }
+                        }
+                        else
+                        {
+                            Color cardColor;
+                            for (int i = 0; i < cards.Count; i++)
+                            {
+                                cardColor = (i == afterFightSelect) ? ThemeColors.Selected : ThemeColors.Foreground;
+                                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(MainGame.screenWidth / 5 * (i + 1), 250, 160, 120), cardColor);
+                                gfx.spriteBatch.DrawString(gfx.gameFont, cards[i].letter + (cards[i].mult ? "  *" : "  +") + cards[i].value, new Vector2(MainGame.screenWidth / 5 * (i + 1) + 10, 250 + 10), ThemeColors.Text);
+                            }
+                            SaveManager.UnlockUnlock("first_kill");
+                            SteamUserStats.SetAchievement("FIRST_KILL");
+                            SteamUserStats.StoreStats();
+                            string fightWon = "Fight won";
+                            gfx.spriteBatch.DrawString(gfx.menuFont, fightWon, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
+                            string chooseReward = "Choose your reward";
+                            gfx.spriteBatch.DrawString(gfx.menuFont, chooseReward, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(chooseReward).X / 2, 130), ThemeColors.Text);
+                            if (state.IsKeyDown(Keys.Enter))
+                            {
+                                if (cards[afterFightSelect].mult)
+                                {
+                                    enhancements.MultiplyLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
+                                }
+                                else
+                                {
+                                    enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
+                                }
+                                roomSelected = false;
+                                canStartFight = false;
+                                if (selectedNode.type == NodeType.BOSS)
+                                {
+                                    SaveManager.UnlockUnlock("naudhiz0");
+                                    SteamUserStats.SetAchievement("NAUDHIZ0");
+                                    map.GenerateNodes();
+                                    selectedNode = map.GetFirstNode();
+                                    level++;
+                                }
+                                if (SteamUserStats.GetStat("fights_won", out int current))
+                                {
+                                    current += 1;
+                                    SteamUserStats.SetStat("fights_won", current);
+                                    if (current == 1) SteamUserStats.SetAchievement("FIRST_KILL");
+                                    if (current == 10) SteamUserStats.SetAchievement("10_KILLS");
+                                    SteamUserStats.StoreStats();
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+            else
+            {
+                roomSelected = false;
+                canStartFight = false;
+            }
+        }
+
+        //Handles the map logic and the selection of new rooms
+        private void MapHandler(KeyboardState state)
+        {
+            if (!SaveManager.IsUnlockUnlocked("mapTutorial"))
+            {
+                if (state.IsKeyUp(Keys.Enter))
+                {
+                    tutorial = true;
+                }
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), Color.Black);
+                gfx.spriteBatch.DrawString(gfx.gameFont, "Map tutorial", new Vector2(70, 50), ThemeColors.Text);
+                writer.WriteText("Press up or down to choose which room \nto go to on your current floor.\n\n" +
+                    "F-Fight E-Elite B-Boss are fights.\nHere you type to defeat the enemies\nto get to the new floor.\n\n" +
+                    "$-Shop lets you buy upgrades for coins.\n\n" +
+                    "X-Treasure gives you a free glyph.\n\n" +
+                    "?-Random turns into a random room.\n\n" +
+                    "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
+                if (tutorial && state.IsKeyDown(Keys.Enter))
+                {
+                    SaveManager.UnlockUnlock("mapTutorial");
+                    tutorial = false;
+                }
+
+            }
+            else
+            {
+                if (!firstEnter || state.IsKeyUp(Keys.Enter))
+                {
+                    firstEnter = false;
+                    if (state.IsKeyUp(Keys.Tab))
+                    {
+                        MapNode newNode = map.NodeSelect(selectedNode);
+
+                        if (newNode != selectedNode)
+                        {
+                            visitedNodes.Add(new int[] { selectedNode.column, selectedNode.row });
+                            lastActions = new List<UserAction>(actions);
+                            enhancements.ResetLettersChange();
+                            isFightFinished = false;
+                            afterFightScreen = false;
+                            lastCharCount = 0;
+                            lastWordCount = 1;
+                            lastCorrectWord = 0;
+                            extraScore = 0;
+                            lastScore = 0;
+                            wordStreak = 0;
+                            inventoryGlyphSelect = 1;
+                            afterFightSelect = 0;
+                            cards.Clear();
+                            if (GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(unseededRandom.Next(100, MainGame.screenWidth - 100), unseededRandom.Next(100, MainGame.screenHeight - 100));
+                            if (newNode.type == NodeType.RANDOM) newNode.type = map.GenerateNodeTypeFromRandom();
+                            switch (newNode.type)
+                            {
+                                case NodeType.FIGHT:
+                                    fight = new NormalFight(level, newNode.column);
+                                    break;
+                                case NodeType.ELITE:
+                                    fight = new EliteFight(level, newNode.column);
+                                    break;
+                                case NodeType.BOSS:
+                                    fight = new BossFight(level, newNode.column);
+                                    break;
+                                case NodeType.TREASURE:
+                                    treasure.NewGlyph();
+                                    break;
+                                case NodeType.SHOP:
+                                    shop.NewShop();
+                                    if (GlyphManager.IsActive(Glyph.Life))
+                                    {
+                                        if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                                        enhancements.AddLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 5);
+                                    }
+                                    break;
+                            }
+                            if (IsFight(newNode.type)) neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus) ? 20 : 0) - (difficulty >= 5 ? 5 : 0));
+                            if (difficulty >= 4) fight.speed *= 2;
+                            Writer.writtenText.Clear();
+                            startedTyping = false;
+                            lastSelectedNode = selectedNode;
+                            selectedNode = newNode;
+                            roomSelected = true;
+                        }
+                    }
+
+                }
+                TopBannerDisplay(true);
+                if (state.IsKeyDown(Keys.Tab))
+                {
+                    Inventory(state);
+                }
+                else
+                {
+                    map.DrawNodes();
+                }
+            }
+        }
+
+        private string RandomTextGenerate(int length)
+        {
+            if (!isReplay) actions.Add(new UserAction("RandomTextGenerate", length.ToString()));
             StringBuilder stringBuilder = new StringBuilder();
-            for (int i = 0; i < length; i++){
+            for (int i = 0; i < length; i++)
+            {
                 string word = jsonStrings[seededRandom.Next(0, jsonStrings.Count)];
-                if(GlyphManager.IsActive(Glyph.Snake) && unseededRandom.Next(0,16) == 12){
+                if (GlyphManager.IsActive(Glyph.Snake) && unseededRandom.Next(0, 16) == 12)
+                {
                     char[] wordToChar = word.ToCharArray();
-                    wordToChar[unseededRandom.Next(0,word.Length)] = (char)(unseededRandom.Next(0,26) + 'a');
+                    wordToChar[unseededRandom.Next(0, word.Length)] = (char)(unseededRandom.Next(0, 26) + 'a');
                     word = new string(wordToChar);
                 }
                 stringBuilder.Append(word + " ");
@@ -643,12 +738,12 @@ namespace typatro.GameFolder
         }
 
         private void TopBannerDisplay(bool map){
-            spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,40), ThemeColors.Foreground);
-            spriteBatch.Draw(texture, new Rectangle(15,15,MainGame.screenWidth-30,40), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(15,15,MainGame.screenWidth-30,40), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(15,15,MainGame.screenWidth-30,40), ThemeColors.Foreground);
             Vector2 textOffset = new Vector2(30,20);
-            spriteBatch.DrawString(smallFont, $"coins:{coins}", textOffset, ThemeColors.Text);
-            if(!tabPressed) spriteBatch.DrawString(smallFont, "tab -> inventory", new Vector2(MainGame.screenWidth/2 - smallFont.MeasureString("tab -> inventory").X/2,textOffset.Y), ThemeColors.Text);
-            if(map) spriteBatch.DrawString(smallFont, $"level:{level}/3", new Vector2(MainGame.screenWidth - smallFont.MeasureString($"level:{level}/3").X-textOffset.X,textOffset.Y), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.gameFont, $"coins:{coins}", textOffset, ThemeColors.Text);
+            if(!tabPressed) gfx.spriteBatch.DrawString(gfx.gameFont, "tab -> inventory", new Vector2(MainGame.screenWidth/2 - gfx.gameFont.MeasureString("tab -> inventory").X/2,textOffset.Y), ThemeColors.Text);
+            if(map) gfx.spriteBatch.DrawString(gfx.gameFont, $"level:{level}/3", new Vector2(MainGame.screenWidth - gfx.gameFont.MeasureString($"level:{level}/3").X-textOffset.X,textOffset.Y), ThemeColors.Text);
         }
 
         private static bool IsFight(NodeType nodeType){
@@ -660,17 +755,17 @@ namespace typatro.GameFolder
         private void CalculateScore(Vector2 lastCharPos)
         {
             long letterScore = 0;
-            for(int i = 0; i < writtenText.Count; i++){
+            for(int i = 0; i < Writer.writtenText.Count; i++){
                 bool canAdd = true;
-                for(int j = 0; j < diffIndexes.Count; j++){
+                for(int j = 0; j < Writer.diffIndexes.Count; j++){
                     if(i == j) canAdd = false;
                 }
-                if(canAdd && writtenText[i] != ' '){
-                    letterScore += enhancements.letters[writtenText[i]-'a'];
+                if(canAdd && Writer.writtenText[i] != ' '){
+                    letterScore += enhancements.letters[Writer.writtenText[i]-'a'];
                 }
             }
 
-            if(writtenText.Count != lastCharCount){
+            if(Writer.writtenText.Count != lastCharCount){
                 if(GlyphManager.IsActive(Glyph.Thousand)){
                     charCounter++;
                     if(charCounter == 1000){
@@ -680,16 +775,16 @@ namespace typatro.GameFolder
                 }
                 lastScore = playerScore;
                 letterTimer = timeInSeconds;
-                lastCharCount = writtenText.Count;
+                lastCharCount = Writer.writtenText.Count;
             }
-            spriteBatch.DrawString(smallFont, $"Streak:{wordStreak}".ToString(), new Vector2(50,100), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.gameFont, $"Streak:{wordStreak}".ToString(), new Vector2(50,100), ThemeColors.Text);
             string rewardText = "Reward: " + fight.cashGain;
-            spriteBatch.DrawString(smallFont, rewardText, new Vector2(MainGame.screenWidth-50-smallFont.MeasureString(rewardText).X,100), ThemeColors.Text); 
+            gfx.spriteBatch.DrawString(gfx.gameFont, rewardText, new Vector2(MainGame.screenWidth-50-gfx.gameFont.MeasureString(rewardText).X,100), ThemeColors.Text); 
 
-            int mistakeCount = Math.Max(diffIndexes.Count - (GlyphManager.IsActive(Glyph.EyeOfHorus)?2:0),0);
+            int mistakeCount = Math.Max(Writer.diffIndexes.Count - (GlyphManager.IsActive(Glyph.EyeOfHorus)?2:0),0);
             if(GlyphManager.IsActive(Glyph.Star) && mistakeCount > 0) dead = true;
 
-            string userWords = new string(writtenText.ToArray());
+            string userWords = new string(Writer.writtenText.ToArray());
             int correctWords = 0;
 
             List<int> neededStarts = new List<int>();
@@ -721,15 +816,13 @@ namespace typatro.GameFolder
                     lastCorrectWord = correctWords;
                     wordStreak += GlyphManager.IsActive(Glyph.Scarab)?3:1;
                     extraScore += wordStreak * (GlyphManager.IsActive(Glyph.N) && under3Sec?2:0);
-                    correctWordTimer = timeInSeconds;
                 }
                 else if(correctWords == lastCorrectWord){
                     lastCorrectWord = correctWords;
                     wordStreak = 0;
                 }
             }
-            //if(timeInSeconds - correctWordTimer < 1 && correctWordTimer != 0) spriteBatch.DrawString(smallFont, $"Correct word: +{enhancements.wordScore}".ToString(), new Vector2(50,150), ThemeColors.Correct);
-
+            
             if(GlyphManager.IsActive(Glyph.Anubis) && wordCounter % 5 == 0){
                 if(!anubisActive && wordCounter > 0) coins++;
                 anubisActive = true;
@@ -740,8 +833,8 @@ namespace typatro.GameFolder
                 long enemyDamage = (long)((GlyphManager.IsActive(Glyph.House) ? 0.25:1)*(int)timeInSeconds) * fight.speed - enhancements.damageResist;
                 long mistakeDamage = (GlyphManager.IsActive(Glyph.Snake)?0:1)*(GlyphManager.IsActive(Glyph.R)?5:1)*(difficulty >= 2?5:1)*mistakeCount;
                 currentScore = playerScore + correctWords * enhancements.wordScore - (enemyDamage<0?1*(int)timeInSeconds:enemyDamage) - mistakeDamage;
-                if(writtenText.Count == 1) lastScore = 0;
-                if(playerScore - lastScore != 0 && timeInSeconds - letterTimer < 0.25 && writtenText.Count > 0) spriteBatch.DrawString(bigFont, "+" + (playerScore - lastScore).ToString(), lastCharPos, ThemeColors.Correct);
+                if(Writer.writtenText.Count == 1) lastScore = 0;
+                if(playerScore - lastScore != 0 && timeInSeconds - letterTimer < 0.25 && Writer.writtenText.Count > 0) gfx.spriteBatch.DrawString(gfx.gameFont, "+" + (playerScore - lastScore).ToString(), lastCharPos, ThemeColors.Correct);
             }
             else currentScore = enhancements.startingScore;
         }
@@ -749,14 +842,17 @@ namespace typatro.GameFolder
         private void Inventory(KeyboardState state){
             tabPressed = true;
             int columns = 4, rows = 7;
-            int columnSpacing = MainGame.screenWidth / 5;
+            int columnSpacing = (int)(MainGame.screenWidth / 4.5);
+            int leftOffset = 40;
 
-            for(int column = 0; column < columns; column++){
-                for(int row = 0; row < rows; row++){
-                    if(column*rows+row >= 26) break;
-                    spriteBatch.DrawString(smallFont, (char)(column*rows+row+'a') + ": " + enhancements.letters[column*rows+row], new Vector2(columnSpacing /2+ column*columnSpacing, 70+row*40), ThemeColors.Text);
-                    long change = enhancements.lettersChange[column*rows+row];
-                    if(change != 0) spriteBatch.DrawString(smallFont, (change<0?"":"+") + change, new Vector2(columnSpacing + column*columnSpacing+16, 70+row*40), change<0?ThemeColors.Wrong:ThemeColors.Correct);
+            for (int column = 0; column < columns; column++)
+            {
+                for (int row = 0; row < rows; row++)
+                {
+                    if (column * rows + row >= 26) break;
+                    gfx.spriteBatch.DrawString(gfx.gameFont, (char)(column * rows + row + 'a') + ": " + enhancements.letters[column * rows + row], new Vector2(columnSpacing / 2 + column * columnSpacing - leftOffset, 70 + row * 40), ThemeColors.Text);
+                    long change = enhancements.lettersChange[column * rows + row];
+                    if (change != 0) gfx.spriteBatch.DrawString(gfx.gameFont, (change < 0 ? "" : "+") + change, new Vector2(columnSpacing + column * columnSpacing + 25 - leftOffset, 70 + row * 40), change < 0 ? ThemeColors.Wrong : ThemeColors.Correct);
                 }
             }
             Glyph[] glyphs = GlyphManager.GetGlyphs();
@@ -772,37 +868,39 @@ namespace typatro.GameFolder
                 if(state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right)) inventoryMove = true;
 
                 int borderOffset = 5, imageSize = 64, yOffset = 370, descOffset = 80, xOffset = 80;
-                spriteBatch.Draw(texture, new Rectangle(xOffset*inventoryGlyphSelect-borderOffset, yOffset-borderOffset, imageSize+borderOffset*2, imageSize+borderOffset*2), ThemeColors.Selected);
-                spriteBatch.DrawString(smallTextFont,GlyphManager.GetDescription(glyphs[inventoryGlyphSelect]), new Vector2(xOffset,yOffset+descOffset), ThemeColors.Text);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(xOffset*inventoryGlyphSelect-borderOffset, yOffset-borderOffset, imageSize+borderOffset*2, imageSize+borderOffset*2), ThemeColors.Selected);
+                gfx.spriteBatch.DrawString(gfx.smallTextFont,GlyphManager.GetDescription(glyphs[inventoryGlyphSelect]), new Vector2(xOffset,yOffset+descOffset), ThemeColors.Text);
                 columns = 0;
                 foreach(Glyph glyph in glyphs){
                     if(glyph != Glyph.NoGlyphsLeft)
-                        spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(xOffset*columns,yOffset,imageSize,imageSize), ThemeColors.Background);
+                        gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(xOffset*columns,yOffset,imageSize,imageSize), ThemeColors.Background);
                     columns++;
                 }
             }
         }
 
         private void HealthBar(){
-            spriteBatch.Draw(texture, new Rectangle(40, 60, MainGame.screenWidth-80, 30), ThemeColors.Selected);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(40, 60, MainGame.screenWidth-80, 30), ThemeColors.Selected);
             int redBarLength = (int)((double)Math.Min(fight.scoreNeeded, fight.scoreNeeded - currentScore) / fight.scoreNeeded * (MainGame.screenWidth-90));
-            spriteBatch.Draw(texture, new Rectangle(45, 65, redBarLength, 20), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(45, 65, redBarLength, 20), ThemeColors.Foreground);
             string score = $"{currentScore}/{fight.scoreNeeded}  -{fight.speed}/s";
-            spriteBatch.DrawString(smallFont, score, new Vector2(MainGame.screenWidth/2-score.Length*10,100), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.gameFont, score, new Vector2(MainGame.screenWidth/2-score.Length*10,100), ThemeColors.Text);
         }
 
         private void CharacterChoose(){
             KeyboardState state = Keyboard.GetState();
-            if(state.IsKeyDown(Keys.Escape)){
+            int maxRunes = Enum.GetValues(typeof(Runes.Runes)).Length;
+            if (state.IsKeyDown(Keys.Escape))
+            {
                 gameState = GameState.MENU;
             }
-            if(enterReleased && state.IsKeyDown(Keys.Enter)){
+            if(canStartFight && state.IsKeyDown(Keys.Enter)){
                 if(SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString()+difficulty).ToString().ToLower())){
                     NewGameChoiceUpdate();
                     gameState = GameState.LOADGAME;
                 }
             } else if(state.IsKeyUp(Keys.Enter)){
-                enterReleased = true;
+                canStartFight = true;
             }
             
             int rectWidth = MainGame.screenWidth/3, rectHeight = MainGame.screenHeight/2;
@@ -835,16 +933,16 @@ namespace typatro.GameFolder
             }
 
             if(selectedRune != 0) {
-                spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/5-rectWidth/4, MainGame.screenHeight/3- rectHeight/4, rectWidth/2, rectHeight/2), ThemeColors.NotSelected);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(MainGame.screenWidth/5-rectWidth/4, MainGame.screenHeight/3- rectHeight/4, rectWidth/2, rectHeight/2), ThemeColors.NotSelected);
                 string runeName = ((Runes.Runes)selectedRune-1).ToString().Substring(0,1);
-                spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth/4 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y/2), ThemeColors.Text);
-                spriteBatch.DrawString(bigFont, "<", new Vector2(MainGame.screenWidth/3-bigFont.MeasureString("<").X*2, MainGame.screenHeight/3.5f), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth/4 - gfx.menuFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - gfx.menuFont.MeasureString(runeName).Y/2), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, "<", new Vector2(MainGame.screenWidth/3-gfx.menuFont.MeasureString("<").X*2, MainGame.screenHeight/3.5f), ThemeColors.Text);
             }
             {
-                spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth/2-rectWidth/2, MainGame.screenHeight/3- rectHeight/2, rectWidth, rectHeight), diffMove?ThemeColors.NotSelected:ThemeColors.Selected);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(MainGame.screenWidth/2-rectWidth/2, MainGame.screenHeight/3- rectHeight/2, rectWidth, rectHeight), diffMove?ThemeColors.NotSelected:ThemeColors.Selected);
                 string runeName = ((Runes.Runes)selectedRune).ToString();
                 int topOffset = 10;
-                spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth/2 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y*3+topOffset*2), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth/2 - gfx.menuFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - gfx.menuFont.MeasureString(runeName).Y*3+topOffset*2), ThemeColors.Text);
                 if(SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString()+0).ToString().ToLower())){
                     var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
                     var attribute = (DisplayAttribute)Attribute.GetCustomAttribute(field, typeof(DisplayAttribute));
@@ -852,7 +950,7 @@ namespace typatro.GameFolder
                     string[] descStrings = attribute.GetDescription().Split('\n');
                     int line = 0;
                     foreach(string desc in descStrings){
-                        spriteBatch.DrawString(smallFont, desc, new Vector2(MainGame.screenWidth/2 - smallFont.MeasureString(desc).X/2, MainGame.screenHeight/3 - smallFont.MeasureString(runeName).Y*(2-line++)+topOffset), ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.gameFont, desc, new Vector2(MainGame.screenWidth/2 - gfx.gameFont.MeasureString(desc).X/2, MainGame.screenHeight/3 - gfx.gameFont.MeasureString(runeName).Y*(2-line++)+topOffset), ThemeColors.Text);
                     }
                 } else{
                     var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
@@ -861,27 +959,27 @@ namespace typatro.GameFolder
                     string[] descStrings = attribute.GetPrompt().Split('\n');
                     int line = 0;
                     foreach(string desc in descStrings){
-                        spriteBatch.DrawString(smallFont, desc, new Vector2(MainGame.screenWidth/2 - smallFont.MeasureString(desc).X/2, MainGame.screenHeight/3 - smallFont.MeasureString(runeName).Y*(2-line++)+topOffset), ThemeColors.Wrong);
+                        gfx.spriteBatch.DrawString(gfx.gameFont, desc, new Vector2(MainGame.screenWidth/2 - gfx.gameFont.MeasureString(desc).X/2, MainGame.screenHeight/3 - gfx.gameFont.MeasureString(runeName).Y*(2-line++)+topOffset), ThemeColors.Wrong);
                     }
                 }
             }
             if(selectedRune != maxRunes-1){
-                spriteBatch.Draw(texture, new Rectangle(MainGame.screenWidth - MainGame.screenWidth/5-rectWidth/4, MainGame.screenHeight/3- rectHeight/4, rectWidth/2, rectHeight/2), ThemeColors.NotSelected);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(MainGame.screenWidth - MainGame.screenWidth/5-rectWidth/4, MainGame.screenHeight/3- rectHeight/4, rectWidth/2, rectHeight/2), ThemeColors.NotSelected);
                 string runeName = ((Runes.Runes)selectedRune+1).ToString().Substring(0,1);
-                spriteBatch.DrawString(bigFont, runeName, new Vector2(MainGame.screenWidth - MainGame.screenWidth/4 - bigFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - bigFont.MeasureString(runeName).Y/2), ThemeColors.Text);
-                spriteBatch.DrawString(bigFont, ">", new Vector2(MainGame.screenWidth - MainGame.screenWidth/3 + bigFont.MeasureString(">").X, MainGame.screenHeight/3.5f), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth - MainGame.screenWidth/4 - gfx.menuFont.MeasureString(runeName).X/2, MainGame.screenHeight/3 - gfx.menuFont.MeasureString(runeName).Y/2), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, ">", new Vector2(MainGame.screenWidth - MainGame.screenWidth/3 + gfx.menuFont.MeasureString(">").X, MainGame.screenHeight/3.5f), ThemeColors.Text);
             } 
 
-            spriteBatch.DrawString(bigFont, "Difficulty: " , new Vector2(MainGame.screenWidth/2.5f-bigFont.MeasureString("Difficulty: ").X, MainGame.screenHeight-100), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.menuFont, "Difficulty: " , new Vector2(MainGame.screenWidth/2.5f-gfx.menuFont.MeasureString("Difficulty: ").X, MainGame.screenHeight-100), ThemeColors.Text);
 
             string diffString = $"<{difficulty}>{DifficultyText(difficulty)}";
             if(difficulty != 0 && !SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString()+difficulty).ToString().ToLower())){
                 diffString = "?";
             }
-            Vector2 diffStringSize = bigFont.MeasureString(diffString);
+            Vector2 diffStringSize = gfx.menuFont.MeasureString(diffString);
             int padding = 10;
-            if(diffMove) spriteBatch.Draw(texture, new Rectangle((int)(MainGame.screenWidth/2.5f)-padding, MainGame.screenHeight-100-padding,(int)diffStringSize.X+padding*2,(int)diffStringSize.Y+padding), (diffString == "?")?ThemeColors.Wrong:ThemeColors.Selected);
-            spriteBatch.DrawString(bigFont, diffString, new Vector2(MainGame.screenWidth/2.5f, MainGame.screenHeight-100), ThemeColors.Text);
+            if(diffMove) gfx.spriteBatch.Draw(gfx.texture, new Rectangle((int)(MainGame.screenWidth/2.5f)-padding, MainGame.screenHeight-100-padding,(int)diffStringSize.X+padding*2,(int)diffStringSize.Y+padding), (diffString == "?")?ThemeColors.Wrong:ThemeColors.Selected);
+            gfx.spriteBatch.DrawString(gfx.menuFont, diffString, new Vector2(MainGame.screenWidth/2.5f, MainGame.screenHeight-100), ThemeColors.Text);
         }
 
         private void NewGameChoiceUpdate(){

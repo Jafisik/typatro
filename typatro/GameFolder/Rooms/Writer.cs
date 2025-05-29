@@ -11,25 +11,18 @@ namespace typatro.GameFolder
 {
     class Writer
     {
-         int maxCharsPerLine = 40, yOffset = 200, leftOffset = 100;
+        int maxCharsPerLine = 40;
+        readonly int yOffset = 200, leftOffset = 100;
         readonly SpriteBatch _spriteBatch;
         readonly SpriteFont font;
-        List<char> writtenText;
-        List<int> diffIndexes;
+        public static List<char> writtenText = new List<char>();
+        public static List<int> diffIndexes = new List<int>();
         List<int> endLineIndexes = new List<int>(); 
         Keys? lastKey = null;
         double keyPressTime = 0;
         readonly double repeatInterval = 0.5;
         int lastCheckedIndex = 0;
 
-
-        public Writer(SpriteBatch _spriteBatch, SpriteFont font, List<int> diffIndexes, List<char> writtenText)
-        {
-            this._spriteBatch = _spriteBatch;
-            this.font = font;
-            this.writtenText = writtenText;
-            this.diffIndexes = diffIndexes;
-        }
 
         public Writer(SpriteBatch _spriteBatch, SpriteFont font)
         {

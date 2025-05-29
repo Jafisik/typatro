@@ -119,7 +119,8 @@ namespace typatro.GameFolder.Upgrades{
 
         public static Glyph GetRandomUnusedGlyph()
         {
-            if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GetRandomUnusedGlyph", ""));
+            return Glyph.Cat;
+            if (!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GetRandomUnusedGlyph", ""));
             var allGlyphs = Enum.GetValues(typeof(Glyph)).Cast<Glyph>();
             var unusedGlyphs = allGlyphs.Except(activeGlyphs).ToList();
 

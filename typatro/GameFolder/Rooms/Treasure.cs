@@ -9,31 +9,23 @@ using typatro.GameFolder.Upgrades;
 namespace typatro.GameFolder.Rooms{
 
     class Treasure{
-        SpriteBatch spriteBatch;
-        SpriteFont bigFont, smallFont;
-        Writer writer;
-        Texture2D texture;
+        MainGame.Gfx gfx;
         Glyph currentGlyph;
         Enhancements enhancements;
         bool pickUp = true, keyDown;
         readonly int topOffset = 80, leftOffset = 50, descOffset = 150, rectTopOffset = 200, rectWidth = 100, rectHeight = 50;
 
-        public Treasure(SpriteBatch spriteBatch, SpriteFont bigFont, SpriteFont smallFont, Texture2D texture, Enhancements enhancements){
-            this.spriteBatch = spriteBatch;
-            this.bigFont = bigFont;
-            this.smallFont = smallFont;
-            this.texture = texture;
+        public Treasure(MainGame.Gfx gfx, Enhancements enhancements){
+            this.gfx = gfx;
             this.enhancements = enhancements;
-            this.writer = new Writer(spriteBatch, smallFont);
             GlyphManager.Add(Glyph.NoGlyphsLeft);
         }
 
         public bool DisplayTreasure(ref long coins){
             Glyph glyph = currentGlyph;
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
-            spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Background);
-            //writer.WriteText(treasureDescriptionText, ThemeColors.Text, line : 3, xExtraOffset : -50, yExtraOffset: -50, treasure:true);
-            spriteBatch.DrawString(smallFont, treasureDescriptionText, new Vector2(leftOffset, topOffset+descOffset), ThemeColors.Text);
+            gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Background);
+            gfx.spriteBatch.DrawString(gfx.smallTextFont, treasureDescriptionText, new Vector2(leftOffset, topOffset+descOffset), ThemeColors.Text);
 
             if(glyph != Glyph.NoGlyphsLeft){
                 var state = Keyboard.GetState();
@@ -54,14 +46,14 @@ namespace typatro.GameFolder.Rooms{
                 }
                 
 
-                spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset+descOffset*2, rectWidth, rectHeight), pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-                spriteBatch.DrawString(bigFont, "yes", new Vector2(leftOffset+10, rectTopOffset+descOffset*2+5), ThemeColors.Text);
-                spriteBatch.Draw(texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset+descOffset*2, rectWidth, rectHeight), pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-                spriteBatch.DrawString(bigFont, "no", new Vector2(leftOffset*2+rectHeight+10, rectTopOffset+descOffset*2+5), ThemeColors.Text);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset, rectTopOffset+descOffset*2, rectWidth, rectHeight), pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
+                gfx.spriteBatch.DrawString(gfx.gameFont, "yes", new Vector2(leftOffset+10, rectTopOffset+descOffset*2+5), ThemeColors.Text);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset+descOffset*2, rectWidth, rectHeight), pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
+                gfx.spriteBatch.DrawString(gfx.gameFont, "no", new Vector2(leftOffset*2+rectHeight+10, rectTopOffset+descOffset*2+5), ThemeColors.Text);
             } 
             else{
-                spriteBatch.Draw(texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), ThemeColors.NotSelected);
-                spriteBatch.Draw(texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset, rectWidth, rectHeight), ThemeColors.Selected);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), ThemeColors.NotSelected);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset, rectWidth, rectHeight), ThemeColors.Selected);
             }
             return false;
         }
