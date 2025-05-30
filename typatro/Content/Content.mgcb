@@ -455,3 +455,15 @@
 /processorParam:Quality=Best
 /build:Music/glyphoraFr.mp3
 
+#begin Music/typing.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Music/typing.mp3
+
+#begin Music/typing2.mp3
+/importer:Mp3Importer
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Music/typing2.mp3
+

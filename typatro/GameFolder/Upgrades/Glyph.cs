@@ -47,7 +47,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("'Water', often representing rivers or offerings.\n+ Multiplies final score by *2\n- Add -5 to 5 random letter scores")]
         Water,
 
-        [Description("'King', signifying royalty or divine authority.\n+ Multiplies ALL highest letter scores by *5\n- Sets ALL letters with lowest letter score to 0 (only if max score is different to min score)")]
+        [Description("'King', signifying royalty or divine authority.\n+ Multiplies ALL highest letter scores by *5\n- Sets ALL letters with lowest letter score to 0\n(only if max score is different to min score)")]
         King,
 
         [Description("The Eye of Horus, symbolizing protection and health.\n+ 2 mistakes per round do not count\n- You blink every 5 seconds")]
@@ -119,7 +119,6 @@ namespace typatro.GameFolder.Upgrades{
 
         public static Glyph GetRandomUnusedGlyph()
         {
-            return Glyph.Cat;
             if (!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GetRandomUnusedGlyph", ""));
             var allGlyphs = Enum.GetValues(typeof(Glyph)).Cast<Glyph>();
             var unusedGlyphs = allGlyphs.Except(activeGlyphs).ToList();

@@ -8,6 +8,7 @@ using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 using Steamworks;
 using System;
+using Microsoft.Xna.Framework.Audio;
 
 namespace typatro.GameFolder;
 
@@ -67,11 +68,12 @@ public class MainGame : Game
         ThemeColors.Apply(settings[0]);
 
         Song backgroundMusic = Content.Load<Song>("Music/glyphoraFr");
+        SoundEffect typeSound = Content.Load<SoundEffect>("Music/typing2");
         MediaPlayer.IsRepeating = true;
         MediaPlayer.Volume = settings[1]/10f;
         MediaPlayer.Play(backgroundMusic);
 
-        gameLogic = new GameLogic(gfx, jsonStrings, Window.Position);
+        gameLogic = new GameLogic(gfx, jsonStrings, Window.Position, typeSound);
     }
 
     protected override void Update(GameTime gameTime){
