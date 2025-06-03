@@ -59,7 +59,7 @@ namespace typatro.GameFolder.UI{
                     Foreground = new Color(0x481eb1);
                     Selected = new Color(0x444444);
                     NotSelected = new Color(0x2c2137);
-                    Text = Color.Black;
+                    Text = Color.LightYellow;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
                     break;

@@ -195,15 +195,23 @@ namespace typatro.GameFolder
             
         }
 
-        public void Draw(GraphicsDeviceManager graphicsDevice){
-            gfx.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+        float bgRotation = 0f;
+        public void Draw(GraphicsDeviceManager graphicsDevice)
+        {
+            gfx.spriteBatch.Begin(SpriteSortMode.Deferred);
+            bgRotation += 0.002f;
+
+            Vector2 centerScreen = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 2f);
+            Vector2 bgOrigin = new Vector2(gfx.bg.Width / 2.5f, gfx.bg.Height / 2f);
+
             gfx.spriteBatch.GraphicsDevice.Clear(ThemeColors.Background);
+            gfx.spriteBatch.Draw(gfx.bg,centerScreen,null,new Color(5, 15, 5),bgRotation,bgOrigin,2.5f,SpriteEffects.None,0f);
             int lineWidth = 15;
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0,0,MainGame.screenWidth,lineWidth), ThemeColors.Foreground);
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0,0,lineWidth,MainGame.screenHeight), ThemeColors.Foreground);
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0,MainGame.screenHeight-lineWidth,MainGame.screenWidth,lineWidth), ThemeColors.Foreground);
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(MainGame.screenWidth-lineWidth,0,lineWidth,MainGame.screenHeight), ThemeColors.Foreground);
-            
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0, 0, MainGame.screenWidth, lineWidth), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0, 0, lineWidth, MainGame.screenHeight), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0, MainGame.screenHeight - lineWidth, MainGame.screenWidth, lineWidth), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(MainGame.screenWidth - lineWidth, 0, lineWidth, MainGame.screenHeight), ThemeColors.Foreground);
+
             if (SaveManager.fullscreen == 1) graphicsDevice.IsFullScreen = true;
             else graphicsDevice.IsFullScreen = false;
             if (gameState == GameState.MENU)
@@ -295,7 +303,6 @@ namespace typatro.GameFolder
                 roomSelected = false;
                 canStartFight = false;
                 SaveManager.UnlockUnlock("uruz0");
-                GlyphManager.Add(Glyph.M);
             }
             else if (gameState == GameState.RUNES)
             {

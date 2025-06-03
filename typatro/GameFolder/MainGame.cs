@@ -18,7 +18,7 @@ public class MainGame : Game
     public struct Gfx
     {
         public SpriteBatch spriteBatch;
-        public Texture2D texture, catPic;
+        public Texture2D texture, catPic, bg;
         public SpriteFont gameFont, smallTextFont, menuFont, textFont;
     }
     GameLogic gameLogic;
@@ -58,6 +58,7 @@ public class MainGame : Game
             menuFont = Content.Load<SpriteFont>("Fonts/menuFont"),
             textFont = Content.Load<SpriteFont>("Fonts/textFont"),
             catPic = Content.Load<Texture2D>("Images/catPic"),
+            bg = Content.Load<Texture2D>("Images/bg"),
             texture = new Texture2D(GraphicsDevice, 1, 1),
         };
         gfx.texture.SetData(new[] { Color.White });
