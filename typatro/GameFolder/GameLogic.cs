@@ -484,9 +484,9 @@ namespace typatro.GameFolder
                         {
                             if (!prevKeys.Contains(key))
                             {
-                                typeSound.Play(0.5f, pitch, 0f);
+                                typeSound.Play(0.1f, pitch, 0f);
 
-                                pitch += 0.01f;
+                                pitch += 0.005f;
                                 if (pitch > 1.0f) pitch = 1.0f;
                                 break;
                             }
