@@ -107,7 +107,11 @@ namespace typatro.GameFolder.UI{
         private static readonly string[] allUnlocks = new[]
         {
             "characterTutorial", "mapTutorial", "fightTutorial", "shopTutorial",
-            "first_kill",
+            
+            "ANUBIS", "CAT", "PAPYRUS", "THOUSAND", "J", "S", "CROCODILE", "EYEOFHORUS",
+            "H", "HEART", "HOUSE", "HUNDRED", "KING", "M", "MAN", "N", "OSIRIS", "R",
+            "SNAKE", "STAR", "SUN", "WATER", "WOMAN",
+            
             "uruz0", "uruz1", "uruz2", "uruz3", "uruz4", "uruz5", "uruz6",
             "halagaz0", "halagaz1", "halagaz2", "halagaz3", "halagaz4", "halagaz5", "halagaz6",
             "naudhiz0", "naudhiz1", "naudhiz2", "naudhiz3", "naudhiz4", "naudhiz5", "naudhiz6",
@@ -227,13 +231,15 @@ namespace typatro.GameFolder.UI{
             File.WriteAllText(unlocksPath, json);
         }
 
-        private static void LoadUnlocks()
+        public static Dictionary<string, bool> LoadUnlocks()
         {
             if (File.Exists(unlocksPath))
             {
                 var json = File.ReadAllText(unlocksPath);
                 unlocks = JsonSerializer.Deserialize<Dictionary<string, bool>>(json) ?? new();
+                return unlocks;
             }
+            return null;
         }
 
         private static void EnsureAllUnlocksExist()

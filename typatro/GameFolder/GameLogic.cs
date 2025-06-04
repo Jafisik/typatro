@@ -52,7 +52,7 @@ namespace typatro.GameFolder
         readonly Menu menu;
         double timeInSeconds = 0, lastTime = -1;
         Point windowPos, dragOffset;
-        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging;
+        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mUnlocked, mistake;
         SoundEffect typeSound;
 
         //Player
@@ -120,6 +120,7 @@ namespace typatro.GameFolder
             enhancements = new Enhancements();
             treasure = new Treasure(gfx, enhancements);
             shop = new Shop(gfx, enhancements);
+            GlyphManager.SetUnlockedGlyphs();
         }
 
         public void Update(GameWindow window){
@@ -382,6 +383,22 @@ namespace typatro.GameFolder
             if (dead)
             {
                 gfx.spriteBatch.DrawString(gfx.gameFont, "You are dead", new Vector2(100), ThemeColors.Text);
+                if (SteamUserStats.GetStat("deaths", out int current))
+                {
+                    current += 1;
+                    SteamUserStats.SetStat("deaths", current);
+                    if (current >= 1)
+                    {
+                        SteamUserStats.SetAchievement("Anubis");
+                        SaveManager.UnlockUnlock("anubis");
+                    }
+                    if (current >= 9)
+                    {
+                        SteamUserStats.SetAchievement("Cat");
+                        SaveManager.UnlockUnlock("cat");
+                    }
+                    SteamUserStats.StoreStats();
+                }
                 SaveManager.RemoveGameData();
                 GlyphManager.RemoveAllGlyphs();
                 gameSaveData = null;
@@ -540,10 +557,15 @@ namespace typatro.GameFolder
                     {
                         double cashMultiply = (GlyphManager.IsActive(Glyph.Woman) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
                         coins += (int)(fight.cashGain * cashMultiply);
-                        if (coins >= 100)
+                        if (coins >= 200)
                         {
                             SaveManager.UnlockUnlock("jera0");
                             SteamUserStats.SetAchievement("JERA_0");
+                        }
+                        if (coins >= 100)
+                        {
+                            SaveManager.UnlockUnlock("HUNDRED");
+                            SteamUserStats.SetAchievement("HUNDRED");
                         }
                         if (GlyphManager.IsActive(Glyph.B)) enhancements.startingScore += 5;
 
@@ -611,6 +633,11 @@ namespace typatro.GameFolder
                             string achievmentName = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
                             SaveManager.UnlockUnlock(achievmentName);
                             SteamUserStats.SetAchievement(achievmentName.ToUpper());
+                            if (!mistake)
+                            {
+                                SaveManager.UnlockUnlock("STAR");
+                                SteamUserStats.SetAchievement("STAR");
+                            } 
                             if (state.IsKeyDown(Keys.Enter))
                             {
                                 gameState = GameState.MENU;
@@ -652,14 +679,61 @@ namespace typatro.GameFolder
                                     selectedNode = map.GetFirstNode();
                                     level++;
                                 }
-                                if (SteamUserStats.GetStat("fights_won", out int current))
+                                if (selectedNode.type == NodeType.ELITE)
                                 {
-                                    current += 1;
-                                    SteamUserStats.SetStat("fights_won", current);
-                                    if (current == 1) SteamUserStats.SetAchievement("FIRST_KILL");
-                                    if (current == 10) SteamUserStats.SetAchievement("10_KILLS");
+                                    SaveManager.UnlockUnlock("S");
+                                    SteamUserStats.SetAchievement("S");
+                                }
+
+                                if (mUnlocked)
+                                {
+                                    SaveManager.UnlockUnlock("M");
+                                    SteamUserStats.SetAchievement("M");
+                                }
+
+                                int letters = Writer.writtenText.Count;
+                                if (SteamUserStats.GetStat("letters", out int lettersCount))
+                                {
+                                    lettersCount += letters;
+                                    SteamUserStats.SetStat("letters", lettersCount);
+                                    if (lettersCount >= 10)
+                                    {
+                                        SteamUserStats.SetAchievement("THOUSAND");
+                                        SaveManager.UnlockUnlock("THOUSAND");
+                                    }
                                     SteamUserStats.StoreStats();
                                 }
+
+                                int words = 0;
+                                foreach (char letter in Writer.writtenText)
+                                {
+                                    if (letter == ' ') words++;
+                                }
+                                if (SteamUserStats.GetStat("words", out int wordsCount))
+                                {
+                                    wordsCount += 1;
+                                    SteamUserStats.SetStat("letters", wordsCount);
+                                    if (wordsCount >= 100)
+                                    {
+                                        SteamUserStats.SetAchievement("PAPYRUS");
+                                        SaveManager.UnlockUnlock("PAPYRUS");
+                                    }
+                                    SteamUserStats.StoreStats();
+                                }
+
+                                if (SteamUserStats.GetStat("fights_won", out int fightsWon))
+                                {
+                                    fightsWon += 1;
+                                    SteamUserStats.SetStat("fights_won", fightsWon);
+                                    if (fightsWon >= 10)
+                                    {
+                                        SteamUserStats.SetAchievement("J");
+                                        SaveManager.UnlockUnlock("J");
+                                    }
+                                    SteamUserStats.StoreStats();
+                                }
+                                Console.WriteLine();
+                                GlyphManager.SetUnlockedGlyphs();
                             }
                         }
 
@@ -835,6 +909,8 @@ namespace typatro.GameFolder
                 letterTimer = timeInSeconds;
                 lastCharCount = Writer.writtenText.Count;
             }
+            if ((int)timeInSeconds == 60) mUnlocked = true;
+
             gfx.spriteBatch.DrawString(gfx.gameFont, $"Streak:{wordStreak}".ToString(), new Vector2(50,100), ThemeColors.Text);
             string rewardText = "Reward: " + fight.cashGain;
             gfx.spriteBatch.DrawString(gfx.gameFont, rewardText, new Vector2(MainGame.screenWidth-50-gfx.gameFont.MeasureString(rewardText).X,100), ThemeColors.Text); 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
+using typatro.GameFolder.UI;
 
 namespace typatro.GameFolder.Upgrades{
 
@@ -25,7 +26,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Sound for 'J', also symbol for reed or tall grass. \n+ Add +10 to all letter scores\n- Screen shakes with every input")]
         J,
 
-        [Description("Sound for 'M', can symbolize owl, silence or wisdom.\n+ Gains 10 coins \nevery 10 seconds in a fight\n- Text changes position every 5 seconds")]
+        [Description("Sound for 'M', can symbolize owl, silence or wisdom.\n+ Gains 10 coins every 10 seconds in a fight\n- Text changes position every 5 seconds")]
         M,
 
         [Description("Sound for 'N', ripple of water, also 'to' or 'for'.\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds break streak")]
@@ -111,6 +112,7 @@ namespace typatro.GameFolder.Upgrades{
     public static class GlyphManager
     {
         private static HashSet<Glyph> activeGlyphs = new HashSet<Glyph>();
+        public static HashSet<Glyph> unlockedGlyphs = new HashSet<Glyph>();
         public static List<Texture2D> glyphImage = new List<Texture2D>();
 
         public static void Add(Glyph glyph) => activeGlyphs.Add(glyph);
@@ -120,8 +122,11 @@ namespace typatro.GameFolder.Upgrades{
         public static Glyph GetRandomUnusedGlyph()
         {
             if (!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GetRandomUnusedGlyph", ""));
-            var allGlyphs = Enum.GetValues(typeof(Glyph)).Cast<Glyph>();
-            var unusedGlyphs = allGlyphs.Except(activeGlyphs).ToList();
+            var unusedGlyphs = unlockedGlyphs.Except(activeGlyphs).ToList();
+            foreach (var i in unusedGlyphs)
+            {
+                Console.WriteLine(i);
+            }
 
             if (unusedGlyphs.Count == 0)
                 return Glyph.NoGlyphsLeft;
@@ -130,35 +135,86 @@ namespace typatro.GameFolder.Upgrades{
             return unusedGlyphs[index];
         }
 
-        public static Glyph[] GetGlyphs(){
+        public static Glyph[] GetGlyphs()
+        {
             return activeGlyphs.ToArray();
         }
 
-        public static int[] GlyphNums(){
+        public static int[] GlyphNums()
+        {
             Glyph[] glyphs = activeGlyphs.ToArray();
             List<int> ints = new List<int>();
-            for(int i = 0; i < glyphs.Length; i++){
+            for (int i = 0; i < glyphs.Length; i++)
+            {
                 ints.Add((int)glyphs[i]);
             }
             return ints.ToArray();
         }
 
-        public static int GetGlyphCount(){
+        public static int GetGlyphCount()
+        {
             return activeGlyphs.Count;
         }
 
-        public static string GetDescription(Glyph? glyph){
+        public static string GetDescription(Glyph? glyph)
+        {
             var field = glyph.GetType().GetField(glyph.ToString());
             var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
             return attribute == null ? "No description available" : attribute.Description;
         }
 
-        public static Texture2D GetGlyphImage(Glyph glyph){
+        public static Texture2D GetGlyphImage(Glyph glyph)
+        {
             return glyphImage[(int)glyph];
         }
 
-        public static void RemoveAllGlyphs(){
+        public static void RemoveAllGlyphs()
+        {
             activeGlyphs = new HashSet<Glyph>();
+        }
+
+        public static void SetUnlockedGlyphs()
+        {
+            //Base unlocked glyphs
+            unlockedGlyphs.Add(Glyph.NoGlyphsLeft);
+            unlockedGlyphs.Add(Glyph.A);
+            unlockedGlyphs.Add(Glyph.B);
+            unlockedGlyphs.Add(Glyph.D);
+            unlockedGlyphs.Add(Glyph.Anubis);
+            unlockedGlyphs.Add(Glyph.Bread);
+            unlockedGlyphs.Add(Glyph.One);
+            unlockedGlyphs.Add(Glyph.Life);
+            unlockedGlyphs.Add(Glyph.Scarab);
+            unlockedGlyphs.Add(Glyph.Ten);
+            unlockedGlyphs.Add(Glyph.Flower);
+            
+            Dictionary<string, bool> unlocks = SaveManager.LoadUnlocks();
+            if (unlocks != null)
+            {
+                if (unlocks["ANUBIS"]) unlockedGlyphs.Add(Glyph.Anubis);
+                if (unlocks["CAT"]) unlockedGlyphs.Add(Glyph.Cat);
+                if (unlocks["PAPYRUS"]) unlockedGlyphs.Add(Glyph.Papyrus);
+                if (unlocks["THOUSAND"]) unlockedGlyphs.Add(Glyph.Thousand);
+                if (unlocks["J"]) unlockedGlyphs.Add(Glyph.J);
+                if (unlocks["S"]) unlockedGlyphs.Add(Glyph.S);
+                if (unlocks["CROCODILE"]) unlockedGlyphs.Add(Glyph.Crocodile);
+                if (unlocks["EYEOFHORUS"]) unlockedGlyphs.Add(Glyph.EyeOfHorus);
+                if (unlocks["H"]) unlockedGlyphs.Add(Glyph.H);
+                if (unlocks["HEART"]) unlockedGlyphs.Add(Glyph.Heart);
+                if (unlocks["HOUSE"]) unlockedGlyphs.Add(Glyph.House);
+                if (unlocks["HUNDRED"]) unlockedGlyphs.Add(Glyph.Hundred);
+                if (unlocks["KING"]) unlockedGlyphs.Add(Glyph.King);
+                if (unlocks["M"]) unlockedGlyphs.Add(Glyph.M);
+                if (unlocks["MAN"]) unlockedGlyphs.Add(Glyph.Man);
+                if (unlocks["N"]) unlockedGlyphs.Add(Glyph.N);
+                if (unlocks["OSIRIS"]) unlockedGlyphs.Add(Glyph.Osiris);
+                if (unlocks["R"]) unlockedGlyphs.Add(Glyph.R);
+                if (unlocks["SNAKE"]) unlockedGlyphs.Add(Glyph.Snake);
+                if (unlocks["STAR"]) unlockedGlyphs.Add(Glyph.Star);
+                if (unlocks["SUN"]) unlockedGlyphs.Add(Glyph.Sun);
+                if (unlocks["WATER"]) unlockedGlyphs.Add(Glyph.Water);
+                if (unlocks["WOMAN"]) unlockedGlyphs.Add(Glyph.Woman);
+            }
         }
     }
 }

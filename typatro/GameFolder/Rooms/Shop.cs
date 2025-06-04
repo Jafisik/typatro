@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Steamworks;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
@@ -201,7 +202,12 @@ namespace typatro.GameFolder.Rooms{
                     glyphs[1] = GlyphManager.GetRandomUnusedGlyph();
                     glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
                 }
-                if(selectionIndex == 11) return true;
+                if (coins == 0)
+                {
+                    SaveManager.UnlockUnlock("CROCODILE");
+                    SteamUserStats.SetAchievement("CROCODILE");
+                }
+                if (selectionIndex == 11) return true;
                 
             }
             else if(state.IsKeyUp(Keys.Enter)) enterPressed = false;
