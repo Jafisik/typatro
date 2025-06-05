@@ -85,7 +85,7 @@ namespace typatro.GameFolder
             ["JERA0"] = false,
 
         };
-        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake, gameWin;
+        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake, gameWin, deadCounted;
         public static bool writeAchievment;
         SoundEffect typeSound;
 
@@ -369,6 +369,7 @@ namespace typatro.GameFolder
                     GlyphManager.Add(Glyph.NoGlyphsLeft);
                     visitedNodes = new List<int[]>();
                     mistake = false;
+                    deadCounted = false;
                 }
                 firstEnter = true;
                 roomSelected = false;
@@ -453,25 +454,30 @@ namespace typatro.GameFolder
             if (dead)
             {
                 gfx.spriteBatch.DrawString(gfx.gameFont, "You are dead", new Vector2(100), ThemeColors.Text);
-                if (SteamUserStats.GetStat("deaths", out int current))
+                if (!deadCounted)
                 {
-                    current += 1;
-                    SteamUserStats.SetStat("deaths", current);
-                    if (current >= 1)
+                    if (SteamUserStats.GetStat("deaths", out int current))
                     {
-                        SteamUserStats.SetAchievement("ANUBIS");
-                        SaveManager.UnlockUnlock("ANUBIS");
+                        current += 1;
+                        SteamUserStats.SetStat("deaths", current);
+                        if (current >= 1)
+                        {
+                            SteamUserStats.SetAchievement("ANUBIS");
+                            SaveManager.UnlockUnlock("ANUBIS");
+                        }
+                        if (current >= 9)
+                        {
+                            SteamUserStats.SetAchievement("CAT");
+                            SaveManager.UnlockUnlock("CAT");
+                        }
+                        SteamUserStats.StoreStats();
                     }
-                    if (current >= 9)
-                    {
-                        SteamUserStats.SetAchievement("CAT");
-                        SaveManager.UnlockUnlock("CAT");
-                    }
-                    SteamUserStats.StoreStats();
+                    SaveManager.RemoveGameData();
+                    GlyphManager.RemoveAllGlyphs();
+                    gameSaveData = null;
+                    deadCounted = true;
                 }
-                SaveManager.RemoveGameData();
-                GlyphManager.RemoveAllGlyphs();
-                gameSaveData = null;
+                
                 return;
             }
 
