@@ -169,9 +169,15 @@ namespace typatro.GameFolder
 
             if(optionNav){
                 if(state.IsKeyDown(Keys.Left)){
-                    if(optionSelect == OptionSelect.theme && SaveManager.theme != 0){
+                    if (optionSelect == OptionSelect.theme && SaveManager.theme != 0)
+                    {
                         SaveManager.theme--;
                         optionNav = false;
+                        if(!GameLogic.achievmentBools["SUN"])
+                        {
+                            GameLogic.achievmentBools["SUN"] = true;
+                            GameLogic.writeAchievment = true;
+                        }
                     }
                     if(optionSelect == OptionSelect.volume && SaveManager.volume > 0){
                         SaveManager.volume--;
@@ -197,9 +203,15 @@ namespace typatro.GameFolder
                     }
                 }
                 if(state.IsKeyDown(Keys.Right)){
-                    if(optionSelect == OptionSelect.theme && SaveManager.theme != themes.Length-1){
+                    if (optionSelect == OptionSelect.theme && SaveManager.theme != themes.Length - 1)
+                    {
                         SaveManager.theme++;
                         optionNav = false;
+                        if(!GameLogic.achievmentBools["SUN"])
+                        {
+                            GameLogic.achievmentBools["SUN"] = true;
+                            GameLogic.writeAchievment = true;
+                        }
                     }
                     if(optionSelect == OptionSelect.volume && SaveManager.volume < 10){
                         SaveManager.volume++;

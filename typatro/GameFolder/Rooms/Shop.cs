@@ -182,7 +182,7 @@ namespace typatro.GameFolder.Rooms{
                 if(selectionIndex == 8 && coins >= startingScoreCost){
                     coins -= startingScoreCost;
                     startingScoreCost += 5;
-                    enhancements.startingScore += 10;
+                    enhancements.AddToStartingScore(10);
                 }
                 if(selectionIndex == 9 && coins>= glyphCost){
                     coins -= glyphCost;
@@ -202,10 +202,10 @@ namespace typatro.GameFolder.Rooms{
                     glyphs[1] = GlyphManager.GetRandomUnusedGlyph();
                     glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
                 }
-                if (coins == 0)
+                if (coins == 0 && !GameLogic.achievmentBools["CROCODILE"])
                 {
-                    SaveManager.UnlockUnlock("CROCODILE");
-                    SteamUserStats.SetAchievement("CROCODILE");
+                    GameLogic.achievmentBools["CROCODILE"] = true;
+                    GameLogic.writeAchievment = true;
                 }
                 if (selectionIndex == 11) return true;
                 
