@@ -53,6 +53,7 @@ namespace typatro.GameFolder
         //Other
         readonly Menu menu;
         double timeInSeconds = 0, lastTime = -1;
+        long totalGameTimeMinutes = 0;
         Point windowPos, dragOffset;
         public static Dictionary<string, bool> achievmentBools = new Dictionary<string, bool>
         {
@@ -84,7 +85,7 @@ namespace typatro.GameFolder
             ["JERA0"] = false,
 
         };
-        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake;
+        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake, gameWin;
         public static bool writeAchievment;
         SoundEffect typeSound;
 
@@ -245,6 +246,20 @@ namespace typatro.GameFolder
                         }
                         else window.Position = windowPos;
                     }
+                }
+            }
+            if(totalGameTimeMinutes != (long)MainGame.time.TotalGameTime.Minutes)
+            {
+                totalGameTimeMinutes = (long)MainGame.time.TotalGameTime.Minutes;
+                if (SteamUserStats.GetStat("game_minutes", out int minutes))
+                {
+                    SteamUserStats.SetStat("game_minutes", minutes++);
+                    if (minutes >= 240)
+                    {
+                        SteamUserStats.SetAchievement("HOUSE");
+                        SaveManager.UnlockUnlock("HOUSE");
+                    }
+                    SteamUserStats.StoreStats();
                 }
             }
             WriteAchievment();
@@ -630,6 +645,14 @@ namespace typatro.GameFolder
                             if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
                             enhancements.MultiplyLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 2);
                         }
+                        if(Writer.writtenText.Count == neededText.Length)
+                        {
+                            if (!achievmentBools["HEART"])
+                            {
+                                achievmentBools["HEART"] = true;
+                                writeAchievment = true;
+                            }
+                        }
                     }
                     else
                     {
@@ -684,6 +707,24 @@ namespace typatro.GameFolder
                     {
                         if (selectedNode.type == NodeType.BOSS && level == 3)
                         {
+                            if (!gameWin)
+                            {
+                                if(SteamUserStats.GetStat("runs_won", out int runsWon))
+                                {
+                                    SteamUserStats.SetStat("runs_won", runsWon++);
+                                    if (!achievmentBools["MAN"])
+                                    {
+                                        achievmentBools["MAN"] = true;
+                                        writeAchievment = true;
+                                    }
+                                    if (runsWon >= 5 && !achievmentBools["KING"])
+                                    {
+                                        achievmentBools["KING"] = true;
+                                        writeAchievment = true;
+                                    }
+                                }
+                                gameWin = true;
+                            }
                             string fightWon = "You win";
                             gfx.spriteBatch.DrawString(gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
                             string achievmentName = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
