@@ -467,11 +467,29 @@
 /processorParam:Quality=Best
 /build:Music/glyphoraFr.mp3
 
-#begin Music/typing.mp3
-/importer:Mp3Importer
+#begin Music/intro.wav
+/importer:WavImporter
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
-/build:Music/typing.mp3
+/build:Music/intro.wav
+
+#begin Music/intro.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Music/intro.wav
+
+#begin Music/mainTheme.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Music/mainTheme.wav
+
+#begin Music/mainTheme.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Music/mainTheme.wav
 
 #begin Music/typing2.mp3
 /importer:Mp3Importer

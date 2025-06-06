@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using Steamworks;
 using typatro.GameFolder.Rooms;
 using typatro.GameFolder.UI;
@@ -85,9 +86,9 @@ namespace typatro.GameFolder
             ["JERA0"] = false,
 
         };
-        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake, gameWin, deadCounted;
+        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake, gameWin, deadCounted, introPlayed;
         public static bool writeAchievment;
-        SoundEffect typeSound;
+        MainGame.SoundEffects sfx;
 
         //Player
         Enhancements enhancements;
@@ -133,12 +134,12 @@ namespace typatro.GameFolder
         int level = 1;
         bool firstEnter = true;
 
-        public GameLogic(MainGame.Gfx gfx, List<string> jsonStrings, Point windowPos, SoundEffect typeSound)
+        public GameLogic(MainGame.Gfx gfx, List<string> jsonStrings, Point windowPos, MainGame.SoundEffects sfx)
         {
             this.gfx = gfx;
             this.jsonStrings = jsonStrings;
             this.windowPos = windowPos;
-            this.typeSound = typeSound;
+            this.sfx = sfx;
 
             seed = seededRandom.Next();
             seededRandom = new Random(seed);
@@ -261,6 +262,12 @@ namespace typatro.GameFolder
                     }
                     SteamUserStats.StoreStats();
                 }
+            }
+            if(!introPlayed && sfx.musicIntro.State == SoundState.Stopped)
+            {
+                introPlayed = true;
+                sfx.musicMainTheme.IsLooped = true;
+                sfx.musicMainTheme.Play();
             }
             WriteAchievment();
         }
@@ -560,7 +567,7 @@ namespace typatro.GameFolder
                         {
                             if (!prevKeys.Contains(key))
                             {
-                                typeSound.Play(0.1f, pitch, 0f);
+                                sfx.typeSound.Play(0.1f, pitch, 0f);
 
                                 pitch += 0.005f;
                                 if (pitch > 1.0f) pitch = 1.0f;

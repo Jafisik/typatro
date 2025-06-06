@@ -21,6 +21,11 @@ public class MainGame : Game
         public Texture2D texture, catPic, bg;
         public SpriteFont gameFont, smallTextFont, menuFont, textFont;
     }
+    public struct SoundEffects
+    {
+        public SoundEffect typeSound;
+        public SoundEffectInstance musicIntro, musicMainTheme;
+    }
     GameLogic gameLogic;
     public static GameTime time;
     public static int screenWidth = 800, screenHeight = 600;
@@ -67,14 +72,22 @@ public class MainGame : Game
         
         int[] settings = SaveManager.LoadSettings();
         ThemeColors.Apply(settings[0]);
-
-        Song backgroundMusic = Content.Load<Song>("Music/glyphoraFr");
-        SoundEffect typeSound = Content.Load<SoundEffect>("Music/typing2");
-        MediaPlayer.IsRepeating = true;
+        SoundEffects sfx = new()
+        {
+            musicIntro = Content.Load<SoundEffect>("Music/intro").CreateInstance(),
+            musicMainTheme = Content.Load<SoundEffect>("Music/mainTheme").CreateInstance(),
+            typeSound = Content.Load<SoundEffect>("Music/typing2"),
+        };
+        
+        MediaPlayer.IsRepeating = false;
         MediaPlayer.Volume = settings[1]/10f;
-        MediaPlayer.Play(backgroundMusic);
+        sfx.musicIntro.Volume = settings[1] / 10f;
+        sfx.musicMainTheme.Volume = settings[1] / 10f;
+        sfx.musicIntro.IsLooped = false;
+        sfx.musicIntro.Play();
+        
 
-        gameLogic = new GameLogic(gfx, jsonStrings, Window.Position, typeSound);
+        gameLogic = new GameLogic(gfx, jsonStrings, Window.Position, sfx);
     }
 
     protected override void Update(GameTime gameTime){
