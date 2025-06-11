@@ -12,8 +12,11 @@ namespace typatro.GameFolder.Upgrades{
         public int wordScore = 2;
         public int damageResist = 0;
         public int startingScore = 0;
-        public Enhancements(){
-            for(int letter = 0; letter < letters.Length; letter++){
+        public double shinyChance = 0.01, stoneChance = 0.05, bloomChance = 0.02;
+        public Enhancements()
+        {
+            for (int letter = 0; letter < letters.Length; letter++)
+            {
                 letters[letter] = 1;
             }
         }

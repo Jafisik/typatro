@@ -81,7 +81,8 @@ namespace typatro.GameFolder.UI{
         public int[] mapNode {get;set;}
         public long[] letterScores {get;set;}
         public int[] enhancements {get;set;}
-        public int[] glyphs {get;set;}
+        public double[] enhChances { get; set; }
+        public int[] glyphs { get; set; }
         public long coins {get;set;}
         public int level {get;set;}
         public int seed {get;set;}
@@ -107,15 +108,15 @@ namespace typatro.GameFolder.UI{
         private static readonly string[] allUnlocks = new[]
         {
             "characterTutorial", "mapTutorial", "fightTutorial", "shopTutorial",
-            
+
             "ANUBIS", "CAT", "PAPYRUS", "THOUSAND", "J", "S", "CROCODILE", "EYEOFHORUS",
             "H", "HEART", "HOUSE", "HUNDRED", "KING", "M", "MAN", "N", "OSIRIS", "R",
             "SNAKE", "STAR", "SUN", "WATER", "WOMAN",
             
-            "uruz0", "uruz1", "uruz2", "uruz3", "uruz4", "uruz5", "uruz6",
-            "halagaz0", "halagaz1", "halagaz2", "halagaz3", "halagaz4", "halagaz5", "halagaz6",
-            "naudhiz0", "naudhiz1", "naudhiz2", "naudhiz3", "naudhiz4", "naudhiz5", "naudhiz6",
-            "jera0", "jera1", "jera2", "jera3", "jera4", "jera5", "jera6"
+            "URUZ0", "URUZ1", "URUZ2", "URUZ3", "URUZ4", "URUZ5", "URUZ6",
+            "HALAGAZ0", "HALAGAZ1", "HALAGAZ2", "HALAGAZ3", "HALAGAZ4", "HALAGAZ5", "HALAGAZ6",
+            "NAUDHIZ0", "NAUDHIZ1", "NAUDHIZ2", "NAUDHIZ3", "NAUDHIZ4", "NAUDHIZ5", "NAUDHIZ6",
+            "JERA0", "JERA1", "JERA2", "JERA3", "JERA4", "JERA5", "JERA6"
         };
 
         static SaveManager()
@@ -148,6 +149,7 @@ namespace typatro.GameFolder.UI{
                 mapNode = mapNode.NodePos(),
                 letterScores = enhancements.letters,
                 enhancements = new int[] { enhancements.wordScore, enhancements.damageResist, enhancements.startingScore },
+                enhChances = new double[] { enhancements.shinyChance, enhancements.stoneChance, enhancements.bloomChance},
                 glyphs = GlyphManager.GlyphNums(),
                 difficulty = difficulty,
                 rune = rune,

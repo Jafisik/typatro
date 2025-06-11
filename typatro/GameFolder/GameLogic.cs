@@ -124,6 +124,7 @@ namespace typatro.GameFolder
         string neededText;
         readonly List<string> jsonStrings;
         int xTextOffset = 0, yTextOffset = 0;
+        List<int> shinyWords = new List<int>(), stoneWords = new List<int>(), bloomWords = new List<int>();
         double textRotation = 0;
         Vector2 catPos = Vector2.One;
 
@@ -148,11 +149,12 @@ namespace typatro.GameFolder
             gameSaveData = SaveManager.LoadGame();
 
             map = new Map(gfx);
+            enhancements = new Enhancements();
 
             writer = new Writer(gfx.spriteBatch, gfx.textFont);
             neededText = RandomTextGenerate(10);
 
-            enhancements = new Enhancements();
+            
             treasure = new Treasure(gfx, enhancements);
             shop = new Shop(gfx, enhancements);
             GlyphManager.SetUnlockedGlyphs();
@@ -306,6 +308,9 @@ namespace typatro.GameFolder
                     enhancements.wordScore = gameSaveData.enhancements[0];
                     enhancements.damageResist = gameSaveData.enhancements[1];
                     enhancements.startingScore = gameSaveData.enhancements[2];
+                    enhancements.shinyChance = gameSaveData.enhChances[0];
+                    enhancements.stoneChance = gameSaveData.enhChances[1];
+                    enhancements.bloomChance = gameSaveData.enhChances[2];
                     shop = new Shop(gfx, enhancements);
                     treasure = new Treasure(gfx, enhancements);
                     coins = gameSaveData.coins;
@@ -551,7 +556,7 @@ namespace typatro.GameFolder
                     }
                     else
                     {
-                        writer.WriteText(neededText, ThemeColors.NotSelected, isHintText: true, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
+                        writer.WriteText(neededText, ThemeColors.NotSelected, shinyWords, stoneWords, bloomWords, isHintText: true, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
                         Vector2 lastCharPos = writer.UserInputText(Writer.writtenText.ToArray(), rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
                         TopBannerDisplay(false);
                         CalculateScore(lastCharPos);
@@ -811,7 +816,7 @@ namespace typatro.GameFolder
                                 if (SteamUserStats.GetStat("letters", out int lettersCount))
                                 {
                                     SteamUserStats.SetStat("letters", lettersCount + letters);
-                                    if (lettersCount >= 10 && !achievmentBools["THOUSAND"])
+                                    if (lettersCount >= 1000 && !achievmentBools["THOUSAND"])
                                     {
                                         achievmentBools["THOUSAND"] = writeAchievment = true;
                                         writeAchievment = true;
@@ -826,7 +831,7 @@ namespace typatro.GameFolder
                                 }
                                 if (SteamUserStats.GetStat("words", out int wordsCount))
                                 {
-                                    SteamUserStats.SetStat("letters", wordsCount++);
+                                    SteamUserStats.SetStat("words", wordsCount++);
                                     if (wordsCount >= 100 && !achievmentBools["PAPYRUS"])
                                     {
                                         achievmentBools["PAPYRUS"] = writeAchievment = true;
@@ -966,6 +971,8 @@ namespace typatro.GameFolder
             pitch = 0;
             prevMistakes = 0;
             cards.Clear();
+            shinyWords.Clear();
+            stoneWords.Clear();
         }
 
         private string RandomTextGenerate(int length)
@@ -974,6 +981,11 @@ namespace typatro.GameFolder
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < length; i++)
             {
+                if (unseededRandom.NextDouble() >= 1 - enhancements.shinyChance) shinyWords.Add(i);
+                else if (unseededRandom.NextDouble() >= 1 - enhancements.bloomChance) bloomWords.Add(i);
+                else if (unseededRandom.NextDouble() >= 1 - enhancements.stoneChance) stoneWords.Add(i);
+
+
                 string word = jsonStrings[seededRandom.Next(0, jsonStrings.Count)];
                 if (GlyphManager.IsActive(Glyph.Snake) && unseededRandom.Next(0, 16) == 12)
                 {
@@ -1064,14 +1076,31 @@ namespace typatro.GameFolder
                 }
             }
 
+
+            int word = -1;
+            double shinyMultiplier = 1;
+            int stoneScore = 0;
             for (int i = 0; i < neededStarts.Count - 1; i++)
             {
                 int wordLength = neededStarts[i + 1] - neededStarts[i] - 1;
                 if (userWords.Length < neededStarts[i] + wordLength + 1) break;
 
-                string neededWord = neededText.Substring(neededStarts[i] + 1, wordLength);
-                string userWord = userWords.Substring(neededStarts[i] + 1, wordLength);
-                if (userWord == neededWord) correctWords++;
+                word++;
+                //these (i==0?-1:0) are to adjust for the lack of spaces in the first word
+                string neededWord = neededText.Substring(neededStarts[i] + 1 + (i==0?-1:0), wordLength + (i==0?1:0));
+                string userWord = userWords.Substring(neededStarts[i] + 1 + (i==0?-1:0), wordLength + (i==0?1:0));
+                if (userWord == neededWord)
+                {
+                    correctWords++;
+                    if (shinyWords.Contains(word))
+                    {
+                        shinyMultiplier *= 1.2;
+                    }
+                    else if (stoneWords.Contains(word))
+                    {
+                        stoneScore += 50;
+                    }
+                }
             }
 
             if (userWords.Length != 0 && userWords.Length != lastWordCount && neededStarts.Contains(userWords.Length))
@@ -1086,6 +1115,15 @@ namespace typatro.GameFolder
                     lastCorrectWord = correctWords;
                     wordStreak += GlyphManager.IsActive(Glyph.Scarab) ? 3 : 1;
                     extraScore += wordStreak * (GlyphManager.IsActive(Glyph.N) && under3Sec ? 2 : 0);
+                    if (bloomWords.Contains(word))
+                    {
+                        string correctWord = userWords.Substring(neededStarts[word] + 1 + (word == 0 ? -1 : 0), neededStarts[word + 1] - neededStarts[word] - 1 + (word == 0 ? 1 : 0));
+                        char[] correctWordChars = correctWord.ToCharArray();
+                        foreach (char correctLetter in correctWordChars)
+                        {
+                            enhancements.AddLetterScore(correctLetter, 1);
+                        }
+                    }
                 }
                 else if (correctWords == lastCorrectWord)
                 {
@@ -1103,7 +1141,7 @@ namespace typatro.GameFolder
 
             if (startedTyping)
             {
-                playerScore = extraScore + enhancements.startingScore + letterScore;
+                playerScore = (int)((extraScore + enhancements.startingScore + letterScore + stoneScore) * shinyMultiplier);
                 long enemyDamage = (long)((GlyphManager.IsActive(Glyph.House) ? 0.25 : 1) * (int)timeInSeconds) * fight.speed - enhancements.damageResist;
                 long mistakeDamage = (GlyphManager.IsActive(Glyph.Snake) ? 0 : 1) * (GlyphManager.IsActive(Glyph.R) ? 5 : 1) * (difficulty >= 2 ? 5 : 1) * mistakeCount;
                 currentScore = playerScore + correctWords * enhancements.wordScore - (enemyDamage < 0 ? 1 * (int)timeInSeconds : enemyDamage) - mistakeDamage;

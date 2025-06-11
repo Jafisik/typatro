@@ -118,9 +118,11 @@ namespace typatro.GameFolder
             return new Vector2(charIndex*font.MeasureString(" ").X-50, -50) + position;
         }
         Vector2 rotationPoint;
-        
-        public void WriteText(string printString, Color color, int line = 0, bool isHintText = false, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0, bool treasure = false)
+
+        public void WriteText(string printString, Color color, List<int> shinyWords = null, List<int> stoneWords = null, List<int> bloomWords = null,
+            int line = 0, bool isHintText = false, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0, bool treasure = false)
         {
+            int word = 0;
             switch (SaveManager.size)
             {
                 case 0:
@@ -140,37 +142,53 @@ namespace typatro.GameFolder
 
             char[] printCharArray = printString.ToCharArray();
             StringBuilder writeLine = new StringBuilder(printString.Length);
+            StringBuilder shinyWriteLine = new StringBuilder(printString.Length);
+            StringBuilder stoneWriteLine = new StringBuilder(printString.Length);
+            StringBuilder bloomWriteLine = new StringBuilder(printString.Length);
             int beginingOfWord = 0, currentLineLength = 0;
-            if(isHintText) endLineIndexes.Clear();
-            for (int i = 0; i < printCharArray.Length; i++){
-                if(printCharArray[i] == ' ' || i == printCharArray.Length-1){
+            if (isHintText) endLineIndexes.Clear();
+            for (int i = 0; i < printCharArray.Length; i++)
+            {
+                if (printCharArray[i] == ' ' || i == printCharArray.Length - 1)
+                {
                     int wordLength = i - beginingOfWord + 1;
 
-                    if (currentLineLength + wordLength > maxCharsPerLine){
+                    if (currentLineLength + wordLength > maxCharsPerLine)
+                    {
                         endLineIndexes.Add(writeLine.Length);
-                        //if(treasure) writeLine.Append('\n');
-                        if(isHintText) writeLine.Append('\n');
+                        shinyWriteLine.Append('\n');
+                        stoneWriteLine.Append('\n');
+                        bloomWriteLine.Append('\n');
+                        if (isHintText) writeLine.Append('\n');
                         currentLineLength = 0;
                     }
-                    
 
+                    if (shinyWords.Contains(word)) shinyWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
+                    else shinyWriteLine.Append(new string(' ', wordLength));
+                    if (stoneWords.Contains(word)) stoneWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
+                    else stoneWriteLine.Append(new string(' ', wordLength));
+                    if (bloomWords.Contains(word)) bloomWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
+                    else bloomWriteLine.Append(new string(' ', wordLength));
+                    word++;
                     writeLine.Append(new string(printCharArray, beginingOfWord, wordLength));
                     currentLineLength += wordLength;
                     beginingOfWord = i + 1;
                 }
             }
             string finalText = writeLine.ToString();
-            Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + (line * 30)+ yExtraOffset);
+            Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + (line * 30) + yExtraOffset);
             Vector2 size = font.MeasureString(finalText);
             rotationPoint = size / 2f;
 
-            if(GlyphManager.IsActive(Glyph.Sun)){
-                switch(SaveManager.theme){
+            if (GlyphManager.IsActive(Glyph.Sun))
+            {
+                switch (SaveManager.theme)
+                {
                     case 0:
-                        color = new Color(30,30,30);
+                        color = new Color(30, 30, 30);
                         break;
                     case 1:
-                        color = new Color(230,170,230);
+                        color = new Color(230, 170, 230);
                         break;
                     case 2:
                         color = new Color(0x303030);
@@ -180,7 +198,11 @@ namespace typatro.GameFolder
                         break;
                 }
             }
+
             _spriteBatch.DrawString(font, finalText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, shinyWriteLine.ToString(), position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, stoneWriteLine.ToString(), position + rotationPoint, Color.Gray, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            _spriteBatch.DrawString(font, bloomWriteLine.ToString(), position + rotationPoint, Color.DarkGreen, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
         }
     }
 }
