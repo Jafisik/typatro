@@ -106,7 +106,7 @@ namespace typatro.GameFolder
         bool canStartFight, startedTyping, roomSelected, isFightFinished;
         bool afterFightScreen, afterFightMove;
         int afterFightSelect = 0;
-        List<Card> cards = new List<Card>();
+        List<LetterUpgrade> cards = new List<LetterUpgrade>();
         Treasure treasure;
         Shop shop;
 
@@ -539,7 +539,7 @@ namespace typatro.GameFolder
                         "Each letter gives you score based on\nyour letter score upgrades.\n\n" +
                         "Correct words give you extra score.\n\n" +
                         "Each consecutive correct word\nadds to your word streak\nand gives you extra score.\n\n" +
-                        "Mistakes subtract your score.\n\n" +
+                        "Shiny words give you a multiplier\nStone words give you flat score\nBloom words upgrade letters\nin the written word.\n\n" +
                         "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
                     if (tutorial && state.IsKeyDown(Keys.Enter))
                     {
@@ -701,7 +701,7 @@ namespace typatro.GameFolder
                     {
                         if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
                         if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
-                        cards.Add(new Card((char)(seededRandom.Next(0, 26) + 'a'), mult, seededRandom.Next(valMin, valMax), 0));
+                        cards.Add(new LetterUpgrade((char)(seededRandom.Next(0, 26) + 'a'), mult, seededRandom.Next(valMin, valMax), 0));
                     }
 
                 }
