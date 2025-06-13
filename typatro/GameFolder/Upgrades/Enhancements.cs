@@ -12,7 +12,10 @@ namespace typatro.GameFolder.Upgrades{
         public int wordScore = 2;
         public int damageResist = 0;
         public int startingScore = 0;
+        public int wordChange, damageChange, startChange;
         public double shinyChance = 0.01, stoneChance = 0.05, bloomChance = 0.02;
+        public double shChange, stChange, blChange;
+
         public Enhancements()
         {
             for (int letter = 0; letter < letters.Length; letter++)
@@ -21,8 +24,11 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
 
-        public void ResetLettersChange(){
+        public void ResetChange()
+        {
             lettersChange = new long[26];
+            wordChange = damageChange = startChange = 0;
+            shChange = stChange = blChange = 0;
         }
 
         public long GetLetterScore(char letter){
@@ -74,13 +80,16 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
 
-        public void AddToWordScore(int score){
+        public void AddToWordScore(int score)
+        {
             wordScore += score;
+            wordChange += score;
         }
 
         public void AddToStartingScore(int score)
         {
             startingScore += score;
+            startChange += score;
             if (startingScore >= 100 && !GameLogic.achievmentBools["H"])
             {
                 GameLogic.achievmentBools["H"] = true;
@@ -91,6 +100,25 @@ namespace typatro.GameFolder.Upgrades{
         public void AddToDamageResist(int score)
         {
             damageResist += score;
+            damageChange += score;
+        }
+
+        public void AddShinyChance(double chance)
+        {
+            shinyChance += chance;
+            shChange += chance;
+        }
+
+        public void AddStoneChance(double chance)
+        {
+            stoneChance += chance;
+            stChange += chance;
+        }
+
+        public void AddBloomChance(double chance)
+        {
+            bloomChance += chance;
+            blChange += chance;
         }
 
         public void AddGlyphEnhancementsUpdate(Glyph glyph)
@@ -171,7 +199,7 @@ namespace typatro.GameFolder.Upgrades{
                     for (int i = 0; i < 6; i++)
                     {
                         GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                        MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 3);
+                        AddLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 3);
                     }
                     break;
                 case Glyph.Star:

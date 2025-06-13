@@ -52,7 +52,7 @@ namespace typatro.GameFolder.Rooms{
         readonly int horizontalSpacing = 160, verticalSpacing = 100, cardHeight = 80, cardWidth = 150, cardTextTopOffset = 10, cardTextLeftOffset = 5;
         readonly int topOffset = 100, leftOffset = 30, cardCount = 5, glyphCount = 2, enhancementsCount = 3;
         Vector2 descPos;
-        int rerollCost = 5, wordCost = 10, damageRedCost = 10, startingScoreCost = 1, glyphCost = 50;
+        int rerollCost = 5, glyphCost = 50;
 
         bool topMove = true, downMove = true, leftMove = true, rightMove = true, enterPressed = false;
         Enhancements enhancements;
@@ -96,22 +96,22 @@ namespace typatro.GameFolder.Rooms{
             switch (type)
             {
                 case EnhancementsType.wordScore:
-                    cost = enhancements.wordScore + 5;
+                    cost = enhancements.wordScore * 2 + 5;
                     break;
                 case EnhancementsType.damageResist:
-                    cost = enhancements.damageResist * 5 + 5;
+                    cost = enhancements.damageResist * 3 + 5;
                     break;
                 case EnhancementsType.startingScore:
-                    cost = enhancements.startingScore/5 + 5;
+                    cost = enhancements.startingScore / 5 + 5;
                     break;
                 case EnhancementsType.shinyChance:
-                    cost = (int)(enhancements.shinyChance*100*10+10);
+                    cost = (int)(enhancements.shinyChance * 100 * 10 + 10);
                     break;
                 case EnhancementsType.stoneChance:
-                    cost = (int)(enhancements.stoneChance*100*2+7);
+                    cost = (int)(enhancements.stoneChance * 100 * 2 + 7);
                     break;
                 case EnhancementsType.bloomChance:
-                    cost = (int)(enhancements.bloomChance*100*8+10);
+                    cost = (int)(enhancements.bloomChance * 100 * 8 + 10);
                     break;
             }
             return new EnhancementsUpgrade(type, cost);
@@ -186,22 +186,22 @@ namespace typatro.GameFolder.Rooms{
                     }
                     else if (cardIndex == 5)
                     {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" reroll\n\n cost:  {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 5) gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Rerolls all items in the shop for {rerollCost}", descPos, ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" Reroll\n\n Cost:  {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if (selectedCardIndex == 5) gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Rerolls all items in the shop for {rerollCost} coins", descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == 6)
                     {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" {enhancementsUpgrades[0].enhancementsType}{enhancementsUpgrades[0].cost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == 6) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[0]), descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == 7)
                     {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" {enhancementsUpgrades[1].enhancementsType}{enhancementsUpgrades[1].cost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == 7) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[1]), descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == 8)
                     {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" {enhancementsUpgrades[2].enhancementsType}{enhancementsUpgrades[2].cost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[2]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == 8) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[2]), descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == 9)
@@ -216,7 +216,7 @@ namespace typatro.GameFolder.Rooms{
                         gfx.spriteBatch.DrawString(gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == 10) gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
                     }
-                    else if (cardIndex == 11) gfx.spriteBatch.DrawString(gfx.smallTextFont, "\n exit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                    else if (cardIndex == 11) gfx.spriteBatch.DrawString(gfx.smallTextFont, "\nExit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                 }
             }
             return false;
@@ -249,23 +249,23 @@ namespace typatro.GameFolder.Rooms{
                     rerollCost += 2;
                     GenerateShop();
                 }
-                if (selectionIndex == 6 && coins >= wordCost)
+                if (selectionIndex == 6 && coins >= enhancementsUpgrades[0].cost)
                 {
-                    coins -= wordCost;
-                    wordCost += enhancements.wordScore * 2;
-                    enhancements.AddToWordScore(1);
+                    coins -= enhancementsUpgrades[0].cost;
+                    EnhancementsTypeUpgrade(enhancementsUpgrades[0]);
+                    enhancementsUpgrades[0] = GenerateEnhancement();
                 }
-                if (selectionIndex == 7 && coins >= damageRedCost)
+                if (selectionIndex == 7 && coins >= enhancementsUpgrades[1].cost)
                 {
-                    coins -= damageRedCost;
-                    damageRedCost += enhancements.damageResist * 3;
-                    enhancements.damageResist += 1;
+                    coins -= enhancementsUpgrades[1].cost;
+                    EnhancementsTypeUpgrade(enhancementsUpgrades[1]);
+                    enhancementsUpgrades[1] = GenerateEnhancement();
                 }
-                if (selectionIndex == 8 && coins >= startingScoreCost)
+                if (selectionIndex == 8 && coins >= enhancementsUpgrades[2].cost)
                 {
-                    coins -= startingScoreCost;
-                    startingScoreCost += 5;
-                    enhancements.AddToStartingScore(10);
+                    coins -= enhancementsUpgrades[2].cost;
+                    EnhancementsTypeUpgrade(enhancementsUpgrades[2]);
+                    enhancementsUpgrades[2] = GenerateEnhancement();
                 }
                 if (selectionIndex == 9 && coins >= glyphCost)
                 {
@@ -332,18 +332,58 @@ namespace typatro.GameFolder.Rooms{
             else if (state.IsKeyUp(Keys.Right)) rightMove = true;
         }
 
+        private string EnhancementsTypeTitle(EnhancementsUpgrade type)
+        {
+            return type.enhancementsType switch
+            {
+                EnhancementsType.wordScore => $"Word score\n\nCost:{type.cost}",
+                EnhancementsType.damageResist => $"Damage resist\n\nCost:{type.cost}",
+                EnhancementsType.startingScore => $"Starting score\n\nCost:{type.cost}",
+                EnhancementsType.shinyChance => $"Shiny chance\n\nCost:{type.cost}",
+                EnhancementsType.stoneChance => $"Stone chance\n\nCost:{type.cost}",
+                EnhancementsType.bloomChance => $"Bloom chance\n\nCost:{type.cost}",
+                _ => "",
+            };
+        }
+
         private string EnhancementsTypeDesc(EnhancementsUpgrade type)
         {
             return type.enhancementsType switch
             {
-                EnhancementsType.wordScore => $"Adds +1 score per each correct word\n\nCurrent bonus: {enhancements.wordScore}    Cost:{wordCost}",
-                EnhancementsType.damageResist => $"Reduces the incoming damage from enemies\n\nCurrent bonus: {enhancements.damageResist}    Cost:{damageRedCost}",
-                EnhancementsType.startingScore => $"Adds +10 to the score at begining of the fight\n\nCurrent bonus: {enhancements.startingScore}    Cost:{startingScoreCost}",
-                EnhancementsType.shinyChance => "shinyChance",
-                EnhancementsType.stoneChance => "stoneChance",
-                EnhancementsType.bloomChance => "bloomChance",
+                EnhancementsType.wordScore => $"Adds +1 score per each correct word\n\nCurrent bonus: {enhancements.wordScore}    Cost: {type.cost}",
+                EnhancementsType.damageResist => $"Reduces the incoming damage from enemies\n\nCurrent bonus: {enhancements.damageResist}    Cost: {type.cost}",
+                EnhancementsType.startingScore => $"Adds +10 to the score at begining of the fight\n\nCurrent bonus: {enhancements.startingScore}    Cost: {type.cost}",
+                EnhancementsType.shinyChance => $"Adds 1% to the chance of spawning a shiny word\n(adds a 1.2x multiplier to all scores in a fight)\n\nCurrent chance: {enhancements.shinyChance * 100}%    Cost: {type.cost}",
+                EnhancementsType.stoneChance => $"Adds 3% to the chance of spawning a stone word (adds 50 to score)\n\nCurrent chance: {enhancements.stoneChance * 100}%    Cost: {type.cost}",
+                EnhancementsType.bloomChance => $"Adds 2% to the chance of spawning a bloom word\n(upgrades all the letters in the word by 1)\n\nCurrent chance: {enhancements.bloomChance * 100}%    Cost: {type.cost}",
                 _ => "",
             };
+        }
+
+        private void EnhancementsTypeUpgrade(EnhancementsUpgrade upgrade)
+        {
+            switch (upgrade.enhancementsType)
+            {
+                case EnhancementsType.wordScore:
+                    enhancements.AddToWordScore(1);
+                    break;
+                case EnhancementsType.damageResist:
+                    enhancements.AddToDamageResist(1);
+                    break;
+                case EnhancementsType.startingScore:
+                    enhancements.AddToStartingScore(10);
+                    break;
+                case EnhancementsType.shinyChance:
+                    enhancements.AddShinyChance(0.01);
+                    break;
+                case EnhancementsType.stoneChance:
+                    enhancements.AddStoneChance(0.03);
+                    break;
+                case EnhancementsType.bloomChance:
+                    enhancements.AddBloomChance(0.02);
+                    break;
+
+            }
         }
     }
 }
