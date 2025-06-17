@@ -270,6 +270,7 @@ namespace typatro.GameFolder
                 introPlayed = true;
                 sfx.musicMainTheme.IsLooped = true;
                 sfx.musicMainTheme.Play();
+                if (!sfx.musicIntro.IsDisposed) sfx.musicIntro.Dispose();
             }
             WriteAchievment();
         }
