@@ -141,12 +141,18 @@ namespace typatro.GameFolder.UI{
 
         public static void SaveGame(int seed, int level, long coins, MapNode mapNode, Enhancements enhancements, int difficulty, int rune, List<int[]> visited)
         {
+            int[] mapNodePos = mapNode.NodePos();
+            if (mapNode.column == 12)
+            {
+                mapNodePos = new int[] { 0, 0 };
+            }
+
             GameSaveData gameSaveData = new GameSaveData()
             {
                 seed = seed,
                 level = level,
                 coins = coins,
-                mapNode = mapNode.NodePos(),
+                mapNode = mapNodePos,
                 letterScores = enhancements.letters,
                 enhancements = new int[] { enhancements.wordScore, enhancements.damageResist, enhancements.startingScore },
                 enhChances = new double[] { enhancements.shinyChance, enhancements.stoneChance, enhancements.bloomChance},

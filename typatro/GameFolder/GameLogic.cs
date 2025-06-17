@@ -321,12 +321,12 @@ namespace typatro.GameFolder
                     //Use the random from the seed same amount of times like saved game so that it's on the same random.next
                     UserAction[] UserActions = SaveManager.LoadActions();
                     actions = new List<UserAction>(UserActions);
+                    lastActions = actions;
                     isReplay = true;
                     foreach (var entry in UserActions)
                     {
                         string action = entry.action;
                         string data = entry.data;
-
                         switch (action)
                         {
                             case "RandomTextGenerate":
@@ -361,9 +361,15 @@ namespace typatro.GameFolder
                     isReplay = false;
                     selectedNode = map.GetNodeFromPos(gameSaveData.mapNode[0], gameSaveData.mapNode[1]);
                     lastSelectedNode = selectedNode;
+                    foreach (int glyph in gameSaveData.glyphs)
+                    {
+                        GlyphManager.Add((Glyph)glyph);
+                    }
+                    
                 }
                 if (gameState == GameState.NEWGAME)
                 {
+                    level = 1;
                     actions.Clear();
                     seed = unseededRandom.Next();
                     seededRandom = new Random(seed);
@@ -788,7 +794,7 @@ namespace typatro.GameFolder
                                 canStartFight = false;
                                 if (selectedNode.type == NodeType.BOSS)
                                 {
-                                    if(!achievmentBools["NAUDHIZ0"])
+                                    if (!achievmentBools["NAUDHIZ0"])
                                     {
                                         achievmentBools["NAUDHIZ0"] = true;
                                         writeAchievment = true;
@@ -798,9 +804,11 @@ namespace typatro.GameFolder
                                         achievmentBools["R"] = true;
                                         writeAchievment = true;
                                     }
+                                    level++;
+                                    visitedNodes = new List<int[]>();
                                     map.GenerateNodes();
                                     selectedNode = map.GetFirstNode();
-                                    level++;
+                                    
                                 }
                                 if (selectedNode.type == NodeType.ELITE && !achievmentBools["S"])
                                 {
@@ -1175,18 +1183,13 @@ namespace typatro.GameFolder
                     if (change != 0) gfx.spriteBatch.DrawString(gfx.gameFont, (change < 0 ? "" : "+") + change, new Vector2(columnSpacing + column * columnSpacing + 25 - leftOffset, 70 + row * 40), change < 0 ? ThemeColors.Wrong : ThemeColors.Correct);
                 }
             }
-/*
-            gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Shiny: {enhancements.shinyChance * 100}%\n" +
-                $"Stone: {enhancements.stoneChance * 100}%\nBloom: {enhancements.bloomChance * 100}%\n\n" +
-                $"Streak: {enhancements.wordScore}\nResist: {enhancements.damageResist}\nStarting: {enhancements.startingScore}",
-                new Vector2(columnSpacing / 2 + 3 * columnSpacing, 75 + 5 * 40), ThemeColors.Text);
-*/
+
             int lineRow = 0;
             gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Shiny: {(int)(enhancements.shinyChance * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
             if(enhancements.shChange != 0)gfx.spriteBatch.DrawString(gfx.smallTextFont, $"+{(int)(enhancements.shChange*100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + 120, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
             gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Stone: {(int)(enhancements.stoneChance * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
             if(enhancements.stChange != 0)gfx.spriteBatch.DrawString(gfx.smallTextFont, $"+{(int)(enhancements.stChange*100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + 120, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
-            gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Stone: {(int)(enhancements.bloomChance * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Bloom: {(int)(enhancements.bloomChance * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
             if(enhancements.blChange != 0)gfx.spriteBatch.DrawString(gfx.smallTextFont, $"+{(int)(enhancements.blChange*100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + 120, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
 
             lineRow++;
@@ -1212,14 +1215,14 @@ namespace typatro.GameFolder
                 }
                 if (state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right)) inventoryMove = true;
 
-                int borderOffset = 5, imageSize = 64, yOffset = 400, descOffset = 80, xOffset = 80;
-                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(xOffset * inventoryGlyphSelect - borderOffset, yOffset - borderOffset, imageSize + borderOffset * 2, imageSize + borderOffset * 2), ThemeColors.Selected);
-                gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[inventoryGlyphSelect]), new Vector2(xOffset, yOffset + descOffset), ThemeColors.Text);
+                int borderOffset = 5, imageSize = 64, yOffset = 400, descOffset = 80, xColumnOffset = 80, xSideOffset = -30;
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(xColumnOffset * inventoryGlyphSelect - borderOffset + xSideOffset, yOffset - borderOffset, imageSize + borderOffset * 2, imageSize + borderOffset * 2), ThemeColors.Selected);
+                gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[inventoryGlyphSelect]), new Vector2(xColumnOffset + xSideOffset, yOffset + descOffset), ThemeColors.Text);
                 columns = 0;
                 foreach (Glyph glyph in glyphs)
                 {
                     if (glyph != Glyph.NoGlyphsLeft)
-                        gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(xOffset * columns, yOffset, imageSize, imageSize), ThemeColors.Background);
+                        gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(xColumnOffset * columns + xSideOffset, yOffset, imageSize, imageSize), ThemeColors.Background);
                     columns++;
                 }
             }

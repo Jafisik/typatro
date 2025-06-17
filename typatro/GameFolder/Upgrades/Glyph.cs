@@ -90,7 +90,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Symbol for the number one.\n+ Adds +1 to every letter value")]
         One,
 
-        [Description("Symbol for the number ten, cattle hobble.\n+ Multiplies random letter \nvalue by *10")]
+        [Description("Symbol for the number ten, cattle hobble.\n+ Multiplies random letter value by *10")]
         Ten,
 
         [Description("Symbol for the number one hundred, coil of rope.\n+ Adds 100 coins")]
