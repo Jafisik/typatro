@@ -265,7 +265,9 @@ namespace typatro.GameFolder
                     SteamUserStats.StoreStats();
                 }
             }
-            if(!introPlayed && sfx.musicIntro.State == SoundState.Stopped)
+            sfx.musicIntro.Volume = (float)SaveManager.volume / 10;
+            sfx.musicMainTheme.Volume = (float)SaveManager.volume / 10;
+            if (!introPlayed && sfx.musicIntro.State == SoundState.Stopped)
             {
                 introPlayed = true;
                 sfx.musicMainTheme.IsLooped = true;
@@ -752,8 +754,10 @@ namespace typatro.GameFolder
                                 }
                                 gameWin = true;
                             }
-                            string fightWon = "You win";
+                            string fightWon = "You won the run";
                             gfx.spriteBatch.DrawString(gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
+
+
                             string achievmentName = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
                             SaveManager.UnlockUnlock(achievmentName);
                             SteamUserStats.SetAchievement(achievmentName.ToUpper());
