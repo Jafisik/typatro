@@ -101,6 +101,10 @@ namespace typatro.GameFolder
         long currentScore = 0, playerScore = 0, lastScore = 0;
         double letterTimer = 0, timeSinceLastWord = 0;
 
+        //Final stats
+        long totalScore, maxScore, lettersWritten, mistakesWritten, wordsWritten, shinyWritten, stoneWritten, bloomWritten;
+        int currentShiny, currentStone, currentBloom;
+
         //Rooms
         Fight fight;
         bool canStartFight, startedTyping, roomSelected, isFightFinished;
@@ -298,7 +302,10 @@ namespace typatro.GameFolder
             else graphicsDevice.IsFullScreen = false;
             if (gameState == GameState.MENU)
             {
-                gameState = (GameState)menu.DrawMainMenu(gameSaveData == null ? false : true);
+                gameState = (GameState)menu.DrawMainMenu(gameSaveData == null ? false : true, gameWin);
+                if(Keyboard.GetState().IsKeyUp(Keys.Enter)){
+                    gameWin = false;
+                }
                 if (gameState == GameState.LOADGAME)
                 {
                     gameSaveData = SaveManager.LoadGame();
@@ -368,7 +375,7 @@ namespace typatro.GameFolder
                     {
                         GlyphManager.Add((Glyph)glyph);
                     }
-                    
+
                 }
                 if (gameState == GameState.NEWGAME)
                 {
@@ -441,6 +448,7 @@ namespace typatro.GameFolder
                 }
 
                 ThemeColors.Apply(SaveManager.theme);
+                
 
                 menu.DrawOptionsMenu();
             }
@@ -458,7 +466,7 @@ namespace typatro.GameFolder
             KeyboardState kBState = Keyboard.GetState();
 
             //Return to menu on pressing escape
-            if (kBState.IsKeyDown(Keys.Escape))
+            if (kBState.IsKeyDown(Keys.Escape) && !gameWin)
             {
                 gameState = GameState.MENU;
                 if (!dead)
@@ -649,6 +657,7 @@ namespace typatro.GameFolder
             lastActions = actions;
             if (IsFight(selectedNode.type))
             {
+                
                 if (!afterFightScreen)
                 {
                     currentScore *= (long)((GlyphManager.IsActive(Glyph.Flower) ? (1 + 0.1 * GlyphManager.GetGlyphCount()) : 1) *
@@ -674,7 +683,7 @@ namespace typatro.GameFolder
                             if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
                             enhancements.MultiplyLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 2);
                         }
-                        if(Writer.writtenText.Count == neededText.Length)
+                        if (Writer.writtenText.Count == neededText.Length)
                         {
                             if (!achievmentBools["HEART"])
                             {
@@ -695,6 +704,14 @@ namespace typatro.GameFolder
                         }
                     }
                     afterFightScreen = true;
+
+                    totalScore += currentScore;
+                    if (currentScore > maxScore) maxScore = currentScore;
+                    mistakesWritten += Writer.diffIndexes.Count;
+                    lettersWritten += Writer.writtenText.Count;
+                    stoneWritten += currentStone;
+                    shinyWritten += currentShiny;
+                    bloomWritten += currentBloom;
 
                     int valMin = 1, valMax = 4;
                     bool mult = false;
@@ -734,11 +751,11 @@ namespace typatro.GameFolder
                     }
                     if (state.IsKeyUp(Keys.Tab))
                     {
-                        if (selectedNode.type == NodeType.BOSS && level == 3)
+                        if (selectedNode.type == NodeType.ELITE && level == 1)
                         {
                             if (!gameWin)
                             {
-                                if(SteamUserStats.GetStat("runs_won", out int runsWon))
+                                if (SteamUserStats.GetStat("runs_won", out int runsWon))
                                 {
                                     SteamUserStats.SetStat("runs_won", runsWon++);
                                     if (!achievmentBools["MAN"])
@@ -757,6 +774,8 @@ namespace typatro.GameFolder
                             string fightWon = "You won the run";
                             gfx.spriteBatch.DrawString(gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
 
+                            var letters = enhancements.GetBestLetter();
+                            gfx.spriteBatch.DrawString(gfx.gameFont, "Most upgraded letter: " + letters.bestLetter + ":  " + letters.bestLetterNum + "\nTotal score" + totalScore + "\nMax score" + maxScore, new Vector2(200, 200), ThemeColors.Text);
 
                             string achievmentName = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
                             SaveManager.UnlockUnlock(achievmentName);
@@ -768,6 +787,10 @@ namespace typatro.GameFolder
                             }
                             if (state.IsKeyDown(Keys.Enter))
                             {
+                                SaveManager.RemoveGameData();
+                                GlyphManager.RemoveAllGlyphs();
+                                gameSaveData = null;
+                                Reset();
                                 gameState = GameState.MENU;
                             }
                         }
@@ -813,7 +836,7 @@ namespace typatro.GameFolder
                                     visitedNodes = new List<int[]>();
                                     map.GenerateNodes();
                                     selectedNode = map.GetFirstNode();
-                                    
+
                                 }
                                 if (selectedNode.type == NodeType.ELITE && !achievmentBools["S"])
                                 {

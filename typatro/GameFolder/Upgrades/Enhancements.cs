@@ -121,6 +121,23 @@ namespace typatro.GameFolder.Upgrades{
             blChange += chance;
         }
 
+        public (char bestLetter, long bestLetterNum) GetBestLetter()
+        {
+            char letter = 'a';
+            long maxScore = 0;
+            int i = 0;
+            foreach (long score in letters)
+            {
+                if (score > maxScore)
+                {
+                    maxScore = score;
+                    letter = (char)('a'+ i);
+                }
+                i++;
+            }
+            return (letter, maxScore);
+        }
+
         public void AddGlyphEnhancementsUpdate(Glyph glyph)
         {
             switch (glyph)
