@@ -103,7 +103,7 @@ namespace typatro.GameFolder
 
         //Final stats
         long totalScore, maxScore, lettersWritten, mistakesWritten, wordsWritten, shinyWritten, stoneWritten, bloomWritten;
-        int currentShiny, currentStone, currentBloom;
+        long highestStreak, coinsGained, maxCoins;
 
         //Rooms
         Fight fight;
@@ -113,6 +113,7 @@ namespace typatro.GameFolder
         List<LetterUpgrade> cards = new List<LetterUpgrade>();
         Treasure treasure;
         Shop shop;
+        CurseRoom curseRoom;
 
 
         //Saving
@@ -161,6 +162,7 @@ namespace typatro.GameFolder
             
             treasure = new Treasure(gfx, enhancements);
             shop = new Shop(gfx, enhancements);
+            curseRoom = new CurseRoom(gfx, enhancements);
             GlyphManager.SetUnlockedGlyphs();
         }
 
@@ -647,6 +649,10 @@ namespace typatro.GameFolder
                     TopBannerDisplay();
                 }
             }
+            else if (selectedNode.type == NodeType.CURSE)
+            {
+                isFightFinished = curseRoom.CurseRoomDisplay();
+            }
 
         }
 
@@ -666,6 +672,8 @@ namespace typatro.GameFolder
                     {
                         double cashMultiply = (GlyphManager.IsActive(Glyph.Woman) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
                         coins += (int)(fight.cashGain * cashMultiply);
+                        coinsGained += (int)(fight.cashGain * cashMultiply);
+                        if (coins > maxCoins) maxCoins = coins;
                         if (coins >= 200 && !achievmentBools["JERA0"])
                         {
                             achievmentBools["JERA0"] = true;
@@ -709,9 +717,7 @@ namespace typatro.GameFolder
                     if (currentScore > maxScore) maxScore = currentScore;
                     mistakesWritten += Writer.diffIndexes.Count;
                     lettersWritten += Writer.writtenText.Count;
-                    stoneWritten += currentStone;
-                    shinyWritten += currentShiny;
-                    bloomWritten += currentBloom;
+                    wordsWritten += Writer.writtenText.Count(c => c == ' ') + 1;
 
                     int valMin = 1, valMax = 4;
                     bool mult = false;
@@ -751,7 +757,7 @@ namespace typatro.GameFolder
                     }
                     if (state.IsKeyUp(Keys.Tab))
                     {
-                        if (selectedNode.type == NodeType.ELITE && level == 1)
+                        if (selectedNode.type == NodeType.BOSS && level == 3)
                         {
                             if (!gameWin)
                             {
@@ -775,7 +781,12 @@ namespace typatro.GameFolder
                             gfx.spriteBatch.DrawString(gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
 
                             var letters = enhancements.GetBestLetter();
-                            gfx.spriteBatch.DrawString(gfx.gameFont, "Most upgraded letter: " + letters.bestLetter + ":  " + letters.bestLetterNum + "\nTotal score" + totalScore + "\nMax score" + maxScore, new Vector2(200, 200), ThemeColors.Text);
+                            gfx.spriteBatch.DrawString(gfx.smallTextFont, "Words written: " + wordsWritten + "\nLetters written:" + lettersWritten + "\nMistakes: " + mistakesWritten + "\nAccuracy: " + (int)((1.0-(double)mistakesWritten/lettersWritten)*100)+"%", new Vector2(100, 150), ThemeColors.Text);
+                            gfx.spriteBatch.DrawString(gfx.smallTextFont, "Most upgraded letter: " + letters.bestLetter + ":  " + letters.bestLetterNum + "\nTotal score: " + totalScore + "\nMax score: " + maxScore, new Vector2(450, 150), ThemeColors.Text);
+                            gfx.spriteBatch.DrawString(gfx.smallTextFont, "Shiny words: " + shinyWritten + "\nStone words: " + stoneWritten + "\nBloom words: " + bloomWritten, new Vector2(100, 300), ThemeColors.Text);
+                            gfx.spriteBatch.DrawString(gfx.smallTextFont, "Highest streak: " + highestStreak + "\nCoins gained: " + coinsGained + "\nMax coins: " + maxCoins, new Vector2(450, 300), ThemeColors.Text);
+
+                            gfx.spriteBatch.DrawString(gfx.gameFont, "Press enter to continue", new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString("Press enter to continue").X / 2, 450), ThemeColors.Text);
 
                             string achievmentName = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
                             SaveManager.UnlockUnlock(achievmentName);
@@ -801,7 +812,8 @@ namespace typatro.GameFolder
                             {
                                 cardColor = (i == afterFightSelect) ? ThemeColors.Selected : ThemeColors.Foreground;
                                 gfx.spriteBatch.Draw(gfx.texture, new Rectangle(MainGame.screenWidth / 5 * (i + 1), 250, 160, 120), cardColor);
-                                gfx.spriteBatch.DrawString(gfx.gameFont, cards[i].letter + (cards[i].mult ? "  *" : "  +") + cards[i].value, new Vector2(MainGame.screenWidth / 5 * (i + 1) + 10, 250 + 10), ThemeColors.Text);
+                                gfx.spriteBatch.DrawString(gfx.gameFont, cards[i].letter + (cards[i].mult ? "  *" : "  +") + cards[i].value, new Vector2(MainGame.screenWidth / 5 * (i + 1) + 25, 250 + 30), ThemeColors.Text);
+                                gfx.spriteBatch.DrawString(gfx.smallTextFont, "Current: " + enhancements.GetLetterScore(cards[i].letter), new Vector2(MainGame.screenWidth / 5 * (i + 1) + 20, 250 + 90), ThemeColors.Text);
                             }
 
                             string fightWon = "Fight won";
@@ -1152,9 +1164,19 @@ namespace typatro.GameFolder
                 {
                     lastCorrectWord = correctWords;
                     wordStreak += GlyphManager.IsActive(Glyph.Scarab) ? 3 : 1;
+                    if (wordStreak > highestStreak) highestStreak = wordStreak;
                     extraScore += wordStreak * (GlyphManager.IsActive(Glyph.N) && under3Sec ? 2 : 0);
-                    if (bloomWords.Contains(word))
+                    if (shinyWords.Contains(word))
                     {
+                        shinyWritten++;
+                    }
+                    else if (stoneWords.Contains(word))
+                    {
+                        stoneWritten++;
+                    }
+                    else if (bloomWords.Contains(word))
+                    {
+                        bloomWritten++;
                         string correctWord = userWords.Substring(neededStarts[word] + 1 + (word == 0 ? -1 : 0), neededStarts[word + 1] - neededStarts[word] - 1 + (word == 0 ? 1 : 0));
                         char[] correctWordChars = correctWord.ToCharArray();
                         foreach (char correctLetter in correctWordChars)

@@ -13,6 +13,7 @@ namespace typatro.GameFolder{
         ELITE,
         TREASURE,
         SHOP,
+        CURSE,
         RANDOM,
         BOSS,
         NOTHING
@@ -76,25 +77,61 @@ namespace typatro.GameFolder{
             int pos = GameLogic.seededRandom.Next(0, mapNodes.GetLength(0));
 
             //Generates first node and then makes a path by going to i+1 or i or i-1 node
-            for (int path = 0; path < paths; path++){
-                while (mapNodes[pos, 1] != null){
+            for (int path = 0; path < paths; path++)
+            {
+                while (mapNodes[pos, 1] != null)
+                {
                     pos = GameLogic.seededRandom.Next(0, mapNodes.GetLength(0));
                 }
 
                 mapNodes[pos, 1] = new MapNode(new List<MapNode>(), NodeType.FIGHT,
                     new Vector2(leftOffset, GameLogic.seededRandom.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, 1);
 
-                for (int column = 2; column < mapNodes.GetLength(1)-1; column++){
+                bool hasShop = false;
+                int shopColumn = GameLogic.seededRandom.Next(2, mapNodes.GetLength(1) - 2);
+
+                for (int column = 2; column < mapNodes.GetLength(1) - 1; column++)
+                {
                     pos += GameLogic.seededRandom.Next(-1, 2);
+                    pos = Math.Clamp(pos, 0, mapNodes.GetLength(0) - 1);
 
-                    if (pos >= mapNodes.GetLength(0)) pos = mapNodes.GetLength(0) - 1;
-                    if (pos < 0) pos = 0;
+                    if (mapNodes[pos, column] == null)
+                    {
+                        NodeType nodeType;
+                        if (column == 7)
+                        {
+                            nodeType = NodeType.TREASURE;
+                        }
+                        else if (!hasShop && column == shopColumn)
+                        {
+                            nodeType = NodeType.SHOP;
+                            hasShop = true;
+                        }
+                        else
+                        {
+                            nodeType = GenerateNodeType();
+                        }
 
-                    if (mapNodes[pos, column] == null){
-
-                        mapNodes[pos, column] = new MapNode(new List<MapNode>(), column == 7?NodeType.TREASURE:GenerateNodeType(),
+                        mapNodes[pos, column] = new MapNode(new List<MapNode>(), nodeType,
                             new Vector2(GameLogic.seededRandom.Next(-randomChange, randomChange) + leftOffset + column * rowSpacing,
-                            GameLogic.seededRandom.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, column);
+                                        GameLogic.seededRandom.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, column);
+                    }
+                }
+
+                if (!hasShop)
+                {
+                    for (int column = 2; column < mapNodes.GetLength(1) - 2; column++)
+                    {
+                        for (int row = 0; row < mapNodes.GetLength(0); row++)
+                        {
+                            if (mapNodes[row, column] != null && mapNodes[row, column].type == NodeType.FIGHT)
+                            {
+                                mapNodes[row, column].type = NodeType.SHOP;
+                                hasShop = true;
+                                break;
+                            }
+                        }
+                        if (hasShop) break;
                     }
                 }
             }
@@ -133,6 +170,7 @@ namespace typatro.GameFolder{
                     mapNodes[node,mapNodes.GetLength(1)-2].forward.Add(mapNodes[0, mapNodes.GetLength(1)-1]);
                 }
             }
+            
         }
 
         public void DrawNodes()
@@ -175,19 +213,22 @@ namespace typatro.GameFolder{
         public NodeType GenerateNodeType(){
             if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateNodeType",""));
             int roll = GameLogic.seededRandom.Next(0,101);
-            if(roll < 50) return NodeType.FIGHT;
-            if(roll < 80) return NodeType.RANDOM;
-            if(roll < 87) return NodeType.SHOP;
-            if(roll < 98) return NodeType.ELITE;
+            if(roll < 40) return NodeType.FIGHT;
+            if(roll < 70) return NodeType.ELITE;
+            if (roll < 93) return NodeType.RANDOM;
+            if (roll < 99) return NodeType.CURSE;
+
             return NodeType.TREASURE;
         }
 
         public NodeType GenerateNodeTypeFromRandom(){
             if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateNodeTypeFromRandom",""));
             int roll = GameLogic.seededRandom.Next(0, 101);
-            if (roll < 75) return NodeType.FIGHT;
-            if (roll < 85) return NodeType.SHOP;
-            if (roll < 98) return NodeType.ELITE;
+            if (roll < 50) return NodeType.FIGHT;
+            if (roll < 75) return NodeType.ELITE;
+            if (roll < 90) return NodeType.SHOP;
+            if (roll < 99) return NodeType.CURSE;
+            
             return NodeType.TREASURE;
         }
 
@@ -236,6 +277,7 @@ namespace typatro.GameFolder{
                 NodeType.RANDOM => "?",
                 NodeType.SHOP => "$",
                 NodeType.TREASURE => "X",
+                NodeType.CURSE => "C",
                 _ => "A",
             };
         }
