@@ -66,17 +66,21 @@ namespace typatro.GameFolder.Upgrades{
         }
 
         public void MultiplyLetterScore(char letter, double score){
-            lettersChange[letter-'a'] += (int)(letters[letter-'a'] * score);
+            long tempLet = letters[letter-'a'];
             letters[letter-'a'] = (int)(letters[letter-'a'] * score);
-            foreach(long lette in letters){
-                if(lette < 0) SaveManager.UnlockUnlock("halagaz0");
+            lettersChange[letter - 'a'] += letters[letter - 'a'] - tempLet;
+            foreach (long lette in letters)
+            {
+                if (lette < 0) SaveManager.UnlockUnlock("halagaz0");
             }
         }
 
         public void AllLettersMultiplyScore(double score){
-            for(int i = 0; i < letters.Length; i++){
-                lettersChange[i] += (int)(letters[i] * score);
+            for (int i = 0; i < letters.Length; i++)
+            {
+                long tempLet = letters[i];
                 letters[i] = (int)(letters[i] * score);
+                lettersChange[i] += letters[i] - tempLet;
             }
         }
 

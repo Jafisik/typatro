@@ -194,7 +194,7 @@ namespace typatro.GameFolder{
                     }
                 }
             }
-            string info = "F - Fight   E - Elite fight   ? - Random  $ - Shop   X - Treasure   B - Boss";
+            string info = "F - Fight   E - Elite fight   C - Curse  $ - Shop   X - Treasure   B - Boss";
             gfx.spriteBatch.DrawString(gfx.smallTextFont, info, new Vector2(MainGame.screenWidth/2-gfx.smallTextFont.MeasureString(info).X/2,MainGame.screenHeight-40), ThemeColors.Text);
         }
 

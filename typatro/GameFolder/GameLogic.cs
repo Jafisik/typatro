@@ -325,6 +325,7 @@ namespace typatro.GameFolder
                     enhancements.bloomChance = gameSaveData.enhChances[2];
                     shop = new Shop(gfx, enhancements);
                     treasure = new Treasure(gfx, enhancements);
+                    curseRoom = new CurseRoom(gfx, enhancements);
                     coins = gameSaveData.coins;
                     level = gameSaveData.level;
                     selectedRune = gameSaveData.rune;
@@ -392,6 +393,7 @@ namespace typatro.GameFolder
                     enhancements = new Enhancements();
                     shop = new Shop(gfx, enhancements);
                     treasure = new Treasure(gfx, enhancements);
+                    curseRoom = new CurseRoom(gfx, enhancements);
                     coins = difficulty >= 1 ? 15 : startCoins;
                     gameState = GameState.RUNES;
                     if (difficulty >= 3) enhancements.wordScore -= 1;
@@ -651,7 +653,7 @@ namespace typatro.GameFolder
             }
             else if (selectedNode.type == NodeType.CURSE)
             {
-                isFightFinished = curseRoom.CurseRoomDisplay();
+                isFightFinished = curseRoom.CurseRoomDisplay(ref coins);
             }
 
         }
@@ -934,7 +936,7 @@ namespace typatro.GameFolder
                     "F-Fight E-Elite B-Boss are fights.\nHere you type to defeat the enemies\nto get to the new floor.\n\n" +
                     "$-Shop lets you buy upgrades for coins.\n\n" +
                     "X-Treasure gives you a free glyph.\n\n" +
-                    "?-Random turns into a random room.\n\n" +
+                    "C-Curse gives you bonuses for a sacrifice.\n\n" +
                     "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
                 if (tutorial && state.IsKeyDown(Keys.Enter))
                 {
@@ -979,6 +981,9 @@ namespace typatro.GameFolder
                                         if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
                                         enhancements.AddLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 5);
                                     }
+                                    break;
+                                case NodeType.CURSE:
+                                    curseRoom.NewCurse();
                                     break;
                             }
                             if (IsFight(newNode.type)) neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus) ? 20 : 0) - (difficulty >= 5 ? 5 : 0));
@@ -1280,11 +1285,11 @@ namespace typatro.GameFolder
 
         private void HealthBar()
         {
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(40, 60, MainGame.screenWidth - 80, 30), ThemeColors.Selected);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(40, 60, MainGame.screenWidth - 80, 35), ThemeColors.Selected);
             int redBarLength = (int)((double)Math.Min(fight.scoreNeeded, fight.scoreNeeded - currentScore) / fight.scoreNeeded * (MainGame.screenWidth - 90));
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(45, 65, redBarLength, 20), ThemeColors.Foreground);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(45, 65, redBarLength, 25), ThemeColors.Foreground);
             string score = $"{currentScore}/{fight.scoreNeeded}  -{fight.speed}/s";
-            gfx.spriteBatch.DrawString(gfx.gameFont, score, new Vector2(MainGame.screenWidth / 2 - score.Length * 10, 100), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.smallTextFont, score, new Vector2(MainGame.screenWidth / 2 - gfx.smallTextFont.MeasureString(score).X/2, 68), ThemeColors.NotSelected);
         }
 
         private void CharacterChoose()
