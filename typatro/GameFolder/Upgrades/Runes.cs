@@ -8,9 +8,9 @@ namespace typatro.GameFolder.Runes{
         Uruz,
         [Display(Description = "Harvest\nor Reward\n\nStart with\n80 coins", Prompt = "Reach\n200 coins")]
         Jera,
-        [Display(Description = "Need\nor desire\n\nStart with\n50 score", Prompt = "Defeat\nfirst boss")]
+        [Display(Description = "Need\nor desire\n\nStart with\n10% bloom", Prompt = "Defeat\nfirst boss")]
         Naudhiz,
-        [Display(Description = "Destruction\nor chaos\n\nHalf is +5\nother half -3", Prompt = "Get negative\nletter score")]
+        [Display(Description = "Destruction\nor chaos\n\nHalf is +10\nother half -5", Prompt = "Get negative\nletter score")]
         Halagaz,
     }
 

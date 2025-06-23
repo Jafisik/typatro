@@ -29,6 +29,8 @@ namespace typatro.GameFolder.Rooms{
         shinyChance,
         stoneChance,
         bloomChance,
+        shinyScore,
+        stoneScore
     }
 
     class EnhancementsUpgrade
@@ -113,6 +115,12 @@ namespace typatro.GameFolder.Rooms{
                 case EnhancementsType.bloomChance:
                     cost = (int)(enhancements.bloomChance * 100 * 8 + 10);
                     break;
+                case EnhancementsType.shinyScore:
+                    cost = (int)(enhancements.shinyScore * enhancements.shinyScore * 10);
+                    break;
+                case EnhancementsType.stoneScore:
+                    cost = enhancements.stoneScore / 10 + 10;
+                    break;
             }
             return new EnhancementsUpgrade(type, cost);
         }
@@ -186,7 +194,7 @@ namespace typatro.GameFolder.Rooms{
                     }
                     else if (cardIndex == 5)
                     {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" Reroll\n\n Cost:  {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" Reroll\n\n Cost:        {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == 5) gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Rerolls all items in the shop for {rerollCost} coins", descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == 6)
@@ -336,12 +344,14 @@ namespace typatro.GameFolder.Rooms{
         {
             return type.enhancementsType switch
             {
-                EnhancementsType.wordScore => $"Word score\n\nCost:{type.cost}",
-                EnhancementsType.damageResist => $"Damage resist\n\nCost:{type.cost}",
-                EnhancementsType.startingScore => $"Starting score\n\nCost:{type.cost}",
-                EnhancementsType.shinyChance => $"Shiny chance\n\nCost:{type.cost}",
-                EnhancementsType.stoneChance => $"Stone chance\n\nCost:{type.cost}",
-                EnhancementsType.bloomChance => $"Bloom chance\n\nCost:{type.cost}",
+                EnhancementsType.wordScore => $"Word score\n\nCost:        {type.cost}",
+                EnhancementsType.damageResist => $"Damage resist\n\nCost:        {type.cost}",
+                EnhancementsType.startingScore => $"Starting score\n\nCost:        {type.cost}",
+                EnhancementsType.shinyChance => $"Shiny chance\n\nCost:        {type.cost}",
+                EnhancementsType.stoneChance => $"Stone chance\n\nCost:        {type.cost}",
+                EnhancementsType.bloomChance => $"Bloom chance\n\nCost:        {type.cost}",
+                EnhancementsType.shinyScore => $"Shiny score\n\nCost:        {type.cost}",
+                EnhancementsType.stoneScore => $"Stone score\n\nCost:        {type.cost}",
                 _ => "",
             };
         }
@@ -353,9 +363,11 @@ namespace typatro.GameFolder.Rooms{
                 EnhancementsType.wordScore => $"Adds +1 score per each correct word\n\nCurrent bonus: {enhancements.wordScore}    Cost: {type.cost}",
                 EnhancementsType.damageResist => $"Reduces the incoming damage from enemies\n\nCurrent bonus: {enhancements.damageResist}    Cost: {type.cost}",
                 EnhancementsType.startingScore => $"Adds +10 to the score at begining of the fight\n\nCurrent bonus: {enhancements.startingScore}    Cost: {type.cost}",
-                EnhancementsType.shinyChance => $"Adds 1% to the chance of spawning a shiny word\n(adds a 1.2x multiplier to all scores in a fight)\n\nCurrent chance: {enhancements.shinyChance * 100}%    Cost: {type.cost}",
-                EnhancementsType.stoneChance => $"Adds 3% to the chance of spawning a stone word (adds 50 to score)\n\nCurrent chance: {enhancements.stoneChance * 100}%    Cost: {type.cost}",
-                EnhancementsType.bloomChance => $"Adds 2% to the chance of spawning a bloom word\n(upgrades all the letters in the word by 1)\n\nCurrent chance: {enhancements.bloomChance * 100}%    Cost: {type.cost}",
+                EnhancementsType.shinyChance => $"Adds 1% to the chance of spawning a shiny word\n(adds a 1.2x multiplier to all scores in a fight)\n\nCurrent chance: {(enhancements.shinyChance * 100).ToString("0.##")}%    Cost: {type.cost}",
+                EnhancementsType.stoneChance => $"Adds 3% to the chance of spawning a stone word (adds 50 to score)\n\nCurrent chance: {(enhancements.stoneChance * 100).ToString("0.##")}%    Cost: {type.cost}",
+                EnhancementsType.bloomChance => $"Adds 2% to the chance of spawning a bloom word\n(upgrades all the letters in the word by 1)\n\nCurrent chance: {(enhancements.bloomChance * 100).ToString("0.##")}%    Cost: {type.cost}",
+                EnhancementsType.stoneScore => $"Adds +20 to each written stone word\n\nCurrent score: {enhancements.stoneScore}    Cost: {type.cost}",
+                EnhancementsType.shinyScore => $"Adds +0.1 to the shiny multiplier\n\nCurrent multiplier: {enhancements.shinyScore.ToString("0.#")}    Cost: {type.cost}",
                 _ => "",
             };
         }
@@ -382,7 +394,12 @@ namespace typatro.GameFolder.Rooms{
                 case EnhancementsType.bloomChance:
                     enhancements.AddBloomChance(0.02);
                     break;
-
+                case EnhancementsType.shinyScore:
+                    enhancements.AddShinyScore(0.1);
+                    break;
+                case EnhancementsType.stoneScore:
+                    enhancements.AddStoneScore(20);
+                    break;
             }
         }
     }

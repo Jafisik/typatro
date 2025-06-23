@@ -64,7 +64,6 @@ namespace typatro.GameFolder{
         public void NodeVisit(List<int[]> visitedList){
             foreach(int[] nodePos in visitedList){
                 if(nodePos[0] != 0){
-                    Console.WriteLine(nodePos[0] +" , "+ nodePos[1]);
                     mapNodes[nodePos[1],nodePos[0]].visited = true;
                 }
             }

@@ -34,10 +34,10 @@ namespace typatro.GameFolder.UI{
                     break;
 
                 case 1: //PINK
-                    Background = new Color(255,133,222);
-                    Foreground = new Color(215,75,177);
-                    Selected = new Color(255,186,225);
-                    NotSelected = new Color(215,75,177);
+                    Background = new Color(0x5a3079);
+                    Foreground = new Color(0x763ea5);
+                    Selected = new Color(0x9757e2);
+                    NotSelected = new Color(0x63358e);
                     Text = Color.White;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
@@ -48,7 +48,7 @@ namespace typatro.GameFolder.UI{
                     Foreground = new Color(0x75482c);
                     Selected = new Color(0xb050bc);
                     NotSelected = new Color(0x8f508a);
-                    Text = new Color(0x80d3af);
+                    Text = Color.White;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
                     break;
@@ -57,9 +57,9 @@ namespace typatro.GameFolder.UI{
                 case 3: //RED
                     Background = new Color(0x242cae);
                     Foreground = new Color(0x481eb1);
-                    Selected = new Color(0x444444);
+                    Selected = new Color(0x555555);
                     NotSelected = new Color(0x2c2137);
-                    Text = Color.LightYellow;
+                    Text = Color.Black;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
                     break;

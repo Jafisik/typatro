@@ -13,8 +13,14 @@ namespace typatro.GameFolder.Upgrades{
         public int damageResist = 0;
         public int startingScore = 0;
         public int wordChange, damageChange, startChange;
+
         public double shinyChance = 0.01, stoneChance = 0.05, bloomChance = 0.02;
         public double shChange, stChange, blChange;
+
+        public double shinyScore = 1.2, shinyScoreChange;
+        public int stoneScore = 50, stoneScoreChange;
+
+        public bool overHundred = false;
 
         public Enhancements()
         {
@@ -29,6 +35,8 @@ namespace typatro.GameFolder.Upgrades{
             lettersChange = new long[26];
             wordChange = damageChange = startChange = 0;
             shChange = stChange = blChange = 0;
+            shinyScoreChange = 0;
+            stoneScoreChange = 0;
         }
 
         public long GetLetterScore(char letter){
@@ -50,6 +58,8 @@ namespace typatro.GameFolder.Upgrades{
                 GameLogic.achievmentBools["J"] = true;
                 GameLogic.writeAchievment = true;
             }
+
+            if (letters[letter - 'a'] >= 100) overHundred = true;
         }
 
         public void AllLettersAddScore(long score){
@@ -57,22 +67,26 @@ namespace typatro.GameFolder.Upgrades{
             {
                 letters[i] += score;
                 lettersChange[i] += score;
-                if (letters[i] >= 100)
+                if (letters[i] >= 100 && !GameLogic.achievmentBools["J"])
                 {
                     SaveManager.UnlockUnlock("J");
                     SteamUserStats.SetAchievement("J");
                 } 
+
+                if (letters[i] >= 100) overHundred = true;
             }
         }
 
-        public void MultiplyLetterScore(char letter, double score){
-            long tempLet = letters[letter-'a'];
-            letters[letter-'a'] = (int)(letters[letter-'a'] * score);
+        public void MultiplyLetterScore(char letter, double score)
+        {
+            long tempLet = letters[letter - 'a'];
+            letters[letter - 'a'] = (int)(letters[letter - 'a'] * score);
             lettersChange[letter - 'a'] += letters[letter - 'a'] - tempLet;
             foreach (long lette in letters)
             {
                 if (lette < 0) SaveManager.UnlockUnlock("halagaz0");
             }
+            if (letters[letter - 'a'] >= 100) overHundred = true;
         }
 
         public void AllLettersMultiplyScore(double score){
@@ -81,6 +95,7 @@ namespace typatro.GameFolder.Upgrades{
                 long tempLet = letters[i];
                 letters[i] = (int)(letters[i] * score);
                 lettersChange[i] += letters[i] - tempLet;
+                if (letters[i] >= 100) overHundred = true;
             }
         }
 
@@ -125,6 +140,23 @@ namespace typatro.GameFolder.Upgrades{
             blChange += chance;
         }
 
+        public void AddShinyScore(double score)
+        {
+            shinyScore += score;
+            shinyScoreChange += score;
+        }
+
+        public void AddStoneScore(int score)
+        {
+            stoneScore += score;
+            stoneScoreChange += score;
+            if (stoneScore >= 100 && !GameLogic.achievmentBools["H"])
+            {
+                GameLogic.achievmentBools["H"] = true;
+                GameLogic.writeAchievment = true;
+            }
+        }
+
         public (char bestLetter, long bestLetterNum) GetBestLetter()
         {
             char letter = 'a';
@@ -135,7 +167,7 @@ namespace typatro.GameFolder.Upgrades{
                 if (score > maxScore)
                 {
                     maxScore = score;
-                    letter = (char)('a'+ i);
+                    letter = (char)('a' + i);
                 }
                 i++;
             }

@@ -24,7 +24,7 @@ namespace typatro.GameFolder.Rooms{
         public bool DisplayTreasure(ref long coins){
             Glyph glyph = currentGlyph;
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
-            gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Background);
+            gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Foreground);
             gfx.spriteBatch.DrawString(gfx.smallTextFont, treasureDescriptionText, new Vector2(leftOffset, topOffset+descOffset), ThemeColors.Text);
 
             if(glyph != Glyph.NoGlyphsLeft){

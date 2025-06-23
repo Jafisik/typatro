@@ -13,7 +13,7 @@ namespace typatro.GameFolder.Rooms
         Enhancements enhancements;
         Curses curse;
         bool pickUp = true, keyDown, enterReleased;
-        readonly int leftOffset = 50, descOffset = 150, rectTopOffset = 200, rectWidth = 100, rectHeight = 50;
+        readonly int leftOffset = 100, descOffset = 150, rectTopOffset = 100, rectWidth = 100, rectHeight = 50;
 
         public CurseRoom(MainGame.Gfx gfx, Enhancements enhancements)
         {
@@ -29,28 +29,32 @@ namespace typatro.GameFolder.Rooms
                 enterReleased = true;
             }
 
-            if(!keyDown && (keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.Right))){
+            if (!keyDown && (keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.Right)))
+            {
                 pickUp = !pickUp;
                 keyDown = true;
             }
-            if(keyboard.IsKeyUp(Keys.Left) && keyboard.IsKeyUp(Keys.Right)){
+            if (keyboard.IsKeyUp(Keys.Left) && keyboard.IsKeyUp(Keys.Right))
+            {
                 keyDown = false;
             }
-            if(keyboard.IsKeyDown(Keys.Enter) && enterReleased){
-                if(pickUp){
+            if (keyboard.IsKeyDown(Keys.Enter) && enterReleased)
+            {
+                if (pickUp)
+                {
                     CurseResolve(ref coins);
                 }
                 enterReleased = false;
                 return true;
             }
 
-            gfx.spriteBatch.DrawString(gfx.smallTextFont, "Curse room", new Vector2(200, 200), ThemeColors.Text);
-            gfx.spriteBatch.DrawString(gfx.smallTextFont, GetDescription(curse), new Vector2(200, 300), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.gameFont, GetName(curse), new Vector2(100, 100), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.smallTextFont, GetDescription(curse), new Vector2(100, 200), ThemeColors.Text);
 
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset, rectTopOffset+descOffset*2, rectWidth, rectHeight), pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-            gfx.spriteBatch.DrawString(gfx.gameFont, "yes", new Vector2(leftOffset+10, rectTopOffset+descOffset*2+5), ThemeColors.Text);
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset+descOffset*2, rectWidth, rectHeight), pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-            gfx.spriteBatch.DrawString(gfx.gameFont, "no", new Vector2(leftOffset*2+rectHeight+10, rectTopOffset+descOffset*2+5), ThemeColors.Text);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset, rectTopOffset + descOffset * 2, rectWidth, rectHeight), pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
+            gfx.spriteBatch.DrawString(gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset * 2 + rectHeight, rectTopOffset + descOffset * 2, rectWidth, rectHeight), pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
+            gfx.spriteBatch.DrawString(gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
 
 
             return false;
@@ -93,28 +97,49 @@ namespace typatro.GameFolder.Rooms
                     enhancements.AddLetterScore(randLetter, -20);
                     enhancements.MultiplyLetterScore(randLetter, -1);
                     break;
+                case Curses.Rocks:
+                    enhancements.stoneScore = 10;
+                    enhancements.stoneChance += 0.25;
+                    break;
             }
         }
 
 
         enum Curses
         {
-            [Description("Decrease 5 random letters by -5, but gain 150 coins")]
+            [Description("Decrease 5 random letters by -5, \n\nbut gain 150 coins")]
             LettersForCoins,
-            [Description("Decrease all word chances by 2%, but gain 150 coins")]
+            [Description("Decrease all word chances by 2%, \n\nbut gain 150 coins")]
             ChanceForCoins,
-            [Description("Multiply all letters by 1.2x, but loose special word chances")]
+            [Description("Multiply all letters by 1.2x, \n\nbut loose special word chances")]
             NoWordsChance,
-
-            [Description("Decrease a random letter by -20, but then multiply it by -1")]
-            AroundTheWorld
+            [Description("Decrease a random letter by -20, \n\nbut then multiply it by -1")]
+            AroundTheWorld,
+            [Description("Decrease stone word score to 10, \n\nbut gain 25% stone chance")]
+            Rocks,
+            [Description("Change shine mult to 1x, \n\nbut gain 10% shine chance")]
+            Glimmer,
         }
-        
+
         string GetDescription(Curses? curse)
         {
             var field = curse.GetType().GetField(curse.ToString());
             var attribute = (DescriptionAttribute)System.Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
             return attribute == null ? "No description available" : attribute.Description;
+        }
+
+        string GetName(Curses? curse)
+        {
+            return curse switch
+            {
+                Curses.LettersForCoins => "Letters for coins",
+                Curses.ChanceForCoins => "Chance for coins",
+                Curses.AroundTheWorld => "Around the world",
+                Curses.Glimmer => "Glimmer",
+                Curses.NoWordsChance => "No word chance",
+                Curses.Rocks => "Rocks",
+                _ => "",
+            };
         }
     }
 }
