@@ -1322,7 +1322,7 @@ namespace typatro.GameFolder
             }
             if (canStartFight && state.IsKeyDown(Keys.Enter))
             {
-                if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + difficulty).ToString().ToLower()))
+                if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + difficulty).ToString().ToUpper()) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
                 {
                     NewGameChoiceUpdate();
                     gameState = GameState.LOADGAME;
@@ -1384,7 +1384,7 @@ namespace typatro.GameFolder
                 string runeName = ((Runes.Runes)selectedRune).ToString();
                 int topOffset = 10;
                 gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth / 2 - gfx.menuFont.MeasureString(runeName).X / 2, MainGame.screenHeight / 3 - gfx.menuFont.MeasureString(runeName).Y * 3 + topOffset * 2), ThemeColors.Text);
-                if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + 0).ToString().ToLower()))
+                if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + 0).ToString().ToUpper()) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
                 {
                     var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
                     var attribute = (DisplayAttribute)Attribute.GetCustomAttribute(field, typeof(DisplayAttribute));

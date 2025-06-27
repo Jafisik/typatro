@@ -162,13 +162,16 @@ namespace typatro.GameFolder
                         if (isHintText) writeLine.Append('\n');
                         currentLineLength = 0;
                     }
-
-                    if (shinyWords.Contains(word)) shinyWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
-                    else shinyWriteLine.Append(new string(' ', wordLength));
-                    if (stoneWords.Contains(word)) stoneWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
-                    else stoneWriteLine.Append(new string(' ', wordLength));
-                    if (bloomWords.Contains(word)) bloomWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
-                    else bloomWriteLine.Append(new string(' ', wordLength));
+                    if(shinyWords != null && stoneWords != null && bloomWords != null)
+                    {
+                        if (shinyWords.Contains(word)) shinyWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
+                        else shinyWriteLine.Append(new string(' ', wordLength));
+                        if (stoneWords.Contains(word)) stoneWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
+                        else stoneWriteLine.Append(new string(' ', wordLength));
+                        if (bloomWords.Contains(word)) bloomWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
+                        else bloomWriteLine.Append(new string(' ', wordLength));
+                    }
+                    
                     word++;
                     writeLine.Append(new string(printCharArray, beginingOfWord, wordLength));
                     currentLineLength += wordLength;
