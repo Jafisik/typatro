@@ -325,7 +325,10 @@ namespace typatro.GameFolder
             gfx.spriteBatch.GraphicsDevice.Clear(ThemeColors.Background);
             Color bgImageColor = ThemeColors.Background;
             bgImageColor.A = 150;
-            gfx.spriteBatch.Draw(gfx.bg, centerScreen, null, bgImageColor, bgRotation, bgOrigin, 0.5f, SpriteEffects.None,0f);
+            float scale = 1f;
+            if (SaveManager.size == 1) scale = 1.4f;
+            if (SaveManager.size == 2) scale = 1.6f;
+            gfx.spriteBatch.Draw(gfx.bg, centerScreen, null, bgImageColor, bgRotation, bgOrigin, scale, SpriteEffects.None,0f);
             int lineWidth = 15;
             gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0, 0, MainGame.screenWidth, lineWidth), ThemeColors.Foreground);
             gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0, 0, lineWidth, MainGame.screenHeight), ThemeColors.Foreground);
