@@ -27,6 +27,13 @@
 /processorParam:TextureFormat=Compressed
 /build:Fonts/pixelFont.spritefont
 
+#begin Fonts/smallMapFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/smallMapFont.spritefont
+
 #begin Fonts/smallPixelFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
@@ -461,6 +468,30 @@
 /processorParam:TextureFormat=Color
 /build:Images/catPic.png
 
+#begin Images/mouseClosedY.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/mouseClosedY.png
+
+#begin Images/mouseOpenY.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/mouseOpenY.png
+
 #begin Music/glyphoraFr.mp3
 /importer:Mp3Importer
 /processor:SongProcessor
@@ -472,18 +503,6 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Music/intro.wav
-
-#begin Music/intro.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Music/intro.wav
-
-#begin Music/mainTheme.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:Music/mainTheme.wav
 
 #begin Music/mainTheme.wav
 /importer:WavImporter

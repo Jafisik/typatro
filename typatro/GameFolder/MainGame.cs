@@ -19,7 +19,8 @@ public class MainGame : Game
     {
         public SpriteBatch spriteBatch;
         public Texture2D texture, catPic, bg;
-        public SpriteFont gameFont, smallTextFont, menuFont, textFont;
+        public Texture2D mouse1, mouse2;
+        public SpriteFont gameFont, smallTextFont, menuFont, textFont, smallMapFont;
     }
     public struct SoundEffects
     {
@@ -33,7 +34,7 @@ public class MainGame : Game
     public MainGame(){
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = true;
+        IsMouseVisible = false;
         graphics.IsFullScreen = false;
         Window.IsBorderless = true;
     }
@@ -60,10 +61,13 @@ public class MainGame : Game
             spriteBatch = new SpriteBatch(GraphicsDevice),
             gameFont = Content.Load<SpriteFont>("Fonts/pixelFont"),
             smallTextFont = Content.Load<SpriteFont>("Fonts/smallPixelFont"),
+            smallMapFont = Content.Load<SpriteFont>("Fonts/smallMapFont"),
             menuFont = Content.Load<SpriteFont>("Fonts/menuFont"),
             textFont = Content.Load<SpriteFont>("Fonts/textFont"),
             catPic = Content.Load<Texture2D>("Images/catPic"),
             bg = Content.Load<Texture2D>("Images/bg"),
+            mouse1 = Content.Load<Texture2D>("Images/mouseOpenY"),
+            mouse2 = Content.Load<Texture2D>("Images/mouseClosedY"),
             texture = new Texture2D(GraphicsDevice, 1, 1),
         };
         gfx.texture.SetData(new[] { Color.White });

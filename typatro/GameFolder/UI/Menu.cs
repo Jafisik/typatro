@@ -7,6 +7,7 @@ using typatro.GameFolder.UI;
 using System.Linq;
 using Microsoft.Xna.Framework.Media;
 using Microsoft.VisualBasic;
+using System.Diagnostics;
 
 
 namespace typatro.GameFolder
@@ -17,9 +18,9 @@ namespace typatro.GameFolder
         MainGame.Gfx gfx;
         int menuLineSpacing = 100;
         int menuRectWidth = 400, menuRectHeight = 80;
-        int leftOffset = 140, optionRectWidth = 300, optionRectHeight = 80;
+        int leftOffset = 170, optionRectWidth = 300, optionRectHeight = 80;
 
-        bool menuNav = true, optionNav = true, introFinished = false, introSkip = false;
+        bool menuNav = true, optionNav = true, introFinished = false, introSkip = false, mousePressed;
         enum MenuSelect
         {
             load,
@@ -36,12 +37,13 @@ namespace typatro.GameFolder
             theme,
             volume,
             size,
-            fullScreen
+            fullScreen,
+            back
         }
         private OptionSelect optionSelect = OptionSelect.theme;
-        string[] optionTexts = new string[] { "theme", "volume", "size", "fullscreen"};
+        string[] optionTexts = new string[] { "theme", "volume", "size", "fullscreen", "back"};
 
-        public string[] themes = new string[]{ "black", "pink", "blue", "red"  };
+        public string[] themes = new string[]{ "green", "pink", "blue", "red"  };
 
         public string[] sizes = new string[]{ "800/600", "1152/648", "1280/720"};
         public bool fullscreen = false;
@@ -71,6 +73,7 @@ namespace typatro.GameFolder
         {
             Color[] menuColors = new Color[menuTexts.Length];
             KeyboardState state = Keyboard.GetState();
+            MouseState mouseState = Mouse.GetState();
             if (menuNav)
             {
                 if (state.IsKeyDown(Keys.Down) && menuSelect != (MenuSelect)menuTexts.Length-1) menuSelect++;
@@ -91,14 +94,18 @@ namespace typatro.GameFolder
             
             double totalSeconds = MainGame.time.TotalGameTime.TotalSeconds;
             if (state.IsKeyDown(Keys.Enter) && ((introFinished && introSkip) || totalSeconds >= 6) && !gameWon) return (int)menuSelect;
-            if(state.IsKeyDown(Keys.Enter)){
+            if(!introSkip && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)){
                 introFinished = true;
+                mousePressed = true;
             }
             if(introFinished && state.IsKeyUp(Keys.Enter)){
                 introSkip = true;
             }
+            if(mouseState.LeftButton == ButtonState.Released){
+                mousePressed = false;
+            }
 
-            string title = "GLYPHORA";
+                string title = "GLYPHORA";
             Vector2 start = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 2f);
             Vector2 end = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 5f);
             Vector2 current = start;
@@ -124,8 +131,17 @@ namespace typatro.GameFolder
                     Color rectColor = (line == 0 && !gameSaved ? ThemeColors.Background : menuColors[line]) * (introFinished?1:alpha);
                     Color textColor = ThemeColors.Text * (introFinished?1:alpha);
 
-                    gfx.spriteBatch.Draw(gfx.texture,new Rectangle((MainGame.screenWidth - menuRectWidth) / 2,(int)(MainGame.screenHeight / 5 * 1.5f) + 
-                    (int)(MainGame.screenHeight / 6.5f) * line,menuRectWidth,menuRectHeight),rectColor);
+                    Rectangle menuItemPos = new Rectangle((MainGame.screenWidth - menuRectWidth) / 2, (int)(MainGame.screenHeight / 5 * 1.5f) +
+                    (int)(MainGame.screenHeight / 6.5f) * line, menuRectWidth, menuRectHeight);
+                    gfx.spriteBatch.Draw(gfx.texture, menuItemPos,rectColor);
+                    if (menuItemPos.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                    {
+                        menuSelect = (MenuSelect)line;
+                        if(mouseState.LeftButton == ButtonState.Pressed && !mousePressed){
+                            mousePressed = true;
+                            return line;
+                        }
+                    }
 
                     Vector2 lineSize = gfx.menuFont.MeasureString(menuTexts[line]);
                     Vector2 linePos = new Vector2((MainGame.screenWidth - lineSize.X) / 2,(int)(MainGame.screenHeight / 5 * 1.5f) + 
@@ -139,10 +155,11 @@ namespace typatro.GameFolder
             return (int)MenuSelect.empty;
         }
 
-        public void DrawOptionsMenu()
+        public bool DrawOptionsMenu()
         {
             Color[] menuColors = new Color[optionTexts.Length];
             KeyboardState state = Keyboard.GetState();
+            MouseState mouseState = Mouse.GetState();
             if (menuNav)
             {
                 if (state.IsKeyDown(Keys.Down) && optionSelect != (OptionSelect)optionTexts.Length-1){
@@ -154,6 +171,11 @@ namespace typatro.GameFolder
                     optionSelect--;
                     menuNav = false;
                 }
+            }
+
+            if (mouseState.LeftButton == ButtonState.Released)
+            {
+                mousePressed = false;
             }
 
             if (state.IsKeyUp(Keys.Up) && state.IsKeyUp(Keys.Down))
@@ -169,72 +191,10 @@ namespace typatro.GameFolder
 
             if(optionNav){
                 if(state.IsKeyDown(Keys.Left)){
-                    if (optionSelect == OptionSelect.theme && SaveManager.theme != 0)
-                    {
-                        SaveManager.theme--;
-                        optionNav = false;
-                        if(!GameLogic.achievmentBools["SUN"])
-                        {
-                            GameLogic.achievmentBools["SUN"] = true;
-                            GameLogic.writeAchievment = true;
-                        }
-                    }
-                    if(optionSelect == OptionSelect.volume && SaveManager.volume > 0){
-                        SaveManager.volume--;
-                        MediaPlayer.Volume = SaveManager.volume / 10f;
-                        optionNav = false;
-                    }
-                    if(optionSelect == OptionSelect.size && SaveManager.size != 0){
-                        SaveManager.size--;
-                        ChangeScreenSize(SaveManager.size);
-                        optionNav = false;
-                    }
-                    if(optionSelect == OptionSelect.fullScreen){
-                        if(SaveManager.fullscreen == 0){
-                            SaveManager.fullscreen = 1;
-                            MainGame.graphics.IsFullScreen = true;
-                        }
-                        else{
-                            SaveManager.fullscreen = 0;
-                            MainGame.graphics.IsFullScreen = false;
-                        }
-                        MainGame.graphics.ApplyChanges();
-                        optionNav = false;
-                    }
+                    OptionDecrease(optionSelect);
                 }
                 if(state.IsKeyDown(Keys.Right)){
-                    if (optionSelect == OptionSelect.theme && SaveManager.theme != themes.Length - 1)
-                    {
-                        SaveManager.theme++;
-                        optionNav = false;
-                        if(!GameLogic.achievmentBools["SUN"])
-                        {
-                            GameLogic.achievmentBools["SUN"] = true;
-                            GameLogic.writeAchievment = true;
-                        }
-                    }
-                    if(optionSelect == OptionSelect.volume && SaveManager.volume < 10){
-                        SaveManager.volume++;
-                        MediaPlayer.Volume = SaveManager.volume / 10f;
-                        optionNav = false;
-                    }
-                    if(optionSelect == OptionSelect.size && SaveManager.size != sizes.Length-1){
-                        SaveManager.size++;
-                        ChangeScreenSize(SaveManager.size);
-                        optionNav = false;
-                    }
-                    if(optionSelect == OptionSelect.fullScreen){
-                        if(SaveManager.fullscreen == 0){
-                            SaveManager.fullscreen = 1;
-                            MainGame.graphics.IsFullScreen = true;
-                        }
-                        else{
-                            SaveManager.fullscreen = 0;
-                            MainGame.graphics.IsFullScreen = false;
-                        }
-                        MainGame.graphics.ApplyChanges();
-                        optionNav = false;
-                    }
+                    OptionIncrease(optionSelect);
                 }
             }
 
@@ -243,22 +203,65 @@ namespace typatro.GameFolder
                 optionNav = true;
             }
             int optionTopOffset = 100;
+            Vector2 textPos, textSize;
+            Rectangle menuItemPos;
             for (int line = 0; line < optionTexts.Length; line++)
             {
-                gfx.spriteBatch.Draw(gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset, optionTopOffset + menuLineSpacing * line, optionRectWidth, optionRectHeight), menuColors[line]);
-                Vector2 textSize = gfx.menuFont.MeasureString(optionTexts[line]);
-                Vector2 textPos = new Vector2(MainGame.screenWidth/2 - textSize.X - 40, optionTopOffset + optionRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
-                gfx.spriteBatch.DrawString(gfx.menuFont, optionTexts[line], textPos, ThemeColors.Text);
+                if (line != optionTexts.Length - 1)
+                {
+                    menuItemPos = new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset, optionTopOffset + menuLineSpacing * line, optionRectWidth, optionRectHeight);
+                    Rectangle menuItemPosLeft = new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset, optionTopOffset + menuLineSpacing * line, optionRectWidth/2, optionRectHeight);
+                    if (menuItemPosLeft.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                    {
+                        optionSelect = (OptionSelect)line;
+                        if (mouseState.LeftButton == ButtonState.Pressed && !mousePressed)
+                        {
+                            mousePressed = true;
+                            OptionDecrease(optionSelect);
+                            if (line == optionTexts.Length - 1) return true;
+                        }
+                    }
+                    Rectangle menuItemPosRight = new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset + optionRectWidth / 2, optionTopOffset + menuLineSpacing * line, optionRectWidth / 2, optionRectHeight);
+                    if (menuItemPosRight.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                    {
+                        optionSelect = (OptionSelect)line;
+                        if (mouseState.LeftButton == ButtonState.Pressed && !mousePressed)
+                        {
+                            mousePressed = true;
+                            OptionIncrease(optionSelect);
+                            if (line == optionTexts.Length - 1) return true;
+                        }
+                    }
+                    gfx.spriteBatch.Draw(gfx.texture, menuItemPos, menuColors[line]);
+                    textSize = gfx.menuFont.MeasureString(optionTexts[line]);
+                    textPos = new Vector2(MainGame.screenWidth / 2 - textSize.X - 40, optionTopOffset + optionRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
+                    gfx.spriteBatch.DrawString(gfx.menuFont, optionTexts[line], textPos, ThemeColors.Text);
+                } 
             }
-            gfx.spriteBatch.DrawString(gfx.menuFont, themes[SaveManager.theme], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- gfx.menuFont.MeasureString(themes[SaveManager.theme]).X/2-10, optionTopOffset+20), ThemeColors.Text);
+            int pos = optionTexts.Length - 1;
+            menuItemPos = new Rectangle(50, 50, 50, 50);
+            if (menuItemPos.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+            {
+                optionSelect = (OptionSelect)pos;
+                if (mouseState.LeftButton == ButtonState.Pressed)
+                {
+                    mousePressed = true;
+                    if (pos == optionTexts.Length - 1) return true;
+                }
+            }
+            gfx.spriteBatch.Draw(gfx.texture, menuItemPos, menuColors[pos]);
+            gfx.spriteBatch.DrawString(gfx.menuFont, "<", new Vector2(menuItemPos.X + 17, menuItemPos.Y + 7), ThemeColors.Text);
+
+            gfx.spriteBatch.DrawString(gfx.menuFont, themes[SaveManager.theme], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- gfx.menuFont.MeasureString(themes[SaveManager.theme]).X/2 + 20, optionTopOffset+20), ThemeColors.Text);
             gfx.spriteBatch.DrawString(gfx.menuFont, "<             >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20), ThemeColors.Text);
             gfx.spriteBatch.Draw(gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+20, optionTopOffset + menuLineSpacing+20, optionRectWidth-40, 40), ThemeColors.Background);
             gfx.spriteBatch.Draw(gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, optionRectWidth-50, 30), ThemeColors.Background);
             gfx.spriteBatch.Draw(gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, (optionRectWidth-50)/10*SaveManager.volume, 30), ThemeColors.Selected);
-            gfx.spriteBatch.DrawString(gfx.menuFont, sizes[SaveManager.size], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- gfx.menuFont.MeasureString(sizes[SaveManager.size]).X/2-10, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
-            gfx.spriteBatch.DrawString(gfx.menuFont, "<             >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.menuFont, sizes[SaveManager.size], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- gfx.menuFont.MeasureString(sizes[SaveManager.size]).X/2+20, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.menuFont, "<               >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
             string fullScr = SaveManager.fullscreen == 0?"off":"on";
-            gfx.spriteBatch.DrawString(gfx.menuFont, fullScr, new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- gfx.menuFont.MeasureString(fullScr).X/2-10, optionTopOffset+20 + menuLineSpacing*3),ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.menuFont, fullScr, new Vector2(MainGame.screenWidth / 2 + optionRectWidth / 2 - gfx.menuFont.MeasureString(fullScr).X / 2 +20, optionTopOffset + 20 + menuLineSpacing * 3), ThemeColors.Text);
+            return false;
         }
         private void ChangeScreenSize(int size){
             switch(size){
@@ -283,6 +286,113 @@ namespace typatro.GameFolder
                     MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
                     MainGame.graphics.ApplyChanges();
                     break;
+            }
+        }
+
+        private void OptionDecrease(OptionSelect option)
+        {
+            switch (option)
+            {
+                case OptionSelect.theme:
+                    if(SaveManager.theme != 0)
+                    {
+                        SaveManager.theme--;
+                        optionNav = false;
+                        if (!GameLogic.achievmentBools["SUN"])
+                        {
+                            GameLogic.achievmentBools["SUN"] = true;
+                            GameLogic.writeAchievment = true;
+                        }
+                    }
+                    break;
+                case OptionSelect.volume:
+                    if (SaveManager.volume > 0)
+                    {
+                        SaveManager.volume--;
+                        MediaPlayer.Volume = SaveManager.volume / 10f;
+                        optionNav = false;
+                    }
+                    break;
+                case OptionSelect.size:
+                    if (SaveManager.size != 0)
+                    {
+                        SaveManager.size--;
+                        ChangeScreenSize(SaveManager.size);
+                        optionNav = false;
+                    }
+                    break;
+                case OptionSelect.fullScreen:
+                    if (SaveManager.fullscreen == 0)
+                    {
+                        SaveManager.fullscreen = 1;
+                        MainGame.graphics.IsFullScreen = true;
+                    }
+                    else
+                    {
+                        SaveManager.fullscreen = 0;
+                        MainGame.graphics.IsFullScreen = false;
+                    }
+                    MainGame.graphics.ApplyChanges();
+                    optionNav = false;
+                    break;
+                case OptionSelect.back:
+                    optionSelect = OptionSelect.theme;
+                    optionNav = false;
+                    break;
+                default: break;
+            }
+        }
+
+        private void OptionIncrease(OptionSelect option)
+        {
+            switch (option)
+            {
+                case OptionSelect.theme:
+                    if(SaveManager.theme != themes.Length - 1)
+                    {
+                        SaveManager.theme++;
+                        optionNav = false;
+                        if (!GameLogic.achievmentBools["SUN"])
+                        {
+                            GameLogic.achievmentBools["SUN"] = true;
+                            GameLogic.writeAchievment = true;
+                        }
+                    }
+                    break;
+                case OptionSelect.volume:
+                    if(SaveManager.volume < 10)
+                    {
+                        SaveManager.volume++;
+                        MediaPlayer.Volume = SaveManager.volume / 10f;
+                        optionNav = false;
+                    }
+                    break;
+                case OptionSelect.size:
+                    if(SaveManager.size != sizes.Length - 1){
+                        SaveManager.size++;
+                        ChangeScreenSize(SaveManager.size);
+                        optionNav = false;
+                    }
+                    break;
+                case OptionSelect.fullScreen:
+                    if (SaveManager.fullscreen == 0)
+                    {
+                        SaveManager.fullscreen = 1;
+                        MainGame.graphics.IsFullScreen = true;
+                    }
+                    else
+                    {
+                        SaveManager.fullscreen = 0;
+                        MainGame.graphics.IsFullScreen = false;
+                    }
+                    MainGame.graphics.ApplyChanges();
+                    optionNav = false;
+                    break;
+                case OptionSelect.back:
+                    optionSelect = OptionSelect.theme;
+                    optionNav = false;
+                    break;
+                default: break;
             }
         }
     }

@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using typatro.GameFolder.UI;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace typatro.GameFolder{
     public enum NodeType{
@@ -194,7 +195,7 @@ namespace typatro.GameFolder{
                 }
             }
             string info = "F - Fight   E - Elite fight   C - Curse  $ - Shop   X - Treasure   B - Boss";
-            gfx.spriteBatch.DrawString(gfx.smallTextFont, info, new Vector2(MainGame.screenWidth/2-gfx.smallTextFont.MeasureString(info).X/2,MainGame.screenHeight-40), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.smallMapFont, info, new Vector2(MainGame.screenWidth/2-gfx.smallMapFont.MeasureString(info).X/2,MainGame.screenHeight-40), ThemeColors.Text);
         }
 
         private void DrawDottedPath(Vector2 start, Vector2 end)
@@ -231,7 +232,12 @@ namespace typatro.GameFolder{
             return NodeType.TREASURE;
         }
 
-        public MapNode NodeSelect(MapNode node){
+        public MapNode NodeSelect(MapNode node, ref bool mousePressed){
+            MouseState mouseState = Mouse.GetState();
+            if(mouseState.LeftButton == ButtonState.Released)
+            {
+                mousePressed = false;
+            }
             int forwardCount = node.forward.Count;
             if(forwardCount > 0){KeyboardState state = Keyboard.GetState();
                 if (nodeMove){
@@ -244,12 +250,29 @@ namespace typatro.GameFolder{
                     nodeMove = true;
                 }
 
-                foreach(MapNode fwdNode in node.forward){
-                    gfx.spriteBatch.Draw(gfx.texture, new Microsoft.Xna.Framework.Rectangle((int)fwdNode.point.X-5, (int)fwdNode.point.Y-5, 30, 40), ThemeColors.Background);
-                    gfx.spriteBatch.Draw(gfx.texture, new Microsoft.Xna.Framework.Rectangle((int)fwdNode.point.X-5, (int)fwdNode.point.Y-5, 30, 40), ThemeColors.Background);
+                int nodeIndex = 0;
+                MapNode selectedNode;
+                foreach (MapNode fwdNode in node.forward){
+                    Rectangle nodeRect = new Rectangle((int)fwdNode.point.X - 5, (int)fwdNode.point.Y - 5, 30, 40);
+                    if (!mousePressed && nodeRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                    {
+                        nodeSelectIndex = nodeIndex;
+                        selectedNode = node.forward[nodeSelectIndex];
+                        if (mouseState.LeftButton == ButtonState.Pressed)
+                        {
+                            enterUp = false;
+                            nodeSelectIndex = 0;
+                            selectedNode.visited = true;
+                            mousePressed = true;
+                            return selectedNode;
+                        }
+                    }
+                    gfx.spriteBatch.Draw(gfx.texture, nodeRect, ThemeColors.Background);
+                    gfx.spriteBatch.Draw(gfx.texture, nodeRect, ThemeColors.Background);
+                    nodeIndex++;
                 }
-                
-                MapNode selectedNode = node.forward[nodeSelectIndex];
+
+                selectedNode = node.forward[nodeSelectIndex];
                 if(state.IsKeyDown(Keys.Enter) && enterUp){
                     enterUp = false;
                     nodeSelectIndex = 0;
@@ -258,10 +281,10 @@ namespace typatro.GameFolder{
                 }
                 else if(state.IsKeyUp(Keys.Enter)) enterUp = true;
                 
-                gfx.spriteBatch.Draw(gfx.texture, new Microsoft.Xna.Framework.Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), ThemeColors.NotSelected);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), ThemeColors.NotSelected);
             }
             if(node.type != NodeType.NOTHING){
-                gfx.spriteBatch.Draw(gfx.texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), ThemeColors.NotSelected);
+                gfx.spriteBatch.Draw(gfx.texture, new Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), ThemeColors.NotSelected);
             }
             
             return node;

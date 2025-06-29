@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
+using static Microsoft.Xna.Framework.Graphics.SpriteFont;
 
 namespace typatro.GameFolder.Rooms
 {
@@ -21,9 +22,10 @@ namespace typatro.GameFolder.Rooms
             this.enhancements = enhancements;
         }
 
-        public bool CurseRoomDisplay(ref long coins)
+        public bool CurseRoomDisplay(ref long coins, ref bool mousePressed)
         {
             KeyboardState keyboard = Keyboard.GetState();
+            MouseState mouseState = Mouse.GetState();
             if (keyboard.IsKeyUp(Keys.Enter))
             {
                 enterReleased = true;
@@ -48,15 +50,43 @@ namespace typatro.GameFolder.Rooms
                 return true;
             }
 
+            if(mouseState.LeftButton == ButtonState.Released)
+            {
+                mousePressed = false;
+            }
+
             gfx.spriteBatch.DrawString(gfx.gameFont, GetName(curse), new Vector2(100, 100), ThemeColors.Text);
             gfx.spriteBatch.DrawString(gfx.smallTextFont, GetDescription(curse), new Vector2(100, 200), ThemeColors.Text);
 
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset, rectTopOffset + descOffset * 2, rectWidth, rectHeight), pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
+            Rectangle yesRect = new Rectangle(leftOffset, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
+            gfx.spriteBatch.Draw(gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
             gfx.spriteBatch.DrawString(gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset * 2 + rectHeight, rectTopOffset + descOffset * 2, rectWidth, rectHeight), pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
+            
+            if (yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+            {
+                if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
+                {
+                    CurseResolve(ref coins);
+                    mousePressed = true;
+                    return true;
+                }
+                pickUp = true;
+            }
+            
+
+            Rectangle noRect = new Rectangle(leftOffset + rectWidth, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
+            gfx.spriteBatch.Draw(gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
             gfx.spriteBatch.DrawString(gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
-
-
+            if (noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+            {
+                if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
+                {
+                    mousePressed = true;
+                    return true;
+                }
+                pickUp = false;
+            }
+            
             return false;
         }
 

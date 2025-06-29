@@ -163,10 +163,16 @@ namespace typatro.GameFolder.Rooms{
             selectedRow = 0;
         }
 
-        public bool DisplayShop(ref long coins)
+        public bool DisplayShop(ref long coins, ref bool mousePressed)
         {
+            MouseState mouseState = Mouse.GetState();
+            
+            if(mouseState.LeftButton == ButtonState.Released)
+            {
+                mousePressed = false;
+            }
             MoveSelection();
-            if (Buying(ref coins)) return true;
+            bool mouseOnShopCard = false;
             for (int row = 0; row < rows; row++)
             {
                 for (int col = 0; col < cols; col++)
@@ -175,7 +181,15 @@ namespace typatro.GameFolder.Rooms{
                     int selectedCardIndex = selectedRow * cols + selectedCol;
                     Color cardColor = (row == selectedRow && col == selectedCol) ? ThemeColors.Selected : ThemeColors.NotSelected;
 
-                    gfx.spriteBatch.Draw(gfx.texture, new Rectangle(col * horizontalSpacing + leftOffset, row * verticalSpacing + topOffset, cardWidth, cardHeight), cardColor);
+                    Rectangle cardRect = new Rectangle(col * horizontalSpacing + leftOffset, row * verticalSpacing + topOffset, cardWidth, cardHeight);
+
+                    if (cardRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                    {
+                        selectedCol = col;
+                        selectedRow = row;
+                        mouseOnShopCard = true;
+                    }
+                    gfx.spriteBatch.Draw(gfx.texture, cardRect, cardColor);
 
                     if (cardIndex < cardCount)
                     {
@@ -227,14 +241,16 @@ namespace typatro.GameFolder.Rooms{
                     else if (cardIndex == 11) gfx.spriteBatch.DrawString(gfx.smallTextFont, "\nExit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                 }
             }
+            if (Buying(ref coins, ref mousePressed, ref mouseState, mouseOnShopCard)) return true;
             return false;
         }
 
-        private bool Buying(ref long coins)
+        private bool Buying(ref long coins, ref bool mousePressed, ref MouseState mouseState, bool mouseOnShopCard)
         {
             KeyboardState state = Keyboard.GetState();
-            if (state.IsKeyDown(Keys.Enter) && !enterPressed)
+            if (state.IsKeyDown(Keys.Enter) && !enterPressed || (mouseState.LeftButton == ButtonState.Pressed && !mousePressed && mouseOnShopCard && !GameLogic.keyboardUsed))
             {
+                mousePressed = true;
                 enterPressed = true;
                 int selectionIndex = selectedRow * cols + selectedCol;
 

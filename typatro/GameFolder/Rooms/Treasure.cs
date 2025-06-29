@@ -21,7 +21,8 @@ namespace typatro.GameFolder.Rooms{
             GlyphManager.Add(Glyph.NoGlyphsLeft);
         }
 
-        public bool DisplayTreasure(ref long coins){
+        public bool DisplayTreasure(ref long coins, ref bool mousePressed){
+            MouseState mouseState = Mouse.GetState();
             Glyph glyph = currentGlyph;
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
             gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Foreground);
@@ -37,19 +38,44 @@ namespace typatro.GameFolder.Rooms{
                     keyDown = false;
                 }
                 if(state.IsKeyDown(Keys.Enter)){
-                    if(pickUp){
-                        GlyphManager.Add(glyph);
-                        if(glyph == Glyph.Hundred) coins += 100;
-                        enhancements.AddGlyphEnhancementsUpdate(glyph);
-                    }
+                    
                     return true;
                 }
-                
+                if (mouseState.LeftButton == ButtonState.Released)
+                {
+                    mousePressed = false;
+                }
 
-                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset, rectTopOffset+descOffset*2, rectWidth, rectHeight), pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-                gfx.spriteBatch.DrawString(gfx.gameFont, "yes", new Vector2(leftOffset+10, rectTopOffset+descOffset*2+5), ThemeColors.Text);
-                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset+descOffset*2, rectWidth, rectHeight), pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-                gfx.spriteBatch.DrawString(gfx.gameFont, "no", new Vector2(leftOffset*2+rectHeight+10, rectTopOffset+descOffset*2+5), ThemeColors.Text);
+                Rectangle yesRect = new Rectangle(leftOffset, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
+                if (yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                {
+                    if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
+                    {
+                        GlyphManager.Add(glyph);
+                        if (glyph == Glyph.Hundred) coins += 100;
+                        enhancements.AddGlyphEnhancementsUpdate(glyph);
+                        mousePressed = true;
+                        return true;
+                    }
+                    pickUp = true;
+                }
+                gfx.spriteBatch.Draw(gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
+                gfx.spriteBatch.DrawString(gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+
+
+                Rectangle noRect = new Rectangle(leftOffset + rectWidth, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
+                if (noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                {
+                    if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
+                    {
+                        mousePressed = true;
+                        return true;
+                    }
+                    pickUp = false;
+                }
+                gfx.spriteBatch.Draw(gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
+                gfx.spriteBatch.DrawString(gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+
             } 
             else{
                 gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), ThemeColors.NotSelected);

@@ -24,7 +24,7 @@ namespace typatro.GameFolder.UI{
             switch (themeName)
             {
                 case 0: //BLACK
-                    Background = new Color(0x0d1511);
+                    Background = new Color(0x182018);
                     Foreground = new Color(0x264031);
                     Selected = new Color(0x599573);
                     NotSelected = new Color(0x406a52);
@@ -34,7 +34,7 @@ namespace typatro.GameFolder.UI{
                     break;
 
                 case 1: //PINK
-                    Background = new Color(0x5a3079);
+                    Background = new Color(0x303030);
                     Foreground = new Color(0x763ea5);
                     Selected = new Color(0x9757e2);
                     NotSelected = new Color(0x63358e);
@@ -44,7 +44,7 @@ namespace typatro.GameFolder.UI{
                     break;
 
                 case 2: //BLUE
-                    Background = new Color(0x5c3f00);
+                    Background = new Color(0x201818);
                     Foreground = new Color(0x75482c);
                     Selected = new Color(0xb050bc);
                     NotSelected = new Color(0x8f508a);
@@ -55,11 +55,11 @@ namespace typatro.GameFolder.UI{
 
 
                 case 3: //RED
-                    Background = new Color(0x242cae);
+                    Background = new Color(0x101020);
                     Foreground = new Color(0x481eb1);
                     Selected = new Color(0x555555);
                     NotSelected = new Color(0x2c2137);
-                    Text = Color.Black;
+                    Text = Color.White;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
                     break;
