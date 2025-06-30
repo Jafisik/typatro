@@ -69,7 +69,7 @@ namespace typatro.GameFolder
         }
 
         //To add new new menu item just add an item into enum MenuSelect and in the class MainGame add the same thing to enum GameState
-        public int DrawMainMenu(bool gameSaved, bool gameWon)
+        public int DrawMainMenu(bool gameSaved, bool gameFinished)
         {
             Color[] menuColors = new Color[menuTexts.Length];
             KeyboardState state = Keyboard.GetState();
@@ -93,7 +93,7 @@ namespace typatro.GameFolder
             }
             
             double totalSeconds = MainGame.time.TotalGameTime.TotalSeconds;
-            if (state.IsKeyDown(Keys.Enter) && ((introFinished && introSkip) || totalSeconds >= 6) && !gameWon) return (int)menuSelect;
+            if (state.IsKeyDown(Keys.Enter) && ((introFinished && introSkip) || totalSeconds >= 6) && !gameFinished) return (int)menuSelect;
             if(!introSkip && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)){
                 introFinished = true;
                 mousePressed = true;
@@ -139,7 +139,7 @@ namespace typatro.GameFolder
                         menuSelect = (MenuSelect)line;
                         if(mouseState.LeftButton == ButtonState.Pressed && !mousePressed){
                             mousePressed = true;
-                            return line;
+                            if (!(!gameSaved && line == 0)) return line;
                         }
                     }
 

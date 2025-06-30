@@ -87,7 +87,7 @@ namespace typatro.GameFolder
             ["JERA0"] = false,
 
         };
-        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake, gameWin, deadCounted, introPlayed, mousePressed;
+        bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake, gameFinished, deadCounted, introPlayed, mousePressed;
         public static bool writeAchievment;
         MainGame.SoundEffects sfx;
 
@@ -287,7 +287,8 @@ namespace typatro.GameFolder
             WriteAchievment();
         }
 
-        float bgRotation = 0f;
+        float bgRotation = 0f, scaleDelta;
+        bool scaleSwap;
         public void Draw(GraphicsDeviceManager graphicsDevice)
         {
             KeyboardState keyboardState = Keyboard.GetState();
@@ -295,10 +296,20 @@ namespace typatro.GameFolder
             
 
             gfx.spriteBatch.Begin(SpriteSortMode.Deferred);
-            bgRotation += 0.002f;
+            bgRotation -= 0.002f;
+            if (!scaleSwap)
+            {
+                scaleDelta += 0.0002f;
+                if (scaleDelta >= 0.2f) scaleSwap = true;
+            }
+            else
+            {
+                scaleDelta -= 0.0002f;
+                if (scaleDelta <= 0f) scaleSwap = false;
+            }
 
 
-            if(keyboardState.GetPressedKeyCount() > 0 && !(keyboardState.GetPressedKeyCount() == 1 && keyboardState.IsKeyDown(Keys.Tab)))
+            if (keyboardState.GetPressedKeyCount() > 0 && !(keyboardState.GetPressedKeyCount() == 1 && keyboardState.IsKeyDown(Keys.Tab)))
             {
                 keyboardUsed = true;
             }
@@ -328,7 +339,7 @@ namespace typatro.GameFolder
             float scale = 1f;
             if (SaveManager.size == 1) scale = 1.4f;
             if (SaveManager.size == 2) scale = 1.6f;
-            gfx.spriteBatch.Draw(gfx.bg, centerScreen, null, bgImageColor, bgRotation, bgOrigin, scale, SpriteEffects.None,0f);
+            gfx.spriteBatch.Draw(gfx.bg, centerScreen, null, bgImageColor, bgRotation, bgOrigin, scale+scaleDelta, SpriteEffects.None,0f);
             int lineWidth = 15;
             gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0, 0, MainGame.screenWidth, lineWidth), ThemeColors.Foreground);
             gfx.spriteBatch.Draw(gfx.texture, new Rectangle(0, 0, lineWidth, MainGame.screenHeight), ThemeColors.Foreground);
@@ -347,10 +358,10 @@ namespace typatro.GameFolder
             }
             if (gameState == GameState.MENU)
                 {
-                    gameState = (GameState)menu.DrawMainMenu(gameSaveData == null ? false : true, gameWin);
+                    gameState = (GameState)menu.DrawMainMenu(gameSaveData == null ? false : true, gameFinished);
                     if (Keyboard.GetState().IsKeyUp(Keys.Enter))
                     {
-                        gameWin = false;
+                        gameFinished = false;
                     }
                     if (gameState == GameState.LOADGAME)
                     {
@@ -447,11 +458,11 @@ namespace typatro.GameFolder
                         deadCounted = false;
                         mousePressed = true;
                     }
-                    firstEnter = true;
-                    roomSelected = false;
-                    canStartFight = false;
-                    SaveManager.UnlockUnlock("uruz0");
-                }
+                        firstEnter = true;
+                        roomSelected = false;
+                        canStartFight = false;
+                        SaveManager.UnlockUnlock("uruz0");
+                    }
                 else if (gameState == GameState.RUNES)
                 {
                     KeyboardState state = Keyboard.GetState();
@@ -511,10 +522,11 @@ namespace typatro.GameFolder
 
         public void Play()
         {
+            MouseState mouseState = Mouse.GetState();
             KeyboardState kBState = Keyboard.GetState();
 
             //Return to menu on pressing escape
-            if (kBState.IsKeyDown(Keys.Escape) && !gameWin)
+            if (kBState.IsKeyDown(Keys.Escape) && !gameFinished)
             {
                 gameState = GameState.MENU;
                 if (!dead)
@@ -528,7 +540,26 @@ namespace typatro.GameFolder
             //Checking if the player died
             if (dead)
             {
-                gfx.spriteBatch.DrawString(gfx.gameFont, "You are dead", new Vector2(100), ThemeColors.Text);
+                string fightWon = "You are dead";
+                gfx.spriteBatch.DrawString(gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
+                var letters = enhancements.GetBestLetter();
+                gfx.spriteBatch.DrawString(gfx.smallTextFont, "Words written: " + wordsWritten + "\nLetters written:" + lettersWritten + "\nMistakes: " + mistakesWritten + "\nAccuracy: " + (int)((1.0 - (double)mistakesWritten / lettersWritten) * 100) + "%", new Vector2(100, 150), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.smallTextFont, "Most upgraded letter: " + letters.bestLetter + ":  " + letters.bestLetterNum + "\nTotal score: " + totalScore + "\nMax score: " + maxScore, new Vector2(450, 150), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.smallTextFont, "Shiny words: " + shinyWritten + "\nStone words: " + stoneWritten + "\nBloom words: " + bloomWritten, new Vector2(100, 300), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.smallTextFont, "Highest streak: " + highestStreak + "\nCoins gained: " + coinsGained + "\nMax coins: " + maxCoins, new Vector2(450, 300), ThemeColors.Text);
+
+                gfx.spriteBatch.DrawString(gfx.gameFont, "Press enter to continue", new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString("Press enter to continue").X / 2, 450), ThemeColors.Text);
+
+                if (kBState.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)
+                {
+                    SaveManager.RemoveGameData();
+                    GlyphManager.RemoveAllGlyphs();
+                    gameSaveData = null;
+                    gameFinished = true;
+                    Reset();
+                    gameState = GameState.MENU;
+                }
+
                 if (!deadCounted)
                 {
                     if (SteamUserStats.GetStat("deaths", out int current))
@@ -804,7 +835,7 @@ namespace typatro.GameFolder
                     {
                         if (selectedNode.type == NodeType.BOSS && level == 3)
                         {
-                            if (!gameWin)
+                            if (!gameFinished)
                             {
                                 GlyphManager.RemoveAllGlyphs();
                                 if (SteamUserStats.GetStat("runs_won", out int runsWon))
@@ -821,7 +852,7 @@ namespace typatro.GameFolder
                                         writeAchievment = true;
                                     }
                                 }
-                                gameWin = true;
+                                gameFinished = true;
                             }
                             string fightWon = "You won the run";
                             gfx.spriteBatch.DrawString(gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
@@ -832,6 +863,9 @@ namespace typatro.GameFolder
                             gfx.spriteBatch.DrawString(gfx.smallTextFont, "Shiny words: " + shinyWritten + "\nStone words: " + stoneWritten + "\nBloom words: " + bloomWritten, new Vector2(100, 300), ThemeColors.Text);
                             gfx.spriteBatch.DrawString(gfx.smallTextFont, "Highest streak: " + highestStreak + "\nCoins gained: " + coinsGained + "\nMax coins: " + maxCoins, new Vector2(450, 300), ThemeColors.Text);
 
+                            string diffUnlock = "Difficulty unlocked: " + (((Runes.Runes)selectedRune).ToString() + " " + (difficulty + 1)).ToString().ToLower();
+
+                            gfx.spriteBatch.DrawString(gfx.smallTextFont, diffUnlock, new Vector2(MainGame.screenWidth / 2 - gfx.smallTextFont.MeasureString(diffUnlock).X / 2, 400), ThemeColors.Text);
                             gfx.spriteBatch.DrawString(gfx.gameFont, "Press enter to continue", new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString("Press enter to continue").X / 2, 450), ThemeColors.Text);
 
                             string achievmentName = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
@@ -842,7 +876,7 @@ namespace typatro.GameFolder
                                 achievmentBools["STAR"] = writeAchievment = true;
                                 writeAchievment = true;
                             }
-                            if (state.IsKeyDown(Keys.Enter))
+                            if (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)
                             {
                                 SaveManager.RemoveGameData();
                                 GlyphManager.RemoveAllGlyphs();
