@@ -96,7 +96,7 @@ namespace typatro.GameFolder
         long coins = 0, startCoins = 30;
         int selectedRune = 0, difficulty = 0, inventoryGlyphSelect = 1;
         bool dead, inventoryMove = true, inventoryMousePressed;
-        public static bool keyboardUsed;
+        public static bool keyboardUsed, windowActive;
         Point mousePosition = new Point();
 
         //Score calculator
@@ -169,10 +169,10 @@ namespace typatro.GameFolder
             GlyphManager.SetUnlockedGlyphs();
         }
 
-        public void Update(GameWindow window)
+        public void Update(GameWindow window, bool isActive)
         {
             MouseState mouseState = Mouse.GetState();
-            if (mouseState.LeftButton == ButtonState.Pressed)
+            if (mouseState.LeftButton == ButtonState.Pressed && windowActive)
             {
                 if (new Rectangle(0, 0, MainGame.screenWidth, 15).Contains(mouseState.Position) || new Rectangle(0,0,15,MainGame.screenHeight).Contains(mouseState.Position) ||
                     new Rectangle(0, MainGame.screenHeight-15, MainGame.screenWidth, MainGame.screenHeight).Contains(mouseState.Position) || new Rectangle(MainGame.screenWidth-15, 0, MainGame.screenWidth, MainGame.screenHeight).Contains(mouseState.Position))
@@ -284,6 +284,7 @@ namespace typatro.GameFolder
                 sfx.musicMainTheme.Play();
                 if (!sfx.musicIntro.IsDisposed) sfx.musicIntro.Dispose();
             }
+            windowActive = isActive;
             WriteAchievment();
         }
 
@@ -307,27 +308,6 @@ namespace typatro.GameFolder
                 scaleDelta -= 0.0002f;
                 if (scaleDelta <= 0f) scaleSwap = false;
             }
-
-
-            if (keyboardState.GetPressedKeyCount() > 0 && !(keyboardState.GetPressedKeyCount() == 1 && keyboardState.IsKeyDown(Keys.Tab)))
-            {
-                keyboardUsed = true;
-            }
-            Texture2D mouseTexture = gfx.mouse1;
-            if (mouseState.LeftButton == ButtonState.Pressed) mouseTexture = gfx.mouse2;
-            if (!keyboardUsed)
-            {
-                gfx.spriteBatch.Draw(mouseTexture, new Vector2(mouseState.X, mouseState.Y), null, Color.White, 0f, new Vector2(16, 16), 1.6f, SpriteEffects.None, 0f);
-            }
-            else
-            {
-                if(mousePosition != mouseState.Position)
-                {
-                    keyboardUsed = false;
-                }
-            }
-
-            mousePosition = mouseState.Position;
 
 
             Vector2 centerScreen = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 2f);
@@ -516,6 +496,26 @@ namespace typatro.GameFolder
                     SteamAPI.Shutdown();
                     Environment.Exit(0);
                 }
+
+            if (keyboardState.GetPressedKeyCount() > 0 && !(keyboardState.GetPressedKeyCount() == 1 && keyboardState.IsKeyDown(Keys.Tab)))
+            {
+                keyboardUsed = true;
+            }
+            Texture2D mouseTexture = gfx.mouse1;
+            if (mouseState.LeftButton == ButtonState.Pressed) mouseTexture = gfx.mouse2;
+            if (!keyboardUsed)
+            {
+                gfx.spriteBatch.Draw(mouseTexture, new Vector2(mouseState.X, mouseState.Y), null, Color.White, 0f, new Vector2(16, 16), 1.6f, SpriteEffects.None, 0f);
+            }
+            else
+            {
+                if (mousePosition != mouseState.Position)
+                {
+                    keyboardUsed = false;
+                }
+            }
+
+            mousePosition = mouseState.Position;
             gfx.spriteBatch.End();
         }
 
@@ -550,7 +550,7 @@ namespace typatro.GameFolder
 
                 gfx.spriteBatch.DrawString(gfx.gameFont, "Press enter to continue", new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString("Press enter to continue").X / 2, 450), ThemeColors.Text);
 
-                if (kBState.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)
+                if (kBState.IsKeyDown(Keys.Enter) || (mouseState.LeftButton == ButtonState.Pressed && windowActive))
                 {
                     SaveManager.RemoveGameData();
                     GlyphManager.RemoveAllGlyphs();
@@ -876,7 +876,7 @@ namespace typatro.GameFolder
                                 achievmentBools["STAR"] = writeAchievment = true;
                                 writeAchievment = true;
                             }
-                            if (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)
+                            if (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed && windowActive)
                             {
                                 SaveManager.RemoveGameData();
                                 GlyphManager.RemoveAllGlyphs();
@@ -891,10 +891,10 @@ namespace typatro.GameFolder
                             for (int i = 0; i < cards.Count; i++)
                             {
                                 cardColor = (i == afterFightSelect) ? ThemeColors.Selected : ThemeColors.Foreground;
-                                Rectangle rewardRect = new Rectangle(MainGame.screenWidth / 5 * (i + 1), 250, 160, 120);
+                                Rectangle rewardRect = new Rectangle(MainGame.screenWidth / 5 * (i + 1) + SaveManager.size * 30, 250, 160, 120);
                                 if (mouseState.LeftButton == ButtonState.Released) mousePressed = false;
                                 if(rewardRect.Contains(mouseState.Position) && !keyboardUsed){
-                                    if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
+                                    if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive)
                                     {
                                         mousePressed = true;
                                         FightToMap();
@@ -903,8 +903,8 @@ namespace typatro.GameFolder
                                 }
                                 
                                 gfx.spriteBatch.Draw(gfx.texture, rewardRect, cardColor);
-                                gfx.spriteBatch.DrawString(gfx.gameFont, cards[i].letter + (cards[i].mult ? "  *" : "  +") + cards[i].value, new Vector2(MainGame.screenWidth / 5 * (i + 1) + 25, 250 + 30), ThemeColors.Text);
-                                gfx.spriteBatch.DrawString(gfx.smallTextFont, "Current: " + enhancements.GetLetterScore(cards[i].letter), new Vector2(MainGame.screenWidth / 5 * (i + 1) + 20, 250 + 90), ThemeColors.Text);
+                                gfx.spriteBatch.DrawString(gfx.gameFont, cards[i].letter + (cards[i].mult ? "  *" : "  +") + cards[i].value, new Vector2(rewardRect.X + 25, 250 + 30), ThemeColors.Text);
+                                gfx.spriteBatch.DrawString(gfx.smallTextFont, "Current: " + enhancements.GetLetterScore(cards[i].letter), new Vector2(rewardRect.X + 20, 250 + 90), ThemeColors.Text);
                             }
 
                             string fightWon = "Fight won";
@@ -1175,7 +1175,7 @@ namespace typatro.GameFolder
                 Color invIconColor = ThemeColors.NotSelected;
                 if (inventoryRect.Contains(mouseState.Position) || (inventoryMousePressed && mouseState.LeftButton == ButtonState.Pressed))
                 {
-                    if (mouseState.LeftButton == ButtonState.Pressed)
+                    if (mouseState.LeftButton == ButtonState.Pressed && windowActive)
                     {
                         inventoryMousePressed = true;
                         Inventory();
@@ -1192,7 +1192,7 @@ namespace typatro.GameFolder
                 Color exitIconColor = ThemeColors.NotSelected;
                 if (exitRect.Contains(mouseState.Position))
                 {
-                    if (mouseState.LeftButton == ButtonState.Pressed)
+                    if (mouseState.LeftButton == ButtonState.Pressed && windowActive)
                     {
                         gameSaveData = SaveManager.LoadGame();
 
@@ -1461,7 +1461,7 @@ namespace typatro.GameFolder
             if (backRect.Contains(mouseState.Position)) backSelected = ThemeColors.Selected;
             gfx.spriteBatch.Draw(gfx.texture, backRect, backSelected);
             gfx.spriteBatch.DrawString(gfx.menuFont, "<", new Vector2(67, 57), ThemeColors.Text);
-            if (state.IsKeyDown(Keys.Escape) || (!mousePressed && backRect.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed))
+            if (state.IsKeyDown(Keys.Escape) || (!mousePressed && backRect.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed) && windowActive)
             {
                 gameState = GameState.MENU;
                 gameSaveData = SaveManager.LoadGame();
@@ -1522,8 +1522,9 @@ namespace typatro.GameFolder
 
             if (selectedRune != 0)
             {
-                Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 5 - rectWidth / 4, MainGame.screenHeight / 3 - rectHeight / 4, rectWidth / 2, rectHeight / 2);
-                if (!mousePressed && runeSelect.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+                Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 5 - rectWidth / 4 + SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
+                Rectangle extraSpace = new Rectangle(runeSelect.X + runeSelect.Width, runeSelect.Y, 50, runeSelect.Height);
+                if (!mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position)) && mouseState.LeftButton == ButtonState.Pressed && windowActive)
                 {
                     if (!diffMove && selectedRune != 0)
                     {
@@ -1535,14 +1536,15 @@ namespace typatro.GameFolder
                 }
                 gfx.spriteBatch.Draw(gfx.texture, runeSelect, ThemeColors.NotSelected);
                 string runeName = ((Runes.Runes)selectedRune - 1).ToString().Substring(0, 1);
-                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth / 4 - gfx.menuFont.MeasureString(runeName).X / 2, MainGame.screenHeight / 3 - gfx.menuFont.MeasureString(runeName).Y / 2), ThemeColors.Text);
-                gfx.spriteBatch.DrawString(gfx.menuFont, "<", new Vector2(MainGame.screenWidth / 3 - gfx.menuFont.MeasureString("<").X * 2, MainGame.screenHeight / 3.5f), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth / 4 - gfx.menuFont.MeasureString(runeName).X / 2, (int)(MainGame.screenHeight / 2.5f) - gfx.menuFont.MeasureString(runeName).Y / 2), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, "<", new Vector2(runeSelect.X - gfx.menuFont.MeasureString("<").X * 2, (int)(MainGame.screenHeight / 2.5f)-20), ThemeColors.Text);
             }
             {
-                Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 2 - rectWidth / 2, MainGame.screenHeight / 3 - rectHeight / 2, rectWidth, rectHeight);
+                Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 2 - rectWidth / 2 + (SaveManager.size * 20), (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (SaveManager.size * 20), 
+                    rectWidth - (SaveManager.size * 40), rectHeight - (SaveManager.size * 40));
                 if (runeSelect.Contains(mouseState.Position))
                 {
-                    if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
+                    if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive)
                     {
                         if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + difficulty).ToString().ToUpper()) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
                         {
@@ -1557,7 +1559,7 @@ namespace typatro.GameFolder
                 gfx.spriteBatch.Draw(gfx.texture, runeSelect, diffMove ? ThemeColors.NotSelected : ThemeColors.Selected);
                 string runeName = ((Runes.Runes)selectedRune).ToString();
                 int topOffset = 10;
-                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth / 2 - gfx.menuFont.MeasureString(runeName).X / 2, MainGame.screenHeight / 3 - gfx.menuFont.MeasureString(runeName).Y * 3 + topOffset * 2), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth / 2 - gfx.menuFont.MeasureString(runeName).X / 2, (int)(MainGame.screenHeight / 2.5f) - gfx.menuFont.MeasureString(runeName).Y * 3 + topOffset * 2), ThemeColors.Text);
                 if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + 0).ToString().ToUpper()) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
                 {
                     var field = ((Runes.Runes)selectedRune).GetType().GetField(((Runes.Runes)selectedRune).ToString());
@@ -1567,8 +1569,8 @@ namespace typatro.GameFolder
                     int line = 0;
                     foreach (string desc in descStrings)
                     {
-                        if(line == 0)gfx.spriteBatch.DrawString(gfx.smallTextFont, desc, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(desc).X / 4 + 7, MainGame.screenHeight / 3 - gfx.gameFont.MeasureString(runeName).Y * (2 - line++) + topOffset), ThemeColors.Text);
-                        else gfx.spriteBatch.DrawString(gfx.gameFont, desc, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(desc).X / 2, MainGame.screenHeight / 3 - gfx.gameFont.MeasureString(runeName).Y * (2 - line++) + topOffset - 20), ThemeColors.Text);
+                        if(line == 0)gfx.spriteBatch.DrawString(gfx.smallTextFont, desc, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(desc).X / 4 + 7, (int)(MainGame.screenHeight / 2.5f) - gfx.gameFont.MeasureString(runeName).Y * (2 - line++) + topOffset), ThemeColors.Text);
+                        else gfx.spriteBatch.DrawString(gfx.gameFont, desc, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(desc).X / 2, (int)(MainGame.screenHeight / 2.5f) - gfx.gameFont.MeasureString(runeName).Y * (2 - line++) + topOffset - 20), ThemeColors.Text);
                     }
                 }
                 else
@@ -1580,14 +1582,15 @@ namespace typatro.GameFolder
                     int line = 0;
                     foreach (string desc in descStrings)
                     {
-                        gfx.spriteBatch.DrawString(gfx.gameFont, desc, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(desc).X / 2, MainGame.screenHeight / 3 - gfx.gameFont.MeasureString(runeName).Y * (2 - line++) + topOffset), ThemeColors.Wrong);
+                        gfx.spriteBatch.DrawString(gfx.gameFont, desc, new Vector2(MainGame.screenWidth / 2 - gfx.gameFont.MeasureString(desc).X / 2, (int)(MainGame.screenHeight / 2.5f) - gfx.gameFont.MeasureString(runeName).Y * (2 - line++) + topOffset), ThemeColors.Wrong);
                     }
                 }
             }
             if (selectedRune != maxRunes - 1)
             {
-                Rectangle runeSelect = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4, MainGame.screenHeight / 3 - rectHeight / 4, rectWidth / 2, rectHeight / 2);
-                if (!mousePressed && runeSelect.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed)
+                Rectangle runeSelect = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4 - SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
+                Rectangle extraSpace = new Rectangle(runeSelect.X-50, runeSelect.Y, 50, runeSelect.Height);
+                if (!mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position)) && mouseState.LeftButton == ButtonState.Pressed && windowActive)
                 {
                     if (selectedRune != maxRunes - 1)
                     {
@@ -1599,11 +1602,11 @@ namespace typatro.GameFolder
                 }
                 gfx.spriteBatch.Draw(gfx.texture, runeSelect, ThemeColors.NotSelected);
                 string runeName = ((Runes.Runes)selectedRune + 1).ToString().Substring(0, 1);
-                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth - MainGame.screenWidth / 4 - gfx.menuFont.MeasureString(runeName).X / 2, MainGame.screenHeight / 3 - gfx.menuFont.MeasureString(runeName).Y / 2), ThemeColors.Text);
-                gfx.spriteBatch.DrawString(gfx.menuFont, ">", new Vector2(MainGame.screenWidth - MainGame.screenWidth / 3 + gfx.menuFont.MeasureString(">").X, MainGame.screenHeight / 3.5f), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, runeName, new Vector2(MainGame.screenWidth - MainGame.screenWidth / 4 - gfx.menuFont.MeasureString(runeName).X / 2, (int)(MainGame.screenHeight / 2.5f) - gfx.menuFont.MeasureString(runeName).Y / 2), ThemeColors.Text);
+                gfx.spriteBatch.DrawString(gfx.menuFont, ">", new Vector2(runeSelect.X + runeSelect.Width + gfx.menuFont.MeasureString(">").X, (int)(MainGame.screenHeight / 2.5f)-20), ThemeColors.Text);
             }
 
-            gfx.spriteBatch.DrawString(gfx.menuFont, "Difficulty: ", new Vector2(MainGame.screenWidth / 2.5f - gfx.menuFont.MeasureString("Difficulty: ").X, MainGame.screenHeight - 100), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.menuFont, "Difficulty: ", new Vector2(MainGame.screenWidth / 2f - gfx.menuFont.MeasureString("Difficulty: ").X, MainGame.screenHeight -150), ThemeColors.Text);
 
             int padding = 10;
             
@@ -1613,11 +1616,11 @@ namespace typatro.GameFolder
                 diffString = "<?>";
             }
             Vector2 diffStringSize = gfx.menuFont.MeasureString(diffString);
-            Rectangle diffRectLeft = new Rectangle((int)(MainGame.screenWidth / 2.5f) - padding, MainGame.screenHeight - 100 - padding, ((int)diffStringSize.X + padding * 2)/2, (int)diffStringSize.Y + padding);
-            Rectangle diffRectRight = new Rectangle((int)(MainGame.screenWidth / 2.5f) - padding + ((int)diffStringSize.X + padding * 2) / 2, MainGame.screenHeight - 100 - padding, ((int)diffStringSize.X + padding * 2) / 2, (int)diffStringSize.Y + padding);
+            Rectangle diffRectLeft = new Rectangle(MainGame.screenWidth / 2 - padding, MainGame.screenHeight - 150 - padding, ((int)diffStringSize.X + padding * 2)/2, (int)diffStringSize.Y + padding);
+            Rectangle diffRectRight = new Rectangle(MainGame.screenWidth / 2 - padding + ((int)diffStringSize.X + padding * 2) / 2, MainGame.screenHeight - 150 - padding, ((int)diffStringSize.X + padding * 2) / 2, (int)diffStringSize.Y + padding);
             if (diffRectLeft.Contains(mouseState.Position) || diffRectRight.Contains(mouseState.Position))
             {
-                if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
+                if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive)
                 {
                     if (diffRectLeft.Contains(mouseState.Position))
                     {
@@ -1643,7 +1646,7 @@ namespace typatro.GameFolder
                 gfx.spriteBatch.Draw(gfx.texture, diffRectLeft, (diffString == "?") ? ThemeColors.Wrong : ThemeColors.Selected);
                 gfx.spriteBatch.Draw(gfx.texture, diffRectRight, (diffString == "?") ? ThemeColors.Wrong : ThemeColors.Selected);
             }
-            gfx.spriteBatch.DrawString(gfx.menuFont, diffString, new Vector2(MainGame.screenWidth / 2.5f, MainGame.screenHeight - 100), ThemeColors.Text);
+            gfx.spriteBatch.DrawString(gfx.menuFont, diffString, new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight -150), ThemeColors.Text);
         }
 
 

@@ -71,14 +71,24 @@ namespace typatro.GameFolder.Rooms{
                 rows = 3;
                 cols = 4;
                 leftOffset = 80;
+                topOffset = 100;
                 descPos = new Vector2(80, 400);
             }
-            else
+            else if(SaveManager.size == 1)
             {
                 rows = 2;
                 cols = 6;
-                leftOffset = 30;
-                descPos = new Vector2(50, 300);
+                leftOffset = 80;
+                topOffset = MainGame.screenHeight / 3;
+                descPos = new Vector2(leftOffset, topOffset*2);
+            }
+            else if (SaveManager.size == 2)
+            {
+                rows = 2;
+                cols = 6;
+                leftOffset = MainGame.screenWidth / 10;
+                topOffset = MainGame.screenHeight / 3;
+                descPos = new Vector2(leftOffset, topOffset * 2 - 30);
             }
         }
 
@@ -179,9 +189,22 @@ namespace typatro.GameFolder.Rooms{
                 {
                     int cardIndex = row * cols + col;
                     int selectedCardIndex = selectedRow * cols + selectedCol;
-                    Color cardColor = (row == selectedRow && col == selectedCol) ? ThemeColors.Selected : ThemeColors.NotSelected;
+                    Color selected = ThemeColors.Selected;
+                    Color notSelected = ThemeColors.NotSelected;
+                    if(cardIndex == (SaveManager.size == 0 ? 7 : 5))
+                    {
+                        selected = new Color(80, 110, 80);
+                        notSelected = new Color(70, 100, 70);
+                    } else if(cardIndex == 11)
+                    {
+                        selected = new Color(40, 70, 40);
+                        notSelected = new Color(30,60,30);
+                    }
+                    Color cardColor = (row == selectedRow && col == selectedCol) ? selected : notSelected;
 
-                    Rectangle cardRect = new Rectangle(col * horizontalSpacing + leftOffset, row * verticalSpacing + topOffset, cardWidth, cardHeight);
+                    int rerollExitOffset = 0;
+                    if (SaveManager.size != 0 && (cardIndex == 5 || cardIndex == 11)) rerollExitOffset = 30;
+                    Rectangle cardRect = new Rectangle(col * horizontalSpacing + leftOffset + rerollExitOffset, row * verticalSpacing + topOffset, cardWidth, cardHeight);
 
                     if (cardRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
@@ -206,39 +229,39 @@ namespace typatro.GameFolder.Rooms{
                             if (selectedCardIndex == cardIndex) gfx.spriteBatch.DrawString(gfx.smallTextFont, description, descPos, ThemeColors.Text);
                         }
                     }
-                    else if (cardIndex == 5)
+                    else if (cardIndex == (SaveManager.size == 0 ? 7 : 5))
                     {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" Reroll\n\n Cost:        {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 5) gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Rerolls all items in the shop for {rerollCost} coins", descPos, ThemeColors.Text);
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, $" Reroll\n\n Cost:        {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset + rerollExitOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if (selectedCardIndex == (SaveManager.size == 0 ? 7 : 5)) gfx.spriteBatch.DrawString(gfx.smallTextFont, $"Rerolls all items in the shop for {rerollCost} coins", descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == 6)
                     {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 6) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[0]), descPos, ThemeColors.Text);
-                    }
-                    else if (cardIndex == 7)
-                    {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 7) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[1]), descPos, ThemeColors.Text);
-                    }
-                    else if (cardIndex == 8)
-                    {
-                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[2]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 8) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[2]), descPos, ThemeColors.Text);
-                    }
-                    else if (cardIndex == 9)
-                    {
                         gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
                         gfx.spriteBatch.DrawString(gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 9) gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
+                        if (selectedCardIndex == 6) gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
                     }
-                    else if (cardIndex == 10)
+                    else if (cardIndex == (SaveManager.size == 0 ? 5 : 7))
                     {
                         gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
                         gfx.spriteBatch.DrawString(gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 10) gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
+                        if (selectedCardIndex == (SaveManager.size == 0 ? 5 : 7)) gfx.spriteBatch.DrawString(gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
                     }
-                    else if (cardIndex == 11) gfx.spriteBatch.DrawString(gfx.smallTextFont, "\nExit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                    else if (cardIndex == 8)
+                    {
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if (selectedCardIndex == 8) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[0]), descPos, ThemeColors.Text);
+                    }
+                    else if (cardIndex == 9)
+                    {
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if (selectedCardIndex == 9) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[1]), descPos, ThemeColors.Text);
+                    }
+                    else if (cardIndex == 10)
+                    {
+                        gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[2]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if (selectedCardIndex == 10) gfx.spriteBatch.DrawString(gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[2]), descPos, ThemeColors.Text);
+                    }
+                    else if (cardIndex == 11) gfx.spriteBatch.DrawString(gfx.smallTextFont, "\n Exit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset + rerollExitOffset + 18, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                 }
             }
             if (Buying(ref coins, ref mousePressed, ref mouseState, mouseOnShopCard)) return true;
@@ -273,25 +296,7 @@ namespace typatro.GameFolder.Rooms{
                     rerollCost += 2;
                     GenerateShop();
                 }
-                if (selectionIndex == 6 && coins >= enhancementsUpgrades[0].cost)
-                {
-                    coins -= enhancementsUpgrades[0].cost;
-                    EnhancementsTypeUpgrade(enhancementsUpgrades[0]);
-                    enhancementsUpgrades[0] = GenerateEnhancement();
-                }
-                if (selectionIndex == 7 && coins >= enhancementsUpgrades[1].cost)
-                {
-                    coins -= enhancementsUpgrades[1].cost;
-                    EnhancementsTypeUpgrade(enhancementsUpgrades[1]);
-                    enhancementsUpgrades[1] = GenerateEnhancement();
-                }
-                if (selectionIndex == 8 && coins >= enhancementsUpgrades[2].cost)
-                {
-                    coins -= enhancementsUpgrades[2].cost;
-                    EnhancementsTypeUpgrade(enhancementsUpgrades[2]);
-                    enhancementsUpgrades[2] = GenerateEnhancement();
-                }
-                if (selectionIndex == 9 && coins >= glyphCost)
+                if (selectionIndex == 6 && coins >= glyphCost)
                 {
                     coins -= glyphCost;
                     Glyph glyph = glyphs[0];
@@ -301,7 +306,7 @@ namespace typatro.GameFolder.Rooms{
                     glyphs[0] = GlyphManager.GetRandomUnusedGlyph();
                     glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
                 }
-                if (selectionIndex == 10 && coins >= glyphCost)
+                if (selectionIndex == 7 && coins >= glyphCost)
                 {
                     coins -= glyphCost;
                     Glyph glyph = glyphs[1];
@@ -310,6 +315,24 @@ namespace typatro.GameFolder.Rooms{
                     enhancements.AddGlyphEnhancementsUpdate(glyph);
                     glyphs[1] = GlyphManager.GetRandomUnusedGlyph();
                     glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
+                }
+                if (selectionIndex == 8 && coins >= enhancementsUpgrades[0].cost)
+                {
+                    coins -= enhancementsUpgrades[0].cost;
+                    EnhancementsTypeUpgrade(enhancementsUpgrades[0]);
+                    enhancementsUpgrades[0] = GenerateEnhancement();
+                }
+                if (selectionIndex == 9 && coins >= enhancementsUpgrades[1].cost)
+                {
+                    coins -= enhancementsUpgrades[1].cost;
+                    EnhancementsTypeUpgrade(enhancementsUpgrades[1]);
+                    enhancementsUpgrades[1] = GenerateEnhancement();
+                }
+                if (selectionIndex == 10 && coins >= enhancementsUpgrades[2].cost)
+                {
+                    coins -= enhancementsUpgrades[2].cost;
+                    EnhancementsTypeUpgrade(enhancementsUpgrades[2]);
+                    enhancementsUpgrades[2] = GenerateEnhancement();
                 }
                 if (coins == 0 && !GameLogic.achievmentBools["CROCODILE"])
                 {

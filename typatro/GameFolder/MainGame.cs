@@ -96,7 +96,7 @@ public class MainGame : Game
 
     protected override void Update(GameTime gameTime){
         time = gameTime;
-        gameLogic.Update(Window);
+        gameLogic.Update(Window, IsActive);
         base.Update(time);
     }
 

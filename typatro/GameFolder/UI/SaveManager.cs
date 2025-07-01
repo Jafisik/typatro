@@ -23,11 +23,11 @@ namespace typatro.GameFolder.UI{
         {
             switch (themeName)
             {
-                case 0: //BLACK
+                case 0: //GREEN
                     Background = new Color(0x182018);
                     Foreground = new Color(0x264031);
-                    Selected = new Color(0x599573);
-                    NotSelected = new Color(0x406a52);
+                    Selected = new Color(115,149,89,70);
+                    NotSelected = new Color(82, 106, 64, 70);
                     Text = new Color(0x73bf94);
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
@@ -36,8 +36,8 @@ namespace typatro.GameFolder.UI{
                 case 1: //PINK
                     Background = new Color(0x303030);
                     Foreground = new Color(0x763ea5);
-                    Selected = new Color(0x9757e2);
-                    NotSelected = new Color(0x63358e);
+                    Selected = new Color(226,87,151,70);
+                    NotSelected = new Color(142,53,99,70);
                     Text = Color.White;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
@@ -46,8 +46,8 @@ namespace typatro.GameFolder.UI{
                 case 2: //BLUE
                     Background = new Color(0x201818);
                     Foreground = new Color(0x75482c);
-                    Selected = new Color(0xb050bc);
-                    NotSelected = new Color(0x8f508a);
+                    Selected = new Color(188,80,176,70);
+                    NotSelected = new Color(138,80,143,70);
                     Text = Color.White;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
@@ -57,8 +57,8 @@ namespace typatro.GameFolder.UI{
                 case 3: //RED
                     Background = new Color(0x101020);
                     Foreground = new Color(0x481eb1);
-                    Selected = new Color(0x555555);
-                    NotSelected = new Color(0x2c2137);
+                    Selected = new Color(100,85,85,70);
+                    NotSelected = new Color(80,33,44,70);
                     Text = Color.White;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;

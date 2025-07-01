@@ -131,13 +131,14 @@ namespace typatro.GameFolder
                     Color rectColor = (line == 0 && !gameSaved ? ThemeColors.Background : menuColors[line]) * (introFinished?1:alpha);
                     Color textColor = ThemeColors.Text * (introFinished?1:alpha);
 
-                    Rectangle menuItemPos = new Rectangle((MainGame.screenWidth - menuRectWidth) / 2, (int)(MainGame.screenHeight / 5 * 1.5f) +
-                    (int)(MainGame.screenHeight / 6.5f) * line, menuRectWidth, menuRectHeight);
+                    Rectangle menuItemPos = new Rectangle((MainGame.screenWidth - menuRectWidth) / 2 - SaveManager.size * 5/2, (int)(MainGame.screenHeight / 5 * 1.5f) +
+                    (int)(MainGame.screenHeight / 6.5f) * line - SaveManager.size * 5/2, menuRectWidth + SaveManager.size * 5, menuRectHeight + SaveManager.size * 5);
                     gfx.spriteBatch.Draw(gfx.texture, menuItemPos,rectColor);
                     if (menuItemPos.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
                         menuSelect = (MenuSelect)line;
-                        if(mouseState.LeftButton == ButtonState.Pressed && !mousePressed){
+                        if(mouseState.LeftButton == ButtonState.Pressed && !mousePressed && GameLogic.windowActive)
+                        {
                             mousePressed = true;
                             if (!(!gameSaved && line == 0)) return line;
                         }
@@ -202,7 +203,7 @@ namespace typatro.GameFolder
             {
                 optionNav = true;
             }
-            int optionTopOffset = 100;
+            int optionTopOffset = MainGame.screenHeight/5;
             Vector2 textPos, textSize;
             Rectangle menuItemPos;
             for (int line = 0; line < optionTexts.Length; line++)
@@ -214,22 +215,29 @@ namespace typatro.GameFolder
                     if (menuItemPosLeft.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
                         optionSelect = (OptionSelect)line;
-                        if (mouseState.LeftButton == ButtonState.Pressed && !mousePressed)
+                        if (mouseState.LeftButton == ButtonState.Pressed && !mousePressed && GameLogic.windowActive)
                         {
                             mousePressed = true;
                             OptionDecrease(optionSelect);
-                            if (line == optionTexts.Length - 1) return true;
+                            if (line == optionTexts.Length - 1)
+                            {
+                                return true;
+                            }
                         }
                     }
                     Rectangle menuItemPosRight = new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset + optionRectWidth / 2, optionTopOffset + menuLineSpacing * line, optionRectWidth / 2, optionRectHeight);
                     if (menuItemPosRight.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
                         optionSelect = (OptionSelect)line;
-                        if (mouseState.LeftButton == ButtonState.Pressed && !mousePressed)
+                        if (mouseState.LeftButton == ButtonState.Pressed && !mousePressed && GameLogic.windowActive)
                         {
                             mousePressed = true;
                             OptionIncrease(optionSelect);
-                            if (line == optionTexts.Length - 1) return true;
+                            if (line == optionTexts.Length - 1)
+                            {
+                                SaveManager.SaveSettings(SaveManager.theme, SaveManager.volume, SaveManager.size, SaveManager.fullscreen);
+                                return true;
+                            }
                         }
                     }
                     gfx.spriteBatch.Draw(gfx.texture, menuItemPos, menuColors[line]);
@@ -243,10 +251,14 @@ namespace typatro.GameFolder
             if (menuItemPos.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
             {
                 optionSelect = (OptionSelect)pos;
-                if (mouseState.LeftButton == ButtonState.Pressed)
+                if (mouseState.LeftButton == ButtonState.Pressed && GameLogic.windowActive)
                 {
                     mousePressed = true;
-                    if (pos == optionTexts.Length - 1) return true;
+                    if (pos == optionTexts.Length - 1)
+                    {
+                        SaveManager.SaveSettings(SaveManager.theme, SaveManager.volume, SaveManager.size, SaveManager.fullscreen);
+                        return true;
+                    }
                 }
             }
             gfx.spriteBatch.Draw(gfx.texture, menuItemPos, menuColors[pos]);
