@@ -13,8 +13,6 @@ namespace typatro.GameFolder
     {
         int maxCharsPerLine = 40;
         readonly int yOffset = 200, leftOffset = 100;
-        readonly SpriteBatch _spriteBatch;
-        readonly SpriteFont font;
         public static List<char> writtenText = new List<char>();
         public static List<int> diffIndexes = new List<int>();
         List<int> endLineIndexes = new List<int>(); 
@@ -23,12 +21,6 @@ namespace typatro.GameFolder
         readonly double repeatInterval = 0.5;
         int lastCheckedIndex = 0;
 
-
-        public Writer(SpriteBatch _spriteBatch, SpriteFont font)
-        {
-            this._spriteBatch = _spriteBatch;
-            this.font = font;
-        }
 
         //Compare written text to needed text and then put indexes of the wrong characters into diffIndexes
         public void UpdateDiffIndexes(string compareText){
@@ -113,9 +105,11 @@ namespace typatro.GameFolder
 
             Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + yExtraOffset);
 
-            _spriteBatch.DrawString(font, correctText, position + rotationPoint, ThemeColors.Text, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            _spriteBatch.DrawString(font, incorrectText, position + rotationPoint, ThemeColors.Wrong, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            return new Vector2(charIndex*font.MeasureString(" ").X-50, -50) + position;
+            Vector2 charSize = MainGame.Gfx.textFont.MeasureString(" ");
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(charIndex*(int)charSize.X + (int)position.X, (indexLine+1)*(int)charSize.Y + (int)position.Y-1,(int)charSize.X-3,3), ThemeColors.Selected);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, correctText, position + rotationPoint, ThemeColors.Text, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, incorrectText, position + rotationPoint, ThemeColors.Wrong, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            return new Vector2(charIndex*charSize.X-50, -50) + position;
         }
         Vector2 rotationPoint;
 
@@ -180,7 +174,7 @@ namespace typatro.GameFolder
             }
             string finalText = writeLine.ToString();
             Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + (line * 30) + yExtraOffset);
-            Vector2 size = font.MeasureString(finalText);
+            Vector2 size = MainGame.Gfx.textFont.MeasureString(finalText);
             rotationPoint = size / 2f;
 
             if (GlyphManager.IsActive(Glyph.Sun))
@@ -202,10 +196,10 @@ namespace typatro.GameFolder
                 }
             }
 
-            _spriteBatch.DrawString(font, finalText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            _spriteBatch.DrawString(font, shinyWriteLine.ToString(), position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            _spriteBatch.DrawString(font, stoneWriteLine.ToString(), position + rotationPoint, Color.Gray, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            _spriteBatch.DrawString(font, bloomWriteLine.ToString(), position + rotationPoint, Color.DarkGreen, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, finalText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, shinyWriteLine.ToString(), position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, stoneWriteLine.ToString(), position + rotationPoint, Color.Gray, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, bloomWriteLine.ToString(), position + rotationPoint, Color.DarkGreen, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
         }
     }
 }

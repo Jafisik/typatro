@@ -15,12 +15,12 @@ namespace typatro.GameFolder;
 public class MainGame : Game
 {
     public static GraphicsDeviceManager graphics;
-    public struct Gfx
+    public static class Gfx
     {
-        public SpriteBatch spriteBatch;
-        public Texture2D texture, catPic, bg;
-        public Texture2D mouse1, mouse2;
-        public SpriteFont gameFont, smallTextFont, menuFont, textFont, smallMapFont;
+        public static SpriteBatch spriteBatch;
+        public static Texture2D texture, catPic, bg;
+        public static Texture2D mouse1, mouse2;
+        public static SpriteFont gameFont, smallTextFont, menuFont, textFont, smallMapFont, logoFont;
     }
     public struct SoundEffects
     {
@@ -56,21 +56,20 @@ public class MainGame : Game
         string jsonText = File.ReadAllText("Content/wordlist.json");
         jsonText = jsonText.Trim();
         List<string> jsonStrings = JsonSerializer.Deserialize<List<string>>(jsonText);
-        Gfx gfx = new()
-        {
-            spriteBatch = new SpriteBatch(GraphicsDevice),
-            gameFont = Content.Load<SpriteFont>("Fonts/pixelFont"),
-            smallTextFont = Content.Load<SpriteFont>("Fonts/smallPixelFont"),
-            smallMapFont = Content.Load<SpriteFont>("Fonts/smallMapFont"),
-            menuFont = Content.Load<SpriteFont>("Fonts/menuFont"),
-            textFont = Content.Load<SpriteFont>("Fonts/textFont"),
-            catPic = Content.Load<Texture2D>("Images/catPic"),
-            bg = Content.Load<Texture2D>("Images/bg"),
-            mouse1 = Content.Load<Texture2D>("Images/mouseOpenY"),
-            mouse2 = Content.Load<Texture2D>("Images/mouseClosedY"),
-            texture = new Texture2D(GraphicsDevice, 1, 1),
-        };
-        gfx.texture.SetData(new[] { Color.White });
+
+        Gfx.spriteBatch = new SpriteBatch(GraphicsDevice);
+        Gfx.gameFont = Content.Load<SpriteFont>("Fonts/pixelFont");
+        Gfx.smallTextFont = Content.Load<SpriteFont>("Fonts/smallPixelFont");
+        Gfx.smallMapFont = Content.Load<SpriteFont>("Fonts/smallMapFont");
+        Gfx.menuFont = Content.Load<SpriteFont>("Fonts/menuFont");
+        Gfx.textFont = Content.Load<SpriteFont>("Fonts/textFont");
+        Gfx.logoFont = Content.Load<SpriteFont>("Fonts/logoFont");
+        Gfx.catPic = Content.Load<Texture2D>("Images/catPic");
+        Gfx.bg = Content.Load<Texture2D>("Images/bg");
+        Gfx.mouse1 = Content.Load<Texture2D>("Images/mouseOpenY");
+        Gfx.mouse2 = Content.Load<Texture2D>("Images/mouseClosedY");
+        Gfx.texture = new Texture2D(GraphicsDevice, 1, 1);
+        Gfx.texture.SetData(new[] { Color.White });
 
         GlyphImageLoad();
         
@@ -91,7 +90,7 @@ public class MainGame : Game
         sfx.musicIntro.Play();
         
 
-        gameLogic = new GameLogic(gfx, jsonStrings, Window.Position, sfx);
+        gameLogic = new GameLogic(jsonStrings, Window.Position, sfx);
     }
 
     protected override void Update(GameTime gameTime){

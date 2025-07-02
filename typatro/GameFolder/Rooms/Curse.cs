@@ -10,15 +10,13 @@ namespace typatro.GameFolder.Rooms
 {
     class CurseRoom
     {
-        MainGame.Gfx gfx;
         Enhancements enhancements;
         Curses curse;
         bool pickUp = true, keyDown, enterReleased;
         readonly int leftOffset = 100, descOffset = 150, rectTopOffset = 100, rectWidth = 100, rectHeight = 50;
 
-        public CurseRoom(MainGame.Gfx gfx, Enhancements enhancements)
+        public CurseRoom(Enhancements enhancements)
         {
-            this.gfx = gfx;
             this.enhancements = enhancements;
         }
 
@@ -55,12 +53,12 @@ namespace typatro.GameFolder.Rooms
                 mousePressed = false;
             }
 
-            gfx.spriteBatch.DrawString(gfx.gameFont, GetName(curse), new Vector2(100, 100), ThemeColors.Text);
-            gfx.spriteBatch.DrawString(gfx.smallTextFont, GetDescription(curse), new Vector2(100, 200), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, GetName(curse), new Vector2(100, 100), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GetDescription(curse), new Vector2(100, 200), ThemeColors.Text);
 
             Rectangle yesRect = new Rectangle(leftOffset, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
-            gfx.spriteBatch.Draw(gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-            gfx.spriteBatch.DrawString(gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
             
             if (yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
             {
@@ -75,8 +73,8 @@ namespace typatro.GameFolder.Rooms
             
 
             Rectangle noRect = new Rectangle(leftOffset + rectWidth, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
-            gfx.spriteBatch.Draw(gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-            gfx.spriteBatch.DrawString(gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
             if (noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
             {
                 if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)

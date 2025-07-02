@@ -15,7 +15,6 @@ namespace typatro.GameFolder
 
     class Menu
     {
-        MainGame.Gfx gfx;
         int menuLineSpacing = 100;
         int menuRectWidth = 400, menuRectHeight = 80;
         int leftOffset = 170, optionRectWidth = 300, optionRectHeight = 80;
@@ -48,10 +47,8 @@ namespace typatro.GameFolder
         public string[] sizes = new string[]{ "800/600", "1152/648", "1280/720"};
         public bool fullscreen = false;
 
-        public Menu(MainGame.Gfx gfx)
-        {
-            this.gfx = gfx;
-            
+        public Menu()
+        {     
             int[] settings = SaveManager.LoadSettings();
             try{
                 SaveManager.theme = settings[0];
@@ -105,24 +102,22 @@ namespace typatro.GameFolder
                 mousePressed = false;
             }
 
-                string title = "GLYPHORA";
-            Vector2 start = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 2f);
-            Vector2 end = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 5f);
+            string title = "GLYPHORA";
+            Vector2 textSize = MainGame.Gfx.logoFont.MeasureString(title);
+            Vector2 start = new Vector2(MainGame.screenWidth / 2 - textSize.X/2, MainGame.screenHeight / 2 - textSize.Y/2);
+            Vector2 end = new Vector2(MainGame.screenWidth / 2 - textSize.X/2, MainGame.screenHeight / 5 - textSize.Y/2);
             Vector2 current = start;
 
-            if (totalSeconds >= 2 && totalSeconds <= 4){
+            if (!introFinished && totalSeconds >= 2 && totalSeconds <= 4){
                 float t = (float)((totalSeconds - 2) / 2);
                 current = Vector2.Lerp(start, end, t);
             }
-            else if (totalSeconds > 4){
+            else if (totalSeconds > 4 || introFinished){
                 current = end;
             }
 
-            Vector2 textSize = gfx.menuFont.MeasureString(title);
-            Vector2 drawPos = current - textSize;
-
-            if(!introFinished) gfx.spriteBatch.DrawString(gfx.menuFont, title, drawPos, ThemeColors.Text, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.6f);
-            else gfx.spriteBatch.DrawString(gfx.menuFont, title, end-textSize, ThemeColors.Text, 0f, Vector2.Zero, 2f, SpriteEffects.None, 0.6f);
+            if(!introFinished) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.logoFont, title, current, ThemeColors.Text, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+            else MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.logoFont, title, current, ThemeColors.Text, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
 
             if (totalSeconds >= 4 || introFinished){
                 float alpha = MathHelper.Clamp((float)((totalSeconds - 4) / 2), 0f, 1f);
@@ -133,7 +128,7 @@ namespace typatro.GameFolder
 
                     Rectangle menuItemPos = new Rectangle((MainGame.screenWidth - menuRectWidth) / 2 - SaveManager.size * 5/2, (int)(MainGame.screenHeight / 5 * 1.5f) +
                     (int)(MainGame.screenHeight / 6.5f) * line - SaveManager.size * 5/2, menuRectWidth + SaveManager.size * 5, menuRectHeight + SaveManager.size * 5);
-                    gfx.spriteBatch.Draw(gfx.texture, menuItemPos,rectColor);
+                    MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, menuItemPos,rectColor);
                     if (menuItemPos.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
                         menuSelect = (MenuSelect)line;
@@ -144,11 +139,11 @@ namespace typatro.GameFolder
                         }
                     }
 
-                    Vector2 lineSize = gfx.menuFont.MeasureString(menuTexts[line]);
+                    Vector2 lineSize = MainGame.Gfx.menuFont.MeasureString(menuTexts[line]);
                     Vector2 linePos = new Vector2((MainGame.screenWidth - lineSize.X) / 2,(int)(MainGame.screenHeight / 5 * 1.5f) + 
                     (int)(MainGame.screenHeight / 6.5f) * line + menuRectHeight / 2 - lineSize.Y / 3);
 
-                    gfx.spriteBatch.DrawString(gfx.menuFont, menuTexts[line], linePos, textColor);
+                    MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, menuTexts[line], linePos, textColor);
                 }
             }
             if(totalSeconds >= 5) introFinished = true;
@@ -240,10 +235,10 @@ namespace typatro.GameFolder
                             }
                         }
                     }
-                    gfx.spriteBatch.Draw(gfx.texture, menuItemPos, menuColors[line]);
-                    textSize = gfx.menuFont.MeasureString(optionTexts[line]);
+                    MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, menuItemPos, menuColors[line]);
+                    textSize = MainGame.Gfx.menuFont.MeasureString(optionTexts[line]);
                     textPos = new Vector2(MainGame.screenWidth / 2 - textSize.X - 40, optionTopOffset + optionRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
-                    gfx.spriteBatch.DrawString(gfx.menuFont, optionTexts[line], textPos, ThemeColors.Text);
+                    MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, optionTexts[line], textPos, ThemeColors.Text);
                 } 
             }
             int pos = optionTexts.Length - 1;
@@ -261,18 +256,18 @@ namespace typatro.GameFolder
                     }
                 }
             }
-            gfx.spriteBatch.Draw(gfx.texture, menuItemPos, menuColors[pos]);
-            gfx.spriteBatch.DrawString(gfx.menuFont, "<", new Vector2(menuItemPos.X + 17, menuItemPos.Y + 7), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, menuItemPos, menuColors[pos]);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "<", new Vector2(menuItemPos.X + 17, menuItemPos.Y + 7), ThemeColors.Text);
 
-            gfx.spriteBatch.DrawString(gfx.menuFont, themes[SaveManager.theme], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- gfx.menuFont.MeasureString(themes[SaveManager.theme]).X/2 + 20, optionTopOffset+20), ThemeColors.Text);
-            gfx.spriteBatch.DrawString(gfx.menuFont, "<             >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20), ThemeColors.Text);
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+20, optionTopOffset + menuLineSpacing+20, optionRectWidth-40, 40), ThemeColors.Background);
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, optionRectWidth-50, 30), ThemeColors.Background);
-            gfx.spriteBatch.Draw(gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, (optionRectWidth-50)/10*SaveManager.volume, 30), ThemeColors.Selected);
-            gfx.spriteBatch.DrawString(gfx.menuFont, sizes[SaveManager.size], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- gfx.menuFont.MeasureString(sizes[SaveManager.size]).X/2+20, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
-            gfx.spriteBatch.DrawString(gfx.menuFont, "<               >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, themes[SaveManager.theme], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- MainGame.Gfx.menuFont.MeasureString(themes[SaveManager.theme]).X/2 + 20, optionTopOffset+20), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "<             >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+20, optionTopOffset + menuLineSpacing+20, optionRectWidth-40, 40), ThemeColors.Background);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, optionRectWidth-50, 30), ThemeColors.Background);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, (optionRectWidth-50)/10*SaveManager.volume, 30), ThemeColors.Selected);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, sizes[SaveManager.size], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- MainGame.Gfx.menuFont.MeasureString(sizes[SaveManager.size]).X/2+20, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "<               >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
             string fullScr = SaveManager.fullscreen == 0?"off":"on";
-            gfx.spriteBatch.DrawString(gfx.menuFont, fullScr, new Vector2(MainGame.screenWidth / 2 + optionRectWidth / 2 - gfx.menuFont.MeasureString(fullScr).X / 2 +20, optionTopOffset + 20 + menuLineSpacing * 3), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, fullScr, new Vector2(MainGame.screenWidth / 2 + optionRectWidth / 2 - MainGame.Gfx.menuFont.MeasureString(fullScr).X / 2 +20, optionTopOffset + 20 + menuLineSpacing * 3), ThemeColors.Text);
             return false;
         }
         private void ChangeScreenSize(int size){

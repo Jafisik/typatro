@@ -9,14 +9,12 @@ using typatro.GameFolder.Upgrades;
 namespace typatro.GameFolder.Rooms{
 
     class Treasure{
-        MainGame.Gfx gfx;
         Glyph currentGlyph;
         Enhancements enhancements;
         bool pickUp = true, keyDown;
         readonly int topOffset = 80, leftOffset = 50, descOffset = 150, rectTopOffset = 200, rectWidth = 100, rectHeight = 50;
 
-        public Treasure(MainGame.Gfx gfx, Enhancements enhancements){
-            this.gfx = gfx;
+        public Treasure(Enhancements enhancements){
             this.enhancements = enhancements;
             GlyphManager.Add(Glyph.NoGlyphsLeft);
         }
@@ -25,8 +23,8 @@ namespace typatro.GameFolder.Rooms{
             MouseState mouseState = Mouse.GetState();
             Glyph glyph = currentGlyph;
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
-            gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Foreground);
-            gfx.spriteBatch.DrawString(gfx.smallTextFont, treasureDescriptionText, new Vector2(leftOffset, topOffset+descOffset), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Foreground);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, treasureDescriptionText, new Vector2(leftOffset, topOffset+descOffset), ThemeColors.Text);
 
             if(glyph != Glyph.NoGlyphsLeft){
                 var state = Keyboard.GetState();
@@ -59,8 +57,8 @@ namespace typatro.GameFolder.Rooms{
                     }
                     pickUp = true;
                 }
-                gfx.spriteBatch.Draw(gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-                gfx.spriteBatch.DrawString(gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
 
 
                 Rectangle noRect = new Rectangle(leftOffset + rectWidth, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
@@ -73,13 +71,13 @@ namespace typatro.GameFolder.Rooms{
                     }
                     pickUp = false;
                 }
-                gfx.spriteBatch.Draw(gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-                gfx.spriteBatch.DrawString(gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
 
             } 
             else{
-                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), ThemeColors.NotSelected);
-                gfx.spriteBatch.Draw(gfx.texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset, rectWidth, rectHeight), ThemeColors.Selected);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), ThemeColors.NotSelected);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset, rectWidth, rectHeight), ThemeColors.Selected);
             }
             return false;
         }

@@ -38,7 +38,6 @@ namespace typatro.GameFolder{
         }
     }
     class Map{
-        MainGame.Gfx gfx;
         readonly int rowSpacing = 75, columnSpacing = 55, randomChange = 12;
         readonly int topOffset = 80, leftOffset = 40;
         readonly int paths = 4;
@@ -48,8 +47,7 @@ namespace typatro.GameFolder{
         bool nodeMove = true, enterUp = true;
         
 
-        public Map(MainGame.Gfx gfx){
-            this.gfx = gfx;
+        public Map(){
             columnSpacing = MainGame.screenHeight/10;
             rowSpacing = MainGame.screenWidth/14+2;
         }
@@ -179,23 +177,26 @@ namespace typatro.GameFolder{
                 for (int j = 1; j < mapNodes.GetLength(1); j++){
                     MapNode node = mapNodes[i, j];
 
-                    if (node != null){
-                        foreach (MapNode next in node.forward){
-                            if (next != null){
+                    if (node != null)
+                    {
+                        foreach (MapNode next in node.forward)
+                        {
+                            if (next != null)
+                            {
                                 DrawDottedPath(node.point, next.point);
                             }
                         }
 
-                        gfx.spriteBatch.DrawString(gfx.menuFont, MapIcon(node.type), node.point, ThemeColors.Text);
+                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, MapIcon(node.type), node.point, ThemeColors.Text);
                         if (node.visited && node.type != NodeType.NOTHING)
                         {
-                            gfx.spriteBatch.Draw(gfx.texture, new Microsoft.Xna.Framework.Rectangle((int)node.point.X - 5, (int)node.point.Y - 5, 30, 40), ThemeColors.Selected);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X - 8, (int)node.point.Y - 8, 40, 50), ThemeColors.ExitShop);
                         }
                     }
                 }
             }
             string info = "F - Fight   E - Elite fight   C - Curse  $ - Shop   X - Treasure   B - Boss";
-            gfx.spriteBatch.DrawString(gfx.smallMapFont, info, new Vector2(MainGame.screenWidth/2-gfx.smallMapFont.MeasureString(info).X/2,MainGame.screenHeight-40), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont, info, new Vector2(MainGame.screenWidth/2-MainGame.Gfx.smallMapFont.MeasureString(info).X/2,MainGame.screenHeight-40), ThemeColors.Text);
         }
 
         private void DrawDottedPath(Vector2 start, Vector2 end)
@@ -206,7 +207,7 @@ namespace typatro.GameFolder{
             
             for (float d = dotSpacing; d < distance-dotSpacing; d += dotSpacing){
                 Vector2 dotPosition = start + direction * d;
-                gfx.spriteBatch.DrawString(gfx.menuFont, ".", dotPosition, ThemeColors.NotSelected);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, ".", dotPosition, ThemeColors.NotSelected);
             }
         }
 
@@ -253,7 +254,7 @@ namespace typatro.GameFolder{
                 int nodeIndex = 0;
                 MapNode selectedNode;
                 foreach (MapNode fwdNode in node.forward){
-                    Rectangle nodeRect = new Rectangle((int)fwdNode.point.X - 5, (int)fwdNode.point.Y - 5, 30, 40);
+                    Rectangle nodeRect = new Rectangle((int)fwdNode.point.X - 8, (int)fwdNode.point.Y - 8, 40, 50);
                     if (!mousePressed && nodeRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
                         nodeSelectIndex = nodeIndex;
@@ -267,8 +268,16 @@ namespace typatro.GameFolder{
                             return selectedNode;
                         }
                     }
-                    gfx.spriteBatch.Draw(gfx.texture, nodeRect, ThemeColors.Background);
-                    gfx.spriteBatch.Draw(gfx.texture, nodeRect, ThemeColors.Background);
+
+                    if (nodeSelectIndex == nodeIndex)
+                    {
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.forward[nodeSelectIndex].point.X - 8, (int)node.forward[nodeSelectIndex].point.Y - 8, 40, 50), ThemeColors.Selected);
+                    }
+                    else
+                    {
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, nodeRect, ThemeColors.NotSelected);
+                    }
+                    
                     nodeIndex++;
                 }
 
@@ -281,10 +290,10 @@ namespace typatro.GameFolder{
                 }
                 else if(state.IsKeyUp(Keys.Enter)) enterUp = true;
                 
-                gfx.spriteBatch.Draw(gfx.texture, new Rectangle((int)selectedNode.point.X-5, (int)selectedNode.point.Y-5, 30, 40), ThemeColors.NotSelected);
+                
             }
             if(node.type != NodeType.NOTHING){
-                gfx.spriteBatch.Draw(gfx.texture, new Rectangle((int)node.point.X-5, (int)node.point.Y-5, 30, 40), ThemeColors.NotSelected);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X-8, (int)node.point.Y-8, 35, 50), ThemeColors.ExitShop);
             }
             
             return node;
