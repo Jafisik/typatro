@@ -12,11 +12,12 @@ namespace typatro.GameFolder.Rooms{
         Glyph currentGlyph;
         Enhancements enhancements;
         bool pickUp = true, keyDown;
-        readonly int topOffset = 80, leftOffset = 50, descOffset = 150, rectTopOffset = 200, rectWidth = 100, rectHeight = 50;
+        readonly int topOffset = 80, leftOffset = 50, rectTopOffset = 200, rectWidth = 170, rectHeight = 60, rectOffset;
 
         public Treasure(Enhancements enhancements){
             this.enhancements = enhancements;
             GlyphManager.Add(Glyph.NoGlyphsLeft);
+            rectOffset = MainGame.screenWidth/4;
         }
 
         public bool DisplayTreasure(ref long coins, ref bool mousePressed){
@@ -24,7 +25,7 @@ namespace typatro.GameFolder.Rooms{
             Glyph glyph = currentGlyph;
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
             MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Foreground);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, treasureDescriptionText, new Vector2(leftOffset, topOffset+descOffset), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, treasureDescriptionText, new Vector2(leftOffset, topOffset*3), ThemeColors.Text);
 
             if(glyph != Glyph.NoGlyphsLeft){
                 var state = Keyboard.GetState();
@@ -36,7 +37,10 @@ namespace typatro.GameFolder.Rooms{
                     keyDown = false;
                 }
                 if(state.IsKeyDown(Keys.Enter)){
-                    
+                    GlyphManager.Add(glyph);
+                    if (glyph == Glyph.Hundred) coins += 100;
+                    enhancements.AddGlyphEnhancementsUpdate(glyph);
+                    mousePressed = true;
                     return true;
                 }
                 if (mouseState.LeftButton == ButtonState.Released)
@@ -44,7 +48,7 @@ namespace typatro.GameFolder.Rooms{
                     mousePressed = false;
                 }
 
-                Rectangle yesRect = new Rectangle(leftOffset, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
+                Rectangle yesRect = new Rectangle(rectOffset, topOffset*5, rectWidth, rectHeight);
                 if (yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                 {
                     if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
@@ -57,11 +61,13 @@ namespace typatro.GameFolder.Rooms{
                     }
                     pickUp = true;
                 }
+
+                Vector2 yesSize = MainGame.Gfx.gameFont.MeasureString("accept");
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "accept", new Vector2(yesRect.X + yesRect.Width / 2 - yesSize.X / 2, yesRect.Y + yesRect.Height / 2 - yesSize.Y / 2+5), ThemeColors.Text);
 
 
-                Rectangle noRect = new Rectangle(leftOffset + rectWidth, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
+                Rectangle noRect = new Rectangle(rectOffset*2, topOffset*5, rectWidth, rectHeight);
                 if (noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                 {
                     if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
@@ -71,8 +77,9 @@ namespace typatro.GameFolder.Rooms{
                     }
                     pickUp = false;
                 }
+                Vector2 noSize = MainGame.Gfx.gameFont.MeasureString("decline");
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "decline", new Vector2(noRect.X + noRect.Width/2 - noSize.X/2, noRect.Y + noRect.Height / 2 - noSize.Y / 2+5), ThemeColors.Text);
 
             } 
             else{

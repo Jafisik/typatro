@@ -190,7 +190,7 @@ namespace typatro.GameFolder{
                         MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, MapIcon(node.type), node.point, ThemeColors.Text);
                         if (node.visited && node.type != NodeType.NOTHING)
                         {
-                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X - 8, (int)node.point.Y - 8, 40, 50), ThemeColors.ExitShop);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X - 7, (int)node.point.Y - 7, 38, 48), ThemeColors.ExitShop);
                         }
                     }
                 }
@@ -254,7 +254,7 @@ namespace typatro.GameFolder{
                 int nodeIndex = 0;
                 MapNode selectedNode;
                 foreach (MapNode fwdNode in node.forward){
-                    Rectangle nodeRect = new Rectangle((int)fwdNode.point.X - 8, (int)fwdNode.point.Y - 8, 40, 50);
+                    Rectangle nodeRect = new Rectangle((int)fwdNode.point.X - 7, (int)fwdNode.point.Y - 7, 38, 48);
                     if (!mousePressed && nodeRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
                         nodeSelectIndex = nodeIndex;
@@ -271,7 +271,7 @@ namespace typatro.GameFolder{
 
                     if (nodeSelectIndex == nodeIndex)
                     {
-                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.forward[nodeSelectIndex].point.X - 8, (int)node.forward[nodeSelectIndex].point.Y - 8, 40, 50), ThemeColors.Selected);
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.forward[nodeSelectIndex].point.X - 7, (int)node.forward[nodeSelectIndex].point.Y -7, 38, 48), ThemeColors.Selected);
                     }
                     else
                     {
@@ -293,7 +293,7 @@ namespace typatro.GameFolder{
                 
             }
             if(node.type != NodeType.NOTHING){
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X-8, (int)node.point.Y-8, 35, 50), ThemeColors.ExitShop);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X-7, (int)node.point.Y-7, 38, 48), ThemeColors.ExitShop);
             }
             
             return node;

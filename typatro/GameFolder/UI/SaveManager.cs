@@ -18,6 +18,7 @@ namespace typatro.GameFolder.UI{
         public static Color ShopReroll;
         public static Color ExitShop;
         public static Color Text;
+        public static Color Mouse;
         public static Color Correct;
         public static Color Wrong;
 
@@ -33,6 +34,7 @@ namespace typatro.GameFolder.UI{
                     ShopReroll = new Color(70,100,70,160);
                     ExitShop = new Color(30,60,30,160);
                     Text = new Color(190,240,145,230);
+                    Mouse = Color.White;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
                     break;
@@ -45,6 +47,7 @@ namespace typatro.GameFolder.UI{
                     ShopReroll = new Color(110,60,80,160);
                     ExitShop = new Color(80,30,50,160);
                     Text = Color.White;
+                    Mouse = Color.Purple;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
                     break;
@@ -57,6 +60,7 @@ namespace typatro.GameFolder.UI{
                     ShopReroll = new Color(60,60,110,160);
                     ExitShop = new Color(30,30,80,160);
                     Text = Color.White;
+                    Mouse = Color.LightSkyBlue;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
                     break;
@@ -70,6 +74,7 @@ namespace typatro.GameFolder.UI{
                     ShopReroll = new Color(130,40,40,160);
                     ExitShop = new Color(120,15,15,180);
                     Text = new Color(255,255,220);
+                    Mouse = Color.LightCoral;
                     Correct = Color.Green;
                     Wrong = Color.DarkRed;
                     break;

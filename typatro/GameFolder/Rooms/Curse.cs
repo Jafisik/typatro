@@ -13,11 +13,12 @@ namespace typatro.GameFolder.Rooms
         Enhancements enhancements;
         Curses curse;
         bool pickUp = true, keyDown, enterReleased;
-        readonly int leftOffset = 100, descOffset = 150, rectTopOffset = 100, rectWidth = 100, rectHeight = 50;
+        readonly int topOffset = 80, rectWidth = 170, rectHeight = 60, rectOffset;
 
         public CurseRoom(Enhancements enhancements)
         {
             this.enhancements = enhancements;
+            rectOffset = MainGame.screenWidth / 4;
         }
 
         public bool CurseRoomDisplay(ref long coins, ref bool mousePressed)
@@ -56,10 +57,12 @@ namespace typatro.GameFolder.Rooms
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, GetName(curse), new Vector2(100, 100), ThemeColors.Text);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GetDescription(curse), new Vector2(100, 200), ThemeColors.Text);
 
-            Rectangle yesRect = new Rectangle(leftOffset, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
+            Rectangle yesRect = new Rectangle(rectOffset, topOffset * 5, rectWidth, rectHeight);
+
+            Vector2 yesSize = MainGame.Gfx.gameFont.MeasureString("accept");
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "yes", new Vector2(leftOffset + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
-            
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "accept", new Vector2(yesRect.X + yesRect.Width / 2 - yesSize.X / 2, yesRect.Y + yesRect.Height / 2 - yesSize.Y / 2 + 5), ThemeColors.Text);
+
             if (yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
             {
                 if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
@@ -70,11 +73,12 @@ namespace typatro.GameFolder.Rooms
                 }
                 pickUp = true;
             }
-            
 
-            Rectangle noRect = new Rectangle(leftOffset + rectWidth, rectTopOffset + descOffset * 2, rectWidth, rectHeight);
+
+            Rectangle noRect = new Rectangle(rectOffset * 2, topOffset * 5, rectWidth, rectHeight);
+            Vector2 noSize = MainGame.Gfx.gameFont.MeasureString("decline");
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "no", new Vector2(leftOffset * 2 + rectHeight + 10, rectTopOffset + descOffset * 2 + 5), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "decline", new Vector2(noRect.X + noRect.Width / 2 - noSize.X / 2, noRect.Y + noRect.Height / 2 - noSize.Y / 2 + 5), ThemeColors.Text);
             if (noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
             {
                 if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
@@ -135,17 +139,17 @@ namespace typatro.GameFolder.Rooms
 
         enum Curses
         {
-            [Description("Decrease 5 random letters by -5, \n\nbut gain 150 coins")]
+            [Description("- Decrease 5 random letters by -5\n\n+ Gain 150 coins")]
             LettersForCoins,
-            [Description("Decrease all word chances by 2%, \n\nbut gain 150 coins")]
+            [Description("- Decrease all word chances by 2%\n\n+ Gain 150 coins")]
             ChanceForCoins,
-            [Description("Multiply all letters by 1.2x, \n\nbut loose special word chances")]
+            [Description("- Lose special word chances\n\n+ Multiply all letters by 1.2x")]
             NoWordsChance,
-            [Description("Decrease a random letter by -20, \n\nbut then multiply it by -1")]
+            [Description("- Decrease a random letter by -20\n\n+ Multiply the same letter by -1")]
             AroundTheWorld,
-            [Description("Decrease stone word score to 10, \n\nbut gain 25% stone chance")]
+            [Description("- Decrease stone word score to 10\n\n+ Gain 25% stone chance")]
             Rocks,
-            [Description("Change shine mult to 1x, \n\nbut gain 10% shine chance")]
+            [Description("- Change shine mult to 1x\n\n+ Gain 10% shine chance")]
             Glimmer,
         }
 

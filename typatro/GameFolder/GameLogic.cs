@@ -498,7 +498,7 @@ namespace typatro.GameFolder
             if (mouseState.LeftButton == ButtonState.Pressed) mouseTexture = MainGame.Gfx.mouse2;
             if (!keyboardUsed)
             {
-                MainGame.Gfx.spriteBatch.Draw(mouseTexture, new Vector2(mouseState.X, mouseState.Y), null, Color.White, 0f, new Vector2(16, 16), 1.6f, SpriteEffects.None, 0f);
+                MainGame.Gfx.spriteBatch.Draw(mouseTexture, new Vector2(mouseState.X, mouseState.Y), null, ThemeColors.Mouse, 0f, new Vector2(16, 16), 1.6f, SpriteEffects.None, 0f);
             }
             else
             {

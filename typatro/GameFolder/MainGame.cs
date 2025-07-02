@@ -30,7 +30,7 @@ public class MainGame : Game
     GameLogic gameLogic;
     public static GameTime time;
     public static int screenWidth = 800, screenHeight = 600;
-    
+
     public MainGame(){
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
@@ -40,8 +40,8 @@ public class MainGame : Game
     }
 
     protected override void Initialize(){
-        graphics.PreferredBackBufferWidth = screenWidth;
-        graphics.PreferredBackBufferHeight = screenHeight;
+        graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+        graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
         Window.IsBorderless = true;
         Window.Title = "GLYPHORA";
         if (!SteamAPI.Init())
