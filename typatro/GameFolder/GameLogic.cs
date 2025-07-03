@@ -435,6 +435,7 @@ namespace typatro.GameFolder
                         roomSelected = false;
                         canStartFight = false;
                         SaveManager.UnlockUnlock("uruz0");
+                coins = 500;
                     }
                 else if (gameState == GameState.RUNES)
                 {
@@ -1059,7 +1060,7 @@ namespace typatro.GameFolder
                     if (state.IsKeyUp(Keys.Tab) && !inventoryUp)
                     {
 
-                        MapNode newNode = map.NodeSelect(selectedNode, ref mousePressed);
+                        MapNode newNode = map.NodeSelect(selectedNode, ref mousePressed, selectedNode.column, level);
 
                         if (newNode != selectedNode)
                         {
@@ -1209,7 +1210,7 @@ namespace typatro.GameFolder
             
         }
 
-        private static bool IsFight(NodeType nodeType)
+        public static bool IsFight(NodeType nodeType)
         {
             if (nodeType == NodeType.FIGHT || nodeType == NodeType.ELITE || nodeType == NodeType.BOSS)
                 return true;

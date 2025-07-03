@@ -9,7 +9,7 @@ namespace typatro.GameFolder.Upgrades{
 
     public enum Glyph
     {
-        [Description("No description available")]
+        [Description("You can't buy any more glyphs")]
         NoGlyphsLeft,
         [Description("Meaning: \"Sound for 'A', used for names or verbs.\"\n\n+ Adds 5 to all vowels")]
         A,
@@ -130,11 +130,12 @@ namespace typatro.GameFolder.Upgrades{
         {
             if (!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GetRandomUnusedGlyph", ""));
             var unusedGlyphs = unlockedGlyphs.Except(activeGlyphs).ToList();
-
+            Console.WriteLine(unusedGlyphs.Count);
             if (unusedGlyphs.Count == 0)
+            {
                 return Glyph.NoGlyphsLeft;
-
-            int index = GameLogic.seededRandom.Next(unusedGlyphs.Count);
+            }
+            int index = GameLogic.seededRandom.Next(unusedGlyphs.Count-27);
             return unusedGlyphs[index];
         }
 

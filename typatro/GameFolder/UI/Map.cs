@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using typatro.GameFolder.Rooms;
 using typatro.GameFolder.UI;
+using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace typatro.GameFolder{
@@ -233,27 +236,35 @@ namespace typatro.GameFolder{
             return NodeType.TREASURE;
         }
 
-        public MapNode NodeSelect(MapNode node, ref bool mousePressed){
+        public MapNode NodeSelect(MapNode node, ref bool mousePressed, int column, int level){
             MouseState mouseState = Mouse.GetState();
             if(mouseState.LeftButton == ButtonState.Released)
             {
                 mousePressed = false;
             }
             int forwardCount = node.forward.Count;
-            if(forwardCount > 0){KeyboardState state = Keyboard.GetState();
-                if (nodeMove){
-                    if (state.IsKeyDown(Keys.Down) && nodeSelectIndex != forwardCount-1) nodeSelectIndex++;
+            if(node.type != NodeType.NOTHING){
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X-7, (int)node.point.Y-7, 38, 48), ThemeColors.ExitShop);
+            }
+            if (forwardCount > 0)
+            {
+                KeyboardState state = Keyboard.GetState();
+                if (nodeMove)
+                {
+                    if (state.IsKeyDown(Keys.Down) && nodeSelectIndex != forwardCount - 1) nodeSelectIndex++;
                     else if (state.IsKeyDown(Keys.Up) && nodeSelectIndex != 0) nodeSelectIndex--;
                     nodeMove = false;
                 }
 
-                if (state.IsKeyUp(Keys.Up) && state.IsKeyUp(Keys.Down)){
+                if (state.IsKeyUp(Keys.Up) && state.IsKeyUp(Keys.Down))
+                {
                     nodeMove = true;
                 }
 
                 int nodeIndex = 0;
                 MapNode selectedNode;
-                foreach (MapNode fwdNode in node.forward){
+                foreach (MapNode fwdNode in node.forward)
+                {
                     Rectangle nodeRect = new Rectangle((int)fwdNode.point.X - 7, (int)fwdNode.point.Y - 7, 38, 48);
                     if (!mousePressed && nodeRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
@@ -271,30 +282,67 @@ namespace typatro.GameFolder{
 
                     if (nodeSelectIndex == nodeIndex)
                     {
-                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.forward[nodeSelectIndex].point.X - 7, (int)node.forward[nodeSelectIndex].point.Y -7, 38, 48), ThemeColors.Selected);
+                        Vector2 nodePoint = node.forward[nodeSelectIndex].point;
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)nodePoint.X - 7, (int)nodePoint.Y - 7, 38, 48), ThemeColors.Selected);
+
+                        NodeType type = node.forward[nodeSelectIndex].type;
+                        if (GameLogic.IsFight(type))
+                        {
+                            int difficulty;
+                            string letters;
+                            switch (node.forward[nodeSelectIndex].type)
+                            {
+                                case NodeType.FIGHT:
+                                    difficulty = 1;
+                                    letters = "+ 1-3";
+                                    break;
+                                case NodeType.ELITE:
+                                    difficulty = 2;
+                                    letters = "+ 3-5";
+                                    break;
+                                case NodeType.BOSS:
+                                    difficulty = 3;
+                                    letters = "* 2-3";
+                                    break;
+                                default:
+                                    difficulty = 1;
+                                    letters = "";
+                                    break;
+                            }
+                            int coins = Fight.CashGainGen(level, column, difficulty);
+                            Color infoBg = ThemeColors.ExitShop;
+                            infoBg.A = 220;
+                            Rectangle infoRect;
+                            if (column <= (SaveManager.size>0?8:5)) infoRect = new Rectangle((int)nodePoint.X + 50, (int)nodePoint.Y - 30, 200, 100);
+                            else infoRect = new Rectangle((int)nodePoint.X - 230, (int)nodePoint.Y - 30, 200, 100);
+
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont,
+                                $"Reward: {coins} coins\nLetter: {letters}\nLength: {Fight.WordsGen(difficulty)} words\nDamage: {Math.Max(1, Fight.SpeedGen(level, column, difficulty))}/s",
+                                new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
+                        }
                     }
                     else
                     {
                         MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, nodeRect, ThemeColors.NotSelected);
                     }
-                    
+
                     nodeIndex++;
                 }
 
                 selectedNode = node.forward[nodeSelectIndex];
-                if(state.IsKeyDown(Keys.Enter) && enterUp){
+                if (state.IsKeyDown(Keys.Enter) && enterUp)
+                {
                     enterUp = false;
                     nodeSelectIndex = 0;
                     selectedNode.visited = true;
                     return selectedNode;
                 }
-                else if(state.IsKeyUp(Keys.Enter)) enterUp = true;
-                
-                
+                else if (state.IsKeyUp(Keys.Enter)) enterUp = true;
+
+
             }
-            if(node.type != NodeType.NOTHING){
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X-7, (int)node.point.Y-7, 38, 48), ThemeColors.ExitShop);
-            }
+            
             
             return node;
         }

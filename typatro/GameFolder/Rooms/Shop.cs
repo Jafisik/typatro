@@ -102,35 +102,31 @@ namespace typatro.GameFolder.Rooms{
         public EnhancementsUpgrade GenerateEnhancement()
         {
             EnhancementsType type = (EnhancementsType)GameLogic.unseededRandom.Next(Enum.GetValues(typeof(EnhancementsType)).Length);
-            int cost = 10;
-            switch (type)
+            return new EnhancementsUpgrade(type, EnhancementCost(type));
+        }
+
+        private int EnhancementCost(EnhancementsType type)
+        {
+            return type switch
             {
-                case EnhancementsType.wordScore:
-                    cost = enhancements.wordScore * 2 + 5;
-                    break;
-                case EnhancementsType.damageResist:
-                    cost = enhancements.damageResist * 3 + 5;
-                    break;
-                case EnhancementsType.startingScore:
-                    cost = enhancements.startingScore / 5 + 5;
-                    break;
-                case EnhancementsType.shinyChance:
-                    cost = (int)(enhancements.shinyChance * 100 * 10 + 10);
-                    break;
-                case EnhancementsType.stoneChance:
-                    cost = (int)(enhancements.stoneChance * 100 * 2 + 7);
-                    break;
-                case EnhancementsType.bloomChance:
-                    cost = (int)(enhancements.bloomChance * 100 * 8 + 10);
-                    break;
-                case EnhancementsType.shinyScore:
-                    cost = (int)(enhancements.shinyScore * enhancements.shinyScore * 10);
-                    break;
-                case EnhancementsType.stoneScore:
-                    cost = enhancements.stoneScore / 10 + 10;
-                    break;
+                EnhancementsType.wordScore => enhancements.wordScore * 2 + 5,
+                EnhancementsType.damageResist => enhancements.damageResist * 3 + 5,
+                EnhancementsType.startingScore => enhancements.startingScore / 5 + 5,
+                EnhancementsType.shinyChance => (int)(enhancements.shinyChance * 100 * 10 + 10),
+                EnhancementsType.stoneChance => (int)(enhancements.stoneChance * 100 * 2 + 7),
+                EnhancementsType.bloomChance => (int)(enhancements.bloomChance * 100 * 8 + 10),
+                EnhancementsType.shinyScore => (int)(enhancements.shinyScore * enhancements.shinyScore * 10),
+                EnhancementsType.stoneScore => enhancements.stoneScore / 10 + 10,
+                _ => 100,
+            };
+        }
+
+        private void EnhancementCostUpdate()
+        {
+            foreach (EnhancementsUpgrade upgrade in enhancementsUpgrades)
+            {
+                upgrade.cost = EnhancementCost(upgrade.enhancementsType);
             }
-            return new EnhancementsUpgrade(type, cost);
         }
 
         private void GenerateShop()
@@ -153,9 +149,20 @@ namespace typatro.GameFolder.Rooms{
                 Glyph glyph = GlyphManager.GetRandomUnusedGlyph();
                 if (i == 1)
                 {
-                    while (glyph == glyphs[0])
+                    for (int j = 0; j <= 10; j++)
                     {
-                        glyph = GlyphManager.GetRandomUnusedGlyph();
+                        if (glyph == glyphs[0])
+                        {
+                            glyph = GlyphManager.GetRandomUnusedGlyph();
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    if (glyph == glyphs[0])
+                    {
+                        glyph = Glyph.NoGlyphsLeft;
                     }
                 }
                 glyphs.Add(glyph);
@@ -237,13 +244,13 @@ namespace typatro.GameFolder.Rooms{
                     else if (cardIndex == 6)
                     {
                         MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if(glyphs[0] != Glyph.NoGlyphsLeft) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == 6) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == (SaveManager.size == 0 ? 5 : 7))
                     {
                         MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if(glyphs[1] != Glyph.NoGlyphsLeft) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == (SaveManager.size == 0 ? 5 : 7)) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == 8)
@@ -303,7 +310,22 @@ namespace typatro.GameFolder.Rooms{
                     GlyphManager.Add(glyph);
                     if (glyph == Glyph.Hundred) coins += 100;
                     enhancements.AddGlyphEnhancementsUpdate(glyph);
-                    glyphs[0] = GlyphManager.GetRandomUnusedGlyph();
+                    for (int j = 0; j <= 20; j++)
+                    {
+                        if (glyph == glyphs[1] || GlyphManager.IsActive(glyph))
+                        {
+                            glyph = GlyphManager.GetRandomUnusedGlyph();
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    if (glyph == glyphs[1] || GlyphManager.IsActive(glyph))
+                    {
+                        glyph = Glyph.NoGlyphsLeft;
+                    }
+                    glyphs[0] = glyph;
                     glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
                 }
                 if (selectionIndex == 7 && coins >= glyphCost)
@@ -313,7 +335,22 @@ namespace typatro.GameFolder.Rooms{
                     GlyphManager.Add(glyph);
                     if (glyph == Glyph.Hundred) coins += 100;
                     enhancements.AddGlyphEnhancementsUpdate(glyph);
-                    glyphs[1] = GlyphManager.GetRandomUnusedGlyph();
+                    for (int j = 0; j <= 20; j++)
+                    {
+                        if (glyph == glyphs[0] || GlyphManager.IsActive(glyph))
+                        {
+                            glyph = GlyphManager.GetRandomUnusedGlyph();
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    if (glyph == glyphs[0] || GlyphManager.IsActive(glyph))
+                    {
+                        glyph = Glyph.NoGlyphsLeft;
+                    }
+                    glyphs[1] = glyph;
                     glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
                 }
                 if (selectionIndex == 8 && coins >= enhancementsUpgrades[0].cost)
@@ -440,6 +477,7 @@ namespace typatro.GameFolder.Rooms{
                     enhancements.AddStoneScore(20);
                     break;
             }
+            EnhancementCostUpdate();
         }
     }
 }

@@ -37,9 +37,12 @@ namespace typatro.GameFolder.Rooms{
                     keyDown = false;
                 }
                 if(state.IsKeyDown(Keys.Enter)){
-                    GlyphManager.Add(glyph);
-                    if (glyph == Glyph.Hundred) coins += 100;
-                    enhancements.AddGlyphEnhancementsUpdate(glyph);
+                    if (pickUp)
+                    {
+                        GlyphManager.Add(glyph);
+                        if (glyph == Glyph.Hundred) coins += 100;
+                        enhancements.AddGlyphEnhancementsUpdate(glyph);
+                    }
                     mousePressed = true;
                     return true;
                 }
