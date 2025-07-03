@@ -135,7 +135,7 @@ namespace typatro.GameFolder.Upgrades{
             {
                 return Glyph.NoGlyphsLeft;
             }
-            int index = GameLogic.seededRandom.Next(unusedGlyphs.Count-27);
+            int index = GameLogic.seededRandom.Next(unusedGlyphs.Count);
             return unusedGlyphs[index];
         }
 

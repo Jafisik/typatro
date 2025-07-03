@@ -435,7 +435,6 @@ namespace typatro.GameFolder
                         roomSelected = false;
                         canStartFight = false;
                         SaveManager.UnlockUnlock("uruz0");
-                coins = 500;
                     }
                 else if (gameState == GameState.RUNES)
                 {
