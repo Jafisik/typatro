@@ -124,6 +124,13 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
         public static void Remove(Glyph glyph) => activeGlyphs.Remove(glyph);
+        public static void RemoveRandom()
+        {
+            if (activeGlyphs.Count > 0)
+            {
+                Remove(activeGlyphs.ElementAt(GameLogic.seededRandom.Next(0, activeGlyphs.Count)));
+            }
+        }
         public static bool IsActive(Glyph glyph) => activeGlyphs.Contains(glyph);
 
         public static Glyph GetRandomUnusedGlyph()

@@ -535,7 +535,7 @@ namespace typatro.GameFolder
             {
                 string fightWon = "You are dead";
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
-                var letters = enhancements.GetBestLetter();
+                var letters = enhancements.HighestLetter();
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Words written: " + wordsWritten + "\nLetters written:" + lettersWritten + "\nMistakes: " + mistakesWritten + "\nAccuracy: " + (int)((1.0 - (double)mistakesWritten / lettersWritten) * 100) + "%", new Vector2(100, 150), ThemeColors.Text);
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Most upgraded letter: " + letters.bestLetter + ":  " + letters.bestLetterNum + "\nTotal score: " + totalScore + "\nMax score: " + maxScore, new Vector2(450, 150), ThemeColors.Text);
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Shiny words: " + shinyWritten + "\nStone words: " + stoneWritten + "\nBloom words: " + bloomWritten, new Vector2(100, 300), ThemeColors.Text);
@@ -766,7 +766,7 @@ namespace typatro.GameFolder
                             if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
                             enhancements.MultiplyLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 2);
                         }
-                        if (Writer.writtenText.Count >= neededText.Length-10)
+                        if (Writer.writtenText.Count >= neededText.Length - 10)
                         {
                             if (!achievmentBools["HEART"])
                             {
@@ -806,12 +806,30 @@ namespace typatro.GameFolder
                         valMin = 2;
                         mult = true;
                     }
-                    for (int i = 0; i < 3; i++)
+                    char firstChar = (char)(seededRandom.Next(0, 26) + 'a');
+                    if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                    if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                    cards.Add(new LetterUpgrade(firstChar, mult, seededRandom.Next(valMin, valMax), 0));
+
+                    char secondChar = (char)(seededRandom.Next(0, 26) + 'a');
+                    if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                    while (secondChar == firstChar)
                     {
+                        secondChar = (char)(seededRandom.Next(0, 26) + 'a');
                         if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
-                        if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
-                        cards.Add(new LetterUpgrade((char)(seededRandom.Next(0, 26) + 'a'), mult, seededRandom.Next(valMin, valMax), 0));
                     }
+                    if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                    cards.Add(new LetterUpgrade(secondChar, mult, seededRandom.Next(valMin, valMax), 0));
+
+                    char thirdChar = (char)(seededRandom.Next(0, 26) + 'a');
+                    if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                    while (thirdChar == firstChar || thirdChar == secondChar)
+                    {
+                        thirdChar = (char)(seededRandom.Next(0, 26) + 'a');
+                        if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                    }
+                    if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                    cards.Add(new LetterUpgrade(thirdChar, mult, seededRandom.Next(valMin, valMax), 0));
 
                 }
                 else
@@ -856,7 +874,7 @@ namespace typatro.GameFolder
                             string fightWon = "You won the run";
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
 
-                            var letters = enhancements.GetBestLetter();
+                            var letters = enhancements.HighestLetter();
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Words written: " + wordsWritten + "\nLetters written:" + lettersWritten + "\nMistakes: " + mistakesWritten + "\nAccuracy: " + (int)((1.0 - (double)mistakesWritten / lettersWritten) * 100) + "%", new Vector2(100, 150), ThemeColors.Text);
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Most upgraded letter: " + letters.bestLetter + ":  " + letters.bestLetterNum + "\nTotal score: " + totalScore + "\nMax score: " + maxScore, new Vector2(450, 150), ThemeColors.Text);
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Shiny words: " + shinyWritten + "\nStone words: " + stoneWritten + "\nBloom words: " + bloomWritten, new Vector2(100, 300), ThemeColors.Text);
@@ -892,7 +910,8 @@ namespace typatro.GameFolder
                                 cardColor = (i == afterFightSelect) ? ThemeColors.Selected : ThemeColors.Foreground;
                                 Rectangle rewardRect = new Rectangle(MainGame.screenWidth / 5 * (i + 1) + SaveManager.size * 30, 250, 160, 120);
                                 if (mouseState.LeftButton == ButtonState.Released) mousePressed = false;
-                                if(rewardRect.Contains(mouseState.Position) && !keyboardUsed){
+                                if (rewardRect.Contains(mouseState.Position) && !keyboardUsed)
+                                {
                                     if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive)
                                     {
                                         mousePressed = true;
@@ -900,7 +919,7 @@ namespace typatro.GameFolder
                                     }
                                     afterFightSelect = i;
                                 }
-                                
+
                                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, rewardRect, cardColor);
                                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, cards[i].letter + (cards[i].mult ? "  *" : "  +") + cards[i].value, new Vector2(rewardRect.X + 25, 250 + 30), ThemeColors.Text);
                                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Current: " + enhancements.GetLetterScore(cards[i].letter), new Vector2(rewardRect.X + 20, 250 + 90), ThemeColors.Text);

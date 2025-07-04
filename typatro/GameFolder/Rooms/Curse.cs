@@ -95,7 +95,7 @@ namespace typatro.GameFolder.Rooms
         public void NewCurse()
         {
             curse = (Curses)GameLogic.unseededRandom.Next(0, Enum.GetValues(typeof(Curses)).Length);
-            //curse = Curses.ChanceForCoins; //specific curse tester
+            curse = Curses.GambleVision; //specific curse tester
         }
 
 
@@ -107,7 +107,7 @@ namespace typatro.GameFolder.Rooms
                     coins += 150;
                     for (int i = 0; i < 5; i++)
                     {
-                        GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                         enhancements.AddLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), -5);
                     }
                     break;
@@ -124,7 +124,7 @@ namespace typatro.GameFolder.Rooms
                     enhancements.stoneChance = 0;
                     break;
                 case Curses.AroundTheWorld:
-                    GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                     char randLetter = (char)(GameLogic.seededRandom.Next(0, 26) + 'a');
                     enhancements.AddLetterScore(randLetter, -20);
                     enhancements.MultiplyLetterScore(randLetter, -1);
@@ -132,6 +132,51 @@ namespace typatro.GameFolder.Rooms
                 case Curses.Rocks:
                     enhancements.stoneScore = 10;
                     enhancements.stoneChance += 0.25;
+                    break;
+                case Curses.Glimmer:
+                    enhancements.shinyScore = 1;
+                    enhancements.shinyChance = 0.1;
+                    break;
+                case Curses.GambleVision:
+                    int glyphCount = GlyphManager.GetGlyphCount();
+                    GlyphManager.RemoveAllGlyphs();
+                    for (int i = 0; i < glyphCount; i++)
+                    {
+                        GlyphManager.Add(GlyphManager.GetRandomUnusedGlyph());
+                    }
+                    break;
+                case Curses.TradeGlyph:
+                    GlyphManager.RemoveRandom();
+                    GlyphManager.Add(GlyphManager.GetRandomUnusedGlyph());
+                    break;
+                case Curses.DoYouBelieve:
+                    for (int i = 0; i < 26; i++)
+                    {
+                        enhancements.AddLetterScore((char)('a' + i), GameLogic.seededRandom.Next(0, 2) == 1 ? 20 : -20);
+                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                    }
+                    break;
+                case Curses.AllForGlyphs:
+                    coins = -100;
+                    GlyphManager.Add(GlyphManager.GetRandomUnusedGlyph());
+                    break;
+                case Curses.HangingQueen:
+                    enhancements.MultiplyLetterScore(enhancements.HighestLetter().bestLetter,0);
+                    enhancements.AllLettersMultiplyScore(1.5);
+                    break;
+                case Curses.HangingRook:
+                    enhancements.AllLettersAddScore(25);
+                    enhancements.MultiplyLetterScore(enhancements.HighestLetter().bestLetter,0);
+                    break;
+                case Curses.SilenceOfSound:
+                    enhancements.AllLettersMultiplyScore(1.5);
+                    enhancements.MultiplyLetterScore('a', 0);
+                    enhancements.MultiplyLetterScore('a', 0);
+                    enhancements.MultiplyLetterScore('i', 0);
+                    enhancements.MultiplyLetterScore('o', 0);
+                    enhancements.MultiplyLetterScore('u', 0);
+                    break;
+                default:
                     break;
             }
         }
@@ -151,6 +196,20 @@ namespace typatro.GameFolder.Rooms
             Rocks,
             [Description("- Change shine mult to 1x\n\n+ Gain 10% shine chance")]
             Glimmer,
+            [Description("- Remove 1 random glyph\n\n+ Gain 1 new glyph")]
+            TradeGlyph,
+            [Description("- Remove all glyphs\n\n+ Replace them with new ones")]
+            GambleVision,
+            [Description("- All vowels score 0\n\n+ Multiply consonants by 1.5x")]
+            SilenceOfSound,
+            [Description("Randomly add +20 or -20 to your letter scores")]
+            DoYouBelieve,
+            [Description("- Your highest letter score is set to 0\n\n+ Multiply all letters by 2x")]
+            HangingQueen,
+            [Description("- Your highest letter score is set to 0\n\n+ Add +25 to all other letters")]
+            HangingRook,
+            [Description("- Set coins to -100\n\n+ Gain a random glyph")]
+            AllForGlyphs,
         }
 
         string GetDescription(Curses? curse)
@@ -170,7 +229,15 @@ namespace typatro.GameFolder.Rooms
                 Curses.Glimmer => "Glimmer",
                 Curses.NoWordsChance => "No word chance",
                 Curses.Rocks => "Rocks",
-                _ => "",
+                Curses.AllForGlyphs => "All for glyphs",
+                Curses.DoYouBelieve => "Do you believe?",
+                Curses.GambleVision => "Gamble vision",
+                Curses.HangingQueen => "Hanging queen",
+                Curses.HangingRook => "Hanging rook",
+                Curses.TradeGlyph => "Trade glyph",
+                Curses.SilenceOfSound => "Silence of sound",
+                
+                _ => "Not defined",
             };
         }
     }

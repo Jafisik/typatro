@@ -157,7 +157,7 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
 
-        public (char bestLetter, long bestLetterNum) GetBestLetter()
+        public (char bestLetter, long bestLetterNum) HighestLetter()
         {
             char letter = 'a';
             long maxScore = 0;
@@ -186,15 +186,15 @@ namespace typatro.GameFolder.Upgrades{
                     AddLetterScore('u', 5);
                     break;
                 case Glyph.D:
-                    GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                    GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 5);
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 5);
                     break;
                 case Glyph.H:
                     for (int i = 0; i < 10; i++)
                     {
-                        GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                         MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 5);
                     }
                     break;
@@ -204,7 +204,7 @@ namespace typatro.GameFolder.Upgrades{
                 case Glyph.Water:
                     for (int i = 0; i < 5; i++)
                     {
-                        GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                         AddLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), -5);
                     }
                     break;
@@ -229,14 +229,14 @@ namespace typatro.GameFolder.Upgrades{
                 case Glyph.Cat:
                     for (int i = 0; i < 9; i++)
                     {
-                        GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                         MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 2);
                     }
                     break;
                 case Glyph.Crocodile:
-                    GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 20);
-                    GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                     char letter = (char)GameLogic.seededRandom.Next(0, 26);
                     lettersChange[letter] -= letters[letter];
                     letters[letter] = 0;
@@ -245,13 +245,13 @@ namespace typatro.GameFolder.Upgrades{
                     AllLettersAddScore(1);
                     break;
                 case Glyph.Ten:
-                    GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 10);
                     break;
                 case Glyph.Bread:
                     for (int i = 0; i < 6; i++)
                     {
-                        GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
                         AddLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 3);
                     }
                     break;

@@ -286,6 +286,12 @@ namespace typatro.GameFolder{
                         MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)nodePoint.X - 7, (int)nodePoint.Y - 7, 38, 48), ThemeColors.Selected);
 
                         NodeType type = node.forward[nodeSelectIndex].type;
+                        Color infoBg = ThemeColors.ExitShop;
+                        infoBg.A = 220;
+                        Rectangle infoRect;
+                        if (column <= (SaveManager.size > 0 ? 8 : 5)) infoRect = new Rectangle((int)nodePoint.X + 50, (int)nodePoint.Y - 30, 200, 100);
+                        else infoRect = new Rectangle((int)nodePoint.X - 230, (int)nodePoint.Y - 30, 200, 100);
+
                         if (GameLogic.IsFight(type))
                         {
                             int difficulty;
@@ -309,17 +315,26 @@ namespace typatro.GameFolder{
                                     letters = "";
                                     break;
                             }
-                            int coins = Fight.CashGainGen(level, column, difficulty);
-                            Color infoBg = ThemeColors.ExitShop;
-                            infoBg.A = 220;
-                            Rectangle infoRect;
-                            if (column <= (SaveManager.size>0?8:5)) infoRect = new Rectangle((int)nodePoint.X + 50, (int)nodePoint.Y - 30, 200, 100);
-                            else infoRect = new Rectangle((int)nodePoint.X - 230, (int)nodePoint.Y - 30, 200, 100);
 
                             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont,
-                                $"Reward: {coins} coins\nLetter: {letters}\nLength: {Fight.WordsGen(difficulty)} words\nDamage: {Math.Max(1, Fight.SpeedGen(level, column, difficulty))}/s",
+                                $"Reward: {Fight.CashGainGen(level, column, difficulty)} coins\nLetter: {letters}\nLength: {Fight.WordsGen(difficulty)} words\nDamage: {Math.Max(1, Fight.SpeedGen(level, column, difficulty) + 1)}/s",
                                 new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
+                        }
+                        else if (type == NodeType.SHOP)
+                        {
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont, "Shop\n\nUse your coins to\nupgrade yourself", new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
+                        }
+                        else if (type == NodeType.TREASURE)
+                        {
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont, "Treasure\n\nHarness the power\nof hieroglyphs", new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
+                        }
+                        else if (type == NodeType.CURSE)
+                        {
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont, "Curse\n\nEmbrace pain\ngain an advantage", new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
                         }
                     }
                     else
