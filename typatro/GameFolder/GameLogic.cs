@@ -136,7 +136,7 @@ namespace typatro.GameFolder
         List<int[]> visitedNodes = new List<int[]>();
         MapNode selectedNode, lastSelectedNode;
         int level = 1;
-        bool firstEnter = true, inventoryUp;
+        bool firstEnter = true, inventoryUp, somethingUnlocked;
 
         public GameLogic(List<string> jsonStrings, Point windowPos, MainGame.SoundEffects sfx)
         {
@@ -830,7 +830,11 @@ namespace typatro.GameFolder
                     }
                     if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
                     cards.Add(new LetterUpgrade(thirdChar, mult, seededRandom.Next(valMin, valMax), 0));
-
+                    if (selectedNode.type == NodeType.FIGHT && level == 1)
+                    {
+                        string diffUnlock = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
+                        if (!SaveManager.IsUnlockUnlocked(diffUnlock)) somethingUnlocked = true;
+                    }
                 }
                 else
                 {
@@ -875,14 +879,13 @@ namespace typatro.GameFolder
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, fightWon, new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.gameFont.MeasureString(fightWon).X / 2, 70), ThemeColors.Text);
 
                             var letters = enhancements.HighestLetter();
-                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Words written: " + wordsWritten + "\nLetters written:" + lettersWritten + "\nMistakes: " + mistakesWritten + "\nAccuracy: " + (int)((1.0 - (double)mistakesWritten / lettersWritten) * 100) + "%", new Vector2(100, 150), ThemeColors.Text);
-                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Most upgraded letter: " + letters.bestLetter + ":  " + letters.bestLetterNum + "\nTotal score: " + totalScore + "\nMax score: " + maxScore, new Vector2(450, 150), ThemeColors.Text);
-                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Shiny words: " + shinyWritten + "\nStone words: " + stoneWritten + "\nBloom words: " + bloomWritten, new Vector2(100, 300), ThemeColors.Text);
-                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Highest streak: " + highestStreak + "\nCoins gained: " + coinsGained + "\nMax coins: " + maxCoins, new Vector2(450, 300), ThemeColors.Text);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Words written: " + wordsWritten + "\nLetters written:" + lettersWritten + "\nMistakes: " + mistakesWritten + "\nAccuracy: " + (int)((1.0 - (double)mistakesWritten / lettersWritten) * 100) + "%", new Vector2(MainGame.screenWidth/5, 150), ThemeColors.Text);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Most upgraded letter: " + letters.bestLetter + ":  " + letters.bestLetterNum + "\nTotal score: " + totalScore + "\nMax score: " + maxScore, new Vector2(MainGame.screenWidth/2 + MainGame.screenWidth/10, 150), ThemeColors.Text);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Shiny words: " + shinyWritten + "\nStone words: " + stoneWritten + "\nBloom words: " + bloomWritten, new Vector2(MainGame.screenWidth/5, 300), ThemeColors.Text);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Highest streak: " + highestStreak + "\nCoins gained: " + coinsGained + "\nMax coins: " + maxCoins, new Vector2(MainGame.screenWidth/2 + MainGame.screenWidth/10, 300), ThemeColors.Text);
 
-                            string diffUnlock = "Difficulty unlocked: " + (((Runes.Runes)selectedRune).ToString() + " " + (difficulty + 1)).ToString().ToLower();
-
-                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, diffUnlock, new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.smallTextFont.MeasureString(diffUnlock).X / 2, 400), ThemeColors.Text);
+                            string diffUnlock = (((Runes.Runes)selectedRune).ToString() + " " + (difficulty + 1)).ToString().ToLower();
+                            if (somethingUnlocked) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "Difficulty unlocked: " + diffUnlock, new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.smallTextFont.MeasureString("Difficulty unlocked: " + diffUnlock).X / 2, 400), ThemeColors.Text);
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "Press enter to continue", new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.gameFont.MeasureString("Press enter to continue").X / 2, 450), ThemeColors.Text);
 
                             string achievmentName = (((Runes.Runes)selectedRune).ToString() + (difficulty + 1)).ToString().ToLower();
@@ -1132,6 +1135,7 @@ namespace typatro.GameFolder
             enhancements.ResetChange();
             isFightFinished = false;
             afterFightScreen = false;
+            somethingUnlocked = false;
             lastCharCount = 0;
             lastWordCount = 1;
             lastCorrectWord = 0;
@@ -1565,7 +1569,8 @@ namespace typatro.GameFolder
                 {
                     if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive)
                     {
-                        if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + difficulty).ToString().ToUpper()) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
+                        string runeString = (((Runes.Runes)selectedRune).ToString() + difficulty).ToString().ToLower();
+                        if (SaveManager.IsUnlockUnlocked(runeString) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
                         {
                             NewGameChoiceUpdate();
                             gameState = GameState.LOADGAME;
@@ -1719,9 +1724,12 @@ namespace typatro.GameFolder
                 {
                     if (keyVal.Value)
                     {
-                        SaveManager.UnlockUnlock(keyVal.Key);
                         SteamUserStats.SetAchievement(keyVal.Key);
-                        Console.WriteLine($"Achievement unlocked: {keyVal.Key}");
+                        if (!SaveManager.IsUnlockUnlocked(keyVal.Key))
+                        {
+                            SaveManager.UnlockUnlock(keyVal.Key);
+                            Console.WriteLine($"Achievement unlocked: {keyVal.Key}");
+                        }
                     }
                 }
                 writeAchievment = false;

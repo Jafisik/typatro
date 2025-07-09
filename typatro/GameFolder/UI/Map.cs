@@ -88,9 +88,6 @@ namespace typatro.GameFolder{
                 mapNodes[pos, 1] = new MapNode(new List<MapNode>(), NodeType.FIGHT,
                     new Vector2(leftOffset, GameLogic.seededRandom.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, 1);
 
-                bool hasShop = false;
-                int shopColumn = GameLogic.seededRandom.Next(2, mapNodes.GetLength(1) - 2);
-
                 for (int column = 2; column < mapNodes.GetLength(1) - 1; column++)
                 {
                     pos += GameLogic.seededRandom.Next(-1, 2);
@@ -103,10 +100,9 @@ namespace typatro.GameFolder{
                         {
                             nodeType = NodeType.TREASURE;
                         }
-                        else if (!hasShop && column == shopColumn)
+                        else if (column == 11)
                         {
                             nodeType = NodeType.SHOP;
-                            hasShop = true;
                         }
                         else
                         {
@@ -116,23 +112,6 @@ namespace typatro.GameFolder{
                         mapNodes[pos, column] = new MapNode(new List<MapNode>(), nodeType,
                             new Vector2(GameLogic.seededRandom.Next(-randomChange, randomChange) + leftOffset + column * rowSpacing,
                                         GameLogic.seededRandom.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, column);
-                    }
-                }
-
-                if (!hasShop)
-                {
-                    for (int column = 2; column < mapNodes.GetLength(1) - 2; column++)
-                    {
-                        for (int row = 0; row < mapNodes.GetLength(0); row++)
-                        {
-                            if (mapNodes[row, column] != null && mapNodes[row, column].type == NodeType.FIGHT)
-                            {
-                                mapNodes[row, column].type = NodeType.SHOP;
-                                hasShop = true;
-                                break;
-                            }
-                        }
-                        if (hasShop) break;
                     }
                 }
             }
@@ -218,9 +197,10 @@ namespace typatro.GameFolder{
             if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateNodeType",""));
             int roll = GameLogic.seededRandom.Next(0,101);
             if(roll < 40) return NodeType.FIGHT;
-            if(roll < 70) return NodeType.ELITE;
-            if (roll < 93) return NodeType.RANDOM;
-            if (roll < 99) return NodeType.CURSE;
+            if(roll < 60) return NodeType.RANDOM;
+            if(roll < 88) return NodeType.ELITE;
+            if(roll < 94) return NodeType.SHOP;
+            if(roll < 99) return NodeType.CURSE;
 
             return NodeType.TREASURE;
         }
@@ -229,7 +209,7 @@ namespace typatro.GameFolder{
             if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateNodeTypeFromRandom",""));
             int roll = GameLogic.seededRandom.Next(0, 101);
             if (roll < 50) return NodeType.FIGHT;
-            if (roll < 75) return NodeType.ELITE;
+            if (roll < 80) return NodeType.ELITE;
             if (roll < 90) return NodeType.SHOP;
             if (roll < 99) return NodeType.CURSE;
             
@@ -336,7 +316,13 @@ namespace typatro.GameFolder{
                             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont, "Curse\n\nEmbrace pain\ngain an advantage", new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
                         }
+                        else if (type == NodeType.RANDOM)
+                        {
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont, "Random\n\nLet the chaos\ndecide your faith", new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
+                        }
                     }
+                    
                     else
                     {
                         MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, nodeRect, ThemeColors.NotSelected);

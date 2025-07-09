@@ -137,7 +137,6 @@ namespace typatro.GameFolder.Upgrades{
         {
             if (!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GetRandomUnusedGlyph", ""));
             var unusedGlyphs = unlockedGlyphs.Except(activeGlyphs).ToList();
-            Console.WriteLine(unusedGlyphs.Count);
             if (unusedGlyphs.Count == 0)
             {
                 return Glyph.NoGlyphsLeft;
