@@ -83,6 +83,7 @@ namespace typatro.GameFolder
 
         };
         bool eyeOfHorusActive, anubisActive, runeMove, diffMove, tutorial, isDragging, mistake, gameFinished, deadCounted, introPlayed, mousePressed;
+        int tutorialState = 0;
         public static bool writeAchievment;
         MainGame.SoundEffects sfx;
 
@@ -407,29 +408,30 @@ namespace typatro.GameFolder
                         }
 
                     }
-                    if (gameState == GameState.NEWGAME)
-                    {
-                        level = 1;
-                        actions.Clear();
-                        seed = unseededRandom.Next();
-                        seededRandom = new Random(seed);
-                        map = new Map();
-                        map.GenerateNodes();
-                        selectedNode = map.GetFirstNode();
-                        lastSelectedNode = map.GetFirstNode();
-                        enhancements = new Enhancements();
-                        shop = new Shop(enhancements);
-                        treasure = new Treasure(enhancements);
-                        curseRoom = new CurseRoom(enhancements);
-                        coins = difficulty >= 1 ? 15 : startCoins;
-                        gameState = GameState.RUNES;
-                        if (difficulty >= 3) enhancements.wordScore -= 1;
-                        GlyphManager.RemoveAllGlyphs();
-                        GlyphManager.Add(Glyph.NoGlyphsLeft);
-                        visitedNodes = new List<int[]>();
-                        mistake = false;
-                        deadCounted = false;
-                        mousePressed = true;
+                if (gameState == GameState.NEWGAME)
+                {
+                    level = 1;
+                    actions.Clear();
+                    seed = unseededRandom.Next();
+                    seededRandom = new Random(seed);
+                    map = new Map();
+                    map.GenerateNodes();
+                    selectedNode = map.GetFirstNode();
+                    lastSelectedNode = map.GetFirstNode();
+                    enhancements = new Enhancements();
+                    shop = new Shop(enhancements);
+                    treasure = new Treasure(enhancements);
+                    curseRoom = new CurseRoom(enhancements);
+                    coins = difficulty >= 1 ? 15 : startCoins;
+                    gameState = GameState.RUNES;
+                    if (difficulty >= 3) enhancements.wordScore -= 1;
+                    GlyphManager.RemoveAllGlyphs();
+                    GlyphManager.Add(Glyph.NoGlyphsLeft);
+                    visitedNodes = new List<int[]>();
+                    mistake = false;
+                    deadCounted = false;
+                    mousePressed = true;
+                    tutorial = false;
                     }
                         firstEnter = true;
                         roomSelected = false;
@@ -440,31 +442,47 @@ namespace typatro.GameFolder
                 {
                     KeyboardState state = Keyboard.GetState();
 
+                    CharacterChoose();
                     if (!SaveManager.IsUnlockUnlocked("characterTutorial"))
                     {
-                        if (state.IsKeyUp(Keys.Enter))
+                        int rectWidth = MainGame.screenWidth / 3, rectHeight = MainGame.screenHeight / 2;
+                        SpriteFont font = SaveManager.size == 0 ? MainGame.Gfx.smallTextFont: MainGame.Gfx.menuFont;
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), ThemeColors.ShopReroll);
+                        switch (tutorialState)
+                    {
+                        case 0:
+                            string tutorialString = "Runes help you\nin your runs ->";
+                            Vector2 fontSize = font.MeasureString(tutorialString);
+                            Rectangle tutorialBox = new Rectangle((int)(MainGame.screenWidth / 2 - rectWidth / 2 + (SaveManager.size * 20) - fontSize.X - 10),
+                                (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (SaveManager.size * 20) + 90,(int)fontSize.X +20,(int)fontSize.Y + 20);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString,new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            break;
+                        case 1:
+                            tutorialString = "Use arrow keys\nor mouse to        ->\nchoose your rune";
+                            fontSize = font.MeasureString(tutorialString);
+                            tutorialBox = new Rectangle((int)(MainGame.screenWidth / 2 + rectWidth / 2 + (SaveManager.size * 20) - fontSize.X + 30),
+                                (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (SaveManager.size * 20) + 90,(int)fontSize.X +20,(int)fontSize.Y + 20);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString,new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            break;
+                        case 2: 
+                            tutorialString = "Choose your\ndifficulty    ->";
+                            fontSize = font.MeasureString(tutorialString);
+                            tutorialBox = new Rectangle((int)(MainGame.screenWidth / 2 - rectWidth / 2 + (SaveManager.size * 20) - fontSize.X - 10),
+                                (int)(MainGame.screenHeight - 150 - font.MeasureString(" ").Y - 10),(int)fontSize.X +20,(int)fontSize.Y + 20);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString,new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            break;
+                    }
+                        if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
+                        if (tutorial && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
                         {
-                            tutorial = true;
-                        }
-                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), Color.Black);
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "New game tutorial", new Vector2(70, 50), ThemeColors.Text);
-                        writer.WriteText("Use the arrows to select a rune\nthat grants unique bonuses,\nthen choose your difficulty.\n\n" +
-                            "New runes are unlocked by meeting\nspecific conditions.\n\n" +
-                            "New difficulties become available\nonce you complete a run with\na specific rune.\n\n" +
-                            "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
-                        if (tutorial && state.IsKeyDown(Keys.Enter))
-                        {
-                            SaveManager.UnlockUnlock("characterTutorial");
+                            tutorialState++;
                             tutorial = false;
                         }
-
+                        
                     }
-                    else
-                    {
-                        CharacterChoose();
-                    }
-
-
                 }
                 else if (gameState == GameState.LOADGAME)
                 {
@@ -1484,12 +1502,13 @@ namespace typatro.GameFolder
             if (backRect.Contains(mouseState.Position)) backSelected = ThemeColors.Selected;
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, backRect, backSelected);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "<", new Vector2(67, 57), ThemeColors.Text);
-            if (state.IsKeyDown(Keys.Escape) || (!mousePressed && backRect.Contains(mouseState.Position) && mouseState.LeftButton == ButtonState.Pressed) && windowActive)
+            if (state.IsKeyDown(Keys.Escape) || !mousePressed && backRect.Contains(mouseState.Position) &&
+                mouseState.LeftButton == ButtonState.Pressed && windowActive && SaveManager.IsUnlockUnlocked("characterTutorial"))
             {
                 gameState = GameState.MENU;
                 gameSaveData = SaveManager.LoadGame();
             }
-            if (canStartFight && (state.IsKeyDown(Keys.Enter)))
+            if (canStartFight && state.IsKeyDown(Keys.Enter) && SaveManager.IsUnlockUnlocked("characterTutorial"))
             {
                 if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + difficulty).ToString().ToUpper()) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
                 {
@@ -1567,7 +1586,8 @@ namespace typatro.GameFolder
                     rectWidth - (SaveManager.size * 40), rectHeight - (SaveManager.size * 40));
                 if (runeSelect.Contains(mouseState.Position))
                 {
-                    if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive)
+                    if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive
+                        && SaveManager.IsUnlockUnlocked("characterTutorial"))
                     {
                         string runeString = (((Runes.Runes)selectedRune).ToString() + difficulty).ToString().ToLower();
                         if (SaveManager.IsUnlockUnlocked(runeString) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
@@ -1614,7 +1634,8 @@ namespace typatro.GameFolder
             {
                 Rectangle runeSelect = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4 - SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
                 Rectangle extraSpace = new Rectangle(runeSelect.X-50, runeSelect.Y, 50, runeSelect.Height);
-                if (!mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position)) && mouseState.LeftButton == ButtonState.Pressed && windowActive)
+                if (!mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position)) &&
+                    mouseState.LeftButton == ButtonState.Pressed && windowActive && SaveManager.IsUnlockUnlocked("characterTutorial"))
                 {
                     if (selectedRune != maxRunes - 1)
                     {
@@ -1644,7 +1665,8 @@ namespace typatro.GameFolder
             Rectangle diffRectRight = new Rectangle(MainGame.screenWidth / 2 - padding + ((int)diffStringSize.X + padding * 2) / 2, MainGame.screenHeight - 150 - padding, ((int)diffStringSize.X + padding * 2) / 2, (int)diffStringSize.Y + padding);
             if (diffRectLeft.Contains(mouseState.Position) || diffRectRight.Contains(mouseState.Position))
             {
-                if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive)
+                if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive
+                    && SaveManager.IsUnlockUnlocked("characterTutorial"))
                 {
                     if (diffRectLeft.Contains(mouseState.Position))
                     {
