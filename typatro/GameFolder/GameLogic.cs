@@ -96,9 +96,9 @@ namespace typatro.GameFolder
         Point mousePosition = new Point();
 
         //Score calculator
-        int charCounter = 0, lastCharCount = 0, wordCounter = 0, lastWordCount = 1, wordStreak = 0, lastCorrectWord = 0, extraScore = 0;
+        int charCounter = 0, lastCharCount = 0, wordCounter = 0, lastWordCount = 1, lastCorrectWord = 0, extraScore = 0;
         long currentScore = 0, playerScore = 0, lastScore = 0;
-        double letterTimer = 0, timeSinceLastWord = 0;
+        double letterTimer = 0, timeSinceLastWord = 0, wordStreak = 1;
 
         //Final stats
         long totalScore, maxScore, lettersWritten, mistakesWritten, wordsWritten, shinyWritten, stoneWritten, bloomWritten;
@@ -144,9 +144,6 @@ namespace typatro.GameFolder
             this.jsonStrings = jsonStrings;
             this.windowPos = windowPos;
             this.sfx = sfx;
-
-            seed = seededRandom.Next();
-            seededRandom = new Random(seed);
 
             menu = new Menu();
             gameSaveData = SaveManager.LoadGame();
@@ -412,7 +409,7 @@ namespace typatro.GameFolder
                 {
                     level = 1;
                     actions.Clear();
-                    seed = unseededRandom.Next();
+                    seed = SaveManager.IsUnlockUnlocked("mapTutorial")?unseededRandom.Next():10;
                     seededRandom = new Random(seed);
                     map = new Map();
                     map.GenerateNodes();
@@ -448,31 +445,35 @@ namespace typatro.GameFolder
                         int rectWidth = MainGame.screenWidth / 3, rectHeight = MainGame.screenHeight / 2;
                         SpriteFont font = SaveManager.size == 0 ? MainGame.Gfx.smallTextFont: MainGame.Gfx.menuFont;
                         MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), ThemeColors.ShopReroll);
-                        switch (tutorialState)
+                    switch (tutorialState)
                     {
                         case 0:
                             string tutorialString = "Runes help you\nin your runs ->";
                             Vector2 fontSize = font.MeasureString(tutorialString);
                             Rectangle tutorialBox = new Rectangle((int)(MainGame.screenWidth / 2 - rectWidth / 2 + (SaveManager.size * 20) - fontSize.X - 10),
-                                (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (SaveManager.size * 20) + 90,(int)fontSize.X +20,(int)fontSize.Y + 20);
+                                (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (SaveManager.size * 20) + 90, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
-                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString,new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                             break;
                         case 1:
                             tutorialString = "Use arrow keys\nor mouse to        ->\nchoose your rune";
                             fontSize = font.MeasureString(tutorialString);
                             tutorialBox = new Rectangle((int)(MainGame.screenWidth / 2 + rectWidth / 2 + (SaveManager.size * 20) - fontSize.X + 30),
-                                (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (SaveManager.size * 20) + 90,(int)fontSize.X +20,(int)fontSize.Y + 20);
+                                (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (SaveManager.size * 20) + 90, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
-                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString,new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                             break;
-                        case 2: 
+                        case 2:
                             tutorialString = "Choose your\ndifficulty    ->";
                             fontSize = font.MeasureString(tutorialString);
                             tutorialBox = new Rectangle((int)(MainGame.screenWidth / 2 - rectWidth / 2 + (SaveManager.size * 20) - fontSize.X - 10),
-                                (int)(MainGame.screenHeight - 150 - font.MeasureString(" ").Y - 10),(int)fontSize.X +20,(int)fontSize.Y + 20);
+                                (int)(MainGame.screenHeight - 150 - font.MeasureString(" ").Y - 10), (int)fontSize.X + 20, (int)fontSize.Y + 20);
                             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
-                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString,new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            break;
+                        case 3:
+                            SaveManager.UnlockUnlock("characterTutorial");
+                            tutorialState = 0;
                             break;
                     }
                         if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
@@ -630,72 +631,118 @@ namespace typatro.GameFolder
         //Does the room logic based on the selectedNode.type
         private void RoomHandler(KeyboardState state)
         {
+            MouseState mouseState = Mouse.GetState();
             if (IsFight(selectedNode.type) && !afterFightScreen)
             {
-                if (!SaveManager.IsUnlockUnlocked("fightTutorial"))
+                if (state.IsKeyDown(Keys.Tab) && timeInSeconds == 0)
                 {
-                    if (state.IsKeyUp(Keys.Enter))
-                    {
-                        tutorial = true;
-                    }
-                    MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), Color.Black);
-                    MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "Fight tutorial", new Vector2(70, 50), ThemeColors.Text);
-                    writer.WriteText("In fights you type to get\nenemy health to 0.\n\n" +
-                        "Each letter gives you score based on\nyour letter score upgrades.\n\n" +
-                        "Correct words give you extra score.\n\n" +
-                        "Each consecutive correct word\nadds to your word streak\nand gives you extra score.\n\n" +
-                        "Shiny words give you a multiplier\nStone words give you flat score\nBloom words upgrade letters\nin the written word.\n\n" +
-                        "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
-                    if (tutorial && state.IsKeyDown(Keys.Enter))
-                    {
-                        SaveManager.UnlockUnlock("fightTutorial");
-                        tutorial = false;
-                    }
-
+                    Inventory(state);
+                    TopBannerDisplay(false);
                 }
                 else
                 {
-                    if (state.IsKeyDown(Keys.Tab) && timeInSeconds == 0)
+                    writer.WriteText(neededText, ThemeColors.Selected, shinyWords, stoneWords, bloomWords, isHintText: true, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
+                    Vector2 lastCharPos = new Vector2();
+                    if (SaveManager.IsUnlockUnlocked("fightTutorial")) lastCharPos = writer.UserInputText(Writer.writtenText.ToArray(), rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
+                    TopBannerDisplay(false);
+                    CalculateScore(lastCharPos);
+                    HealthBar();
+
+                    Keys[] currKeys = state.GetPressedKeys();
+                    if (Writer.diffIndexes.Count > prevMistakes)
                     {
-                        Inventory(state);
-                        TopBannerDisplay(false);
+                        pitch = 0f;
+                        prevMistakes = Writer.diffIndexes.Count;
                     }
-                    else
+                    foreach (var key in currKeys)
                     {
-                        writer.WriteText(neededText, ThemeColors.Selected, shinyWords, stoneWords, bloomWords, isHintText: true, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
-                        Vector2 lastCharPos = writer.UserInputText(Writer.writtenText.ToArray(), rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
-                        TopBannerDisplay(false);
-                        CalculateScore(lastCharPos);
-                        HealthBar();
-
-                        Keys[] currKeys = state.GetPressedKeys();
-                        if (Writer.diffIndexes.Count > prevMistakes)
+                        if (!prevKeys.Contains(key))
                         {
-                            pitch = 0f;
-                            prevMistakes = Writer.diffIndexes.Count;
+                            sfx.typeSound.Play(0.1f, pitch, 0f);
+
+                            pitch += 0.005f;
+                            if (pitch > 1.0f) pitch = 1.0f;
+                            break;
                         }
-                        foreach (var key in currKeys)
-                        {
-                            if (!prevKeys.Contains(key))
-                            {
-                                sfx.typeSound.Play(0.1f, pitch, 0f);
+                    }
 
-                                pitch += 0.005f;
-                                if (pitch > 1.0f) pitch = 1.0f;
+                    prevKeys = currKeys;
+
+                    if (eyeOfHorusActive) MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(0, 0, MainGame.screenWidth, MainGame.screenHeight), Color.Black);
+                    if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.Cat))
+                    {
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.catPic, new Rectangle((int)catPos.X, (int)catPos.Y, 120, 80), Color.White);
+                    }
+                    if (Writer.writtenText.Count == neededText.Length || currentScore >= fight.scoreNeeded) isFightFinished = true;
+
+                    if (!SaveManager.IsUnlockUnlocked("fightTutorial"))
+                    {
+                        SpriteFont font = SaveManager.size == 0 ? MainGame.Gfx.smallTextFont : MainGame.Gfx.menuFont;
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), ThemeColors.ShopReroll);
+                        switch (tutorialState)
+                        {
+                            case 0:
+                                string tutorialString = "<- Type correct letters\n   to deal damage\n   to the enemy";
+                                Vector2 fontSize = font.MeasureString(tutorialString);
+                                Rectangle tutorialBox = new Rectangle(70, 230, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                                 break;
-                            }
+                            case 1:
+                                tutorialString = "<- Each correct word\n   in a row gives you\n   a score multiplier";
+                                fontSize = font.MeasureString(tutorialString);
+                                tutorialBox = new Rectangle(MainGame.screenWidth - 100 - (int)fontSize.X, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                                break;
+                            case 2:
+                                tutorialString = "Special words\ngive you effects\nbased on the color\nif written correctly";
+                                fontSize = font.MeasureString(tutorialString);
+                                tutorialBox = new Rectangle(210, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                                break;
+                            case 3:
+                                tutorialString = "Stone words give you a flat + score";
+                                fontSize = font.MeasureString(tutorialString);
+                                tutorialBox = new Rectangle(210, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                                tutorialString = "Stone words";
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), Color.Gray);
+                                break;
+                            case 4:
+                                tutorialString = "Shiny words give you a * score multiplier";
+                                fontSize = font.MeasureString(tutorialString);
+                                tutorialBox = new Rectangle(210, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                                tutorialString = "Shiny words";
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Selected);
+                                break;
+                            case 5:
+                                tutorialString = "Bloom words upgrade the letters in the word";
+                                fontSize = font.MeasureString(tutorialString);
+                                tutorialBox = new Rectangle(210, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                                tutorialString = "Bloom words";
+                                MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), Color.DarkGreen);
+                                break;
+                            case 6:
+                                SaveManager.UnlockUnlock("fightTutorial");
+                                tutorialState = 0;
+                                break;
                         }
-
-                        prevKeys = currKeys;
-
-                        if (eyeOfHorusActive) MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(0, 0, MainGame.screenWidth, MainGame.screenHeight), Color.Black);
-                        if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.Cat))
+                        if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
+                        if (tutorial && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
                         {
-                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.catPic, new Rectangle((int)catPos.X, (int)catPos.Y, 120, 80), Color.White);
+                            tutorialState++;
+                            tutorial = false;
                         }
-                        if (Writer.writtenText.Count == neededText.Length || currentScore >= fight.scoreNeeded) isFightFinished = true;
                     }
                 }
+                
             }
             else if (state.IsKeyDown(Keys.Tab))
             {
@@ -712,33 +759,56 @@ namespace typatro.GameFolder
             }
             else if (selectedNode.type == NodeType.SHOP)
             {
+                if (!inventoryUp)
+                {
+                    isFightFinished = shop.DisplayShop(ref coins, ref mousePressed);
+                }
+                TopBannerDisplay(true);
                 if (!SaveManager.IsUnlockUnlocked("shopTutorial"))
                 {
-                    if (state.IsKeyUp(Keys.Enter))
+                    SpriteFont font = SaveManager.size == 0 ? MainGame.Gfx.smallTextFont : MainGame.Gfx.menuFont;
+                    MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), ThemeColors.ShopReroll);
+                    switch (tutorialState)
                     {
-                        tutorial = true;
+                        case 0:
+                            string tutorialString = "<- Use arrow keys\n   or mouse\n   purchase upgrades";
+                            Vector2 fontSize = font.MeasureString(tutorialString);
+                            Rectangle tutorialBox = new Rectangle(270, SaveManager.size==0?100:MainGame.screenHeight / 3, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            break;
+                        case 1:
+                            tutorialString = "<- When highlited\n   each card\n   will show its\n   description";
+                            fontSize = font.MeasureString(tutorialString);
+                            tutorialBox = new Rectangle(400, SaveManager.size==0?300:(MainGame.screenHeight / 3)*2-30, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            break;
+                        case 2:
+                            tutorialString = "You can reroll    ->\ncards in the shop";
+                            fontSize = font.MeasureString(tutorialString);
+                            tutorialBox = new Rectangle(460, MainGame.screenHeight / 3, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            break;
+                        case 3:
+                            tutorialString = "After you're finished ->\nexit the shop";
+                            fontSize = font.MeasureString(tutorialString);
+                            tutorialBox = new Rectangle(400, MainGame.screenHeight / 3+100, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                            MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                            break;
+                        case 4:
+                            SaveManager.UnlockUnlock("shopTutorial");
+                            tutorialState = 0;
+                            break;
                     }
-                    MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), Color.Black);
-                    MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "Shop tutorial", new Vector2(70, 50), ThemeColors.Text);
-                    writer.WriteText("Navigate with arrow keys\nthrough the shop.\n\n" +
-                        "Purchase upgrades by pressing enter.\n\n" +
-                        "Check inventory by pressing tab.\n\n" +
-                        "The prices are calculated based\non previous upgrades.\n\n" +
-                        "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
-                    if (tutorial && state.IsKeyDown(Keys.Enter))
+                    if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
+                    if (tutorial && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
                     {
-                        SaveManager.UnlockUnlock("shopTutorial");
+                        tutorialState++;
                         tutorial = false;
                     }
-
-                }
-                else
-                {
-                    if (!inventoryUp)
-                    {
-                        isFightFinished = shop.DisplayShop(ref coins, ref mousePressed);
-                    }
-                    TopBannerDisplay(true);
                 }
             }
             else if (selectedNode.type == NodeType.CURSE)
@@ -1061,90 +1131,115 @@ namespace typatro.GameFolder
         //Handles the map logic and the selection of new rooms
         private void MapHandler(KeyboardState state)
         {
+            MouseState mouseState = Mouse.GetState();
+            TopBannerDisplay(true);
+            if (state.IsKeyDown(Keys.Tab))
+            {
+                Inventory(state);
+            }
+            else if (!inventoryUp)
+            {
+                map.DrawNodes();
+            }
+            if (!firstEnter || state.IsKeyUp(Keys.Enter))
+            {
+                firstEnter = false;
+                if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
+                if (state.IsKeyUp(Keys.Tab) && !inventoryUp && SaveManager.IsUnlockUnlocked("mapTutorial") && tutorial)
+                {
+
+                    MapNode newNode = map.NodeSelect(selectedNode, ref mousePressed, selectedNode.column, level);
+
+                    if (newNode != selectedNode)
+                    {
+                        visitedNodes.Add(new int[] { selectedNode.column, selectedNode.row });
+                        Reset();
+                        if (GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(unseededRandom.Next(100, MainGame.screenWidth - 100), unseededRandom.Next(100, MainGame.screenHeight - 100));
+                        if (newNode.type == NodeType.RANDOM) newNode.type = map.GenerateNodeTypeFromRandom();
+                        switch (newNode.type)
+                        {
+                            case NodeType.FIGHT:
+                                fight = new NormalFight(level, newNode.column);
+                                break;
+                            case NodeType.ELITE:
+                                fight = new EliteFight(level, newNode.column);
+                                break;
+                            case NodeType.BOSS:
+                                fight = new BossFight(level, newNode.column);
+                                break;
+                            case NodeType.TREASURE:
+                                treasure.NewGlyph();
+                                break;
+                            case NodeType.SHOP:
+                                shop.NewShop();
+                                if (GlyphManager.IsActive(Glyph.Life))
+                                {
+                                    if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
+                                    enhancements.AddLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 5);
+                                }
+                                break;
+                            case NodeType.CURSE:
+                                curseRoom.NewCurse();
+                                break;
+                        }
+                        if (IsFight(newNode.type)) neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus) ? 20 : 0) - (difficulty >= 5 ? 5 : 0));
+                        if (difficulty >= 4) fight.speed *= 2;
+                        Writer.writtenText.Clear();
+                        startedTyping = false;
+                        lastSelectedNode = selectedNode;
+                        selectedNode = newNode;
+                        roomSelected = true;
+                    }
+                }
+            }
             if (!SaveManager.IsUnlockUnlocked("mapTutorial"))
             {
-                if (state.IsKeyUp(Keys.Enter))
+                SpriteFont font = SaveManager.size == 0 ? MainGame.Gfx.smallTextFont: MainGame.Gfx.menuFont;
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), ThemeColors.ShopReroll);
+                switch (tutorialState)
                 {
-                    tutorial = true;
+                    case 0:
+                        string tutorialString = "    Use arrow keys\n<- or mouse\n    to pick a room";
+                        Vector2 fontSize = font.MeasureString(tutorialString);
+                        Rectangle tutorialBox = new Rectangle(70, 110, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                        MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                        break;
+                    case 1:
+                        tutorialString = "Click here        ->\nor press tab\nto view your\ninventory";
+                        fontSize = font.MeasureString(tutorialString);
+                        tutorialBox = new Rectangle(MainGame.screenWidth - 100 - (int)fontSize.X, 120, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                        MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                        break;
+                    case 2:
+                        tutorialString = "Click here or     ->\npress escape to\ngo to the menu\n(progress will\nbe saved)";
+                        fontSize = font.MeasureString(tutorialString);
+                        tutorialBox = new Rectangle(MainGame.screenWidth - 100 - (int)fontSize.X, 65, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                        MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                        break;
+                    case 3:
+                        tutorialString = "<-   Defeat 3 levels to win";
+                        fontSize = font.MeasureString(tutorialString);
+                        tutorialBox = new Rectangle(210, 20, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
+                        MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
+                        break;
+                    case 4:
+                        SaveManager.UnlockUnlock("mapTutorial");
+                        tutorialState = 0;
+                        break;
                 }
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), Color.Black);
-                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "Map tutorial", new Vector2(70, 50), ThemeColors.Text);
-                writer.WriteText("Press up or down to choose which room \nto go to on your current floor.\n\n" +
-                    "F-Fight E-Elite B-Boss are fights.\nHere you type to defeat the enemies\nto get to the new floor.\n\n" +
-                    "$-Shop lets you buy upgrades for coins.\n\n" +
-                    "X-Treasure gives you a free glyph.\n\n" +
-                    "C-Curse gives you bonuses for a sacrifice.\n\n" +
-                    "Press Enter to continue.", ThemeColors.Text, treasure: true, xExtraOffset: -30, yExtraOffset: -70);
-                if (tutorial && state.IsKeyDown(Keys.Enter))
+                if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
+                if (tutorial && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
                 {
-                    SaveManager.UnlockUnlock("mapTutorial");
+                    tutorialState++;
                     tutorial = false;
                 }
-
             }
-            else
-            {
-                TopBannerDisplay(true);
-                if (state.IsKeyDown(Keys.Tab))
-                {
-                    Inventory(state);
-                }
-                else if(!inventoryUp)
-                {
-                    map.DrawNodes();
-                }
-                if (!firstEnter || state.IsKeyUp(Keys.Enter))
-                {
-                    firstEnter = false;
-                    if (state.IsKeyUp(Keys.Tab) && !inventoryUp)
-                    {
-
-                        MapNode newNode = map.NodeSelect(selectedNode, ref mousePressed, selectedNode.column, level);
-
-                        if (newNode != selectedNode)
-                        {
-                            visitedNodes.Add(new int[] { selectedNode.column, selectedNode.row });
-                            Reset();
-                            if (GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(unseededRandom.Next(100, MainGame.screenWidth - 100), unseededRandom.Next(100, MainGame.screenHeight - 100));
-                            if (newNode.type == NodeType.RANDOM) newNode.type = map.GenerateNodeTypeFromRandom();
-                            switch (newNode.type)
-                            {
-                                case NodeType.FIGHT:
-                                    fight = new NormalFight(level, newNode.column);
-                                    break;
-                                case NodeType.ELITE:
-                                    fight = new EliteFight(level, newNode.column);
-                                    break;
-                                case NodeType.BOSS:
-                                    fight = new BossFight(level, newNode.column);
-                                    break;
-                                case NodeType.TREASURE:
-                                    treasure.NewGlyph();
-                                    break;
-                                case NodeType.SHOP:
-                                    shop.NewShop();
-                                    if (GlyphManager.IsActive(Glyph.Life))
-                                    {
-                                        if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
-                                        enhancements.AddLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 5);
-                                    }
-                                    break;
-                                case NodeType.CURSE:
-                                    curseRoom.NewCurse();
-                                    break;
-                            }
-                            if (IsFight(newNode.type)) neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus) ? 20 : 0) - (difficulty >= 5 ? 5 : 0));
-                            if (difficulty >= 4) fight.speed *= 2;
-                            Writer.writtenText.Clear();
-                            startedTyping = false;
-                            lastSelectedNode = selectedNode;
-                            selectedNode = newNode;
-                            roomSelected = true;
-                        }
-                    }
-
-                }
-            }
+            
+            
         }
 
         private void Reset()
@@ -1159,7 +1254,7 @@ namespace typatro.GameFolder
             lastCorrectWord = 0;
             extraScore = 0;
             lastScore = 0;
-            wordStreak = 0;
+            wordStreak = 1;
             inventoryGlyphSelect = 1;
             afterFightSelect = 0;
             pitch = 0;
@@ -1282,7 +1377,7 @@ namespace typatro.GameFolder
                     if (charCounter == 1000)
                     {
                         charCounter = 0;
-                        extraScore += 1000;
+                        extraScore += 100000;
                     }
                 }
                 lastScore = playerScore;
@@ -1296,7 +1391,7 @@ namespace typatro.GameFolder
                 writeAchievment = true;
             }
 
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"Streak:{wordStreak}".ToString(), new Vector2(50, 100), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"Score:{wordStreak:0.##}x{(int)(currentScore/wordStreak)}={(int)currentScore}", new Vector2(50, 100), ThemeColors.Text);
             string rewardText = "Reward: " + fight.cashGain;
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, rewardText, new Vector2(MainGame.screenWidth - 50 - MainGame.Gfx.gameFont.MeasureString(rewardText).X, 100), ThemeColors.Text);
 
@@ -1355,9 +1450,9 @@ namespace typatro.GameFolder
                 if (correctWords > lastCorrectWord)
                 {
                     lastCorrectWord = correctWords;
-                    wordStreak += GlyphManager.IsActive(Glyph.Scarab) ? 3 : 1;
-                    if (wordStreak > highestStreak) highestStreak = wordStreak;
-                    extraScore += wordStreak * (GlyphManager.IsActive(Glyph.N) && under3Sec ? 2 : 0);
+                    wordStreak += GlyphManager.IsActive(Glyph.Scarab) ? 0.1 : 0.05;
+                    if (wordStreak > highestStreak) highestStreak = (int)((wordStreak-1)*100);
+                    extraScore += GlyphManager.IsActive(Glyph.N) && under3Sec ? 2 : 0;
                     if (shinyWords.Contains(word))
                     {
                         shinyWritten++;
@@ -1380,7 +1475,7 @@ namespace typatro.GameFolder
                 else if (correctWords == lastCorrectWord)
                 {
                     lastCorrectWord = correctWords;
-                    wordStreak = 0;
+                    wordStreak = 1;
                 }
             }
 
@@ -1396,7 +1491,7 @@ namespace typatro.GameFolder
                 playerScore = (int)((extraScore + enhancements.startingScore + letterScore + stoneScore) * shinyMultiplier);
                 long enemyDamage = (long)((GlyphManager.IsActive(Glyph.House) ? 0.25 : 1) * (int)timeInSeconds) * fight.speed - enhancements.damageResist;
                 long mistakeDamage = (GlyphManager.IsActive(Glyph.Snake) ? 0 : 1) * (GlyphManager.IsActive(Glyph.R) ? 5 : 1) * (difficulty >= 2 ? 5 : 1) * mistakeCount;
-                currentScore = playerScore + correctWords * enhancements.wordScore - (enemyDamage < 0 ? 1 * (int)timeInSeconds : enemyDamage) - mistakeDamage;
+                currentScore = (int)((playerScore + correctWords * enhancements.wordScore - (enemyDamage < 0 ? 1 * (int)timeInSeconds : enemyDamage) - mistakeDamage) * wordStreak);
                 if (Writer.writtenText.Count == 1) lastScore = 0;
                 if (playerScore - lastScore != 0 && timeInSeconds - letterTimer < 0.25 && Writer.writtenText.Count > 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "+" + (playerScore - lastScore).ToString(), lastCharPos, ThemeColors.Correct);
             }
@@ -1508,17 +1603,19 @@ namespace typatro.GameFolder
                 gameState = GameState.MENU;
                 gameSaveData = SaveManager.LoadGame();
             }
-            if (canStartFight && state.IsKeyDown(Keys.Enter) && SaveManager.IsUnlockUnlocked("characterTutorial"))
+            if (canStartFight && state.IsKeyDown(Keys.Enter) && SaveManager.IsUnlockUnlocked("characterTutorial") && tutorial)
             {
                 if (SaveManager.IsUnlockUnlocked((((Runes.Runes)selectedRune).ToString() + difficulty).ToString().ToUpper()) || (Runes.Runes)selectedRune == Runes.Runes.Uruz)
                 {
                     NewGameChoiceUpdate();
+                    tutorial = false;
                     gameState = GameState.LOADGAME;
                 }
             }
-            else if (state.IsKeyUp(Keys.Enter))
+            else if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released)
             {
                 canStartFight = true;
+                tutorial = true;
             }
 
             if (mouseState.LeftButton == ButtonState.Released) mousePressed = false;
@@ -1594,6 +1691,7 @@ namespace typatro.GameFolder
                         {
                             NewGameChoiceUpdate();
                             gameState = GameState.LOADGAME;
+                            tutorial = false;
                         }
                         mousePressed = true;
                     }
