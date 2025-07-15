@@ -137,7 +137,7 @@ namespace typatro.GameFolder
         List<int[]> visitedNodes = new List<int[]>();
         MapNode selectedNode, lastSelectedNode;
         int level = 1;
-        bool firstEnter = true, inventoryUp, somethingUnlocked;
+        bool firstEnter = true, inventoryUp, somethingUnlocked, fromMap;
 
         public GameLogic(List<string> jsonStrings, Point windowPos, MainGame.SoundEffects sfx)
         {
@@ -684,7 +684,7 @@ namespace typatro.GameFolder
                             case 0:
                                 string tutorialString = "<- Type correct letters\n   to deal damage\n   to the enemy";
                                 Vector2 fontSize = font.MeasureString(tutorialString);
-                                Rectangle tutorialBox = new Rectangle(70, 230, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                Rectangle tutorialBox = new Rectangle(160, 230, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
                                 MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                                 break;
@@ -734,8 +734,12 @@ namespace typatro.GameFolder
                                 tutorialState = 0;
                                 break;
                         }
-                        if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
-                        if (tutorial && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
+                        if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released)
+                        {
+                            tutorial = true;
+                            fromMap = false;
+                        }
+                        if (tutorial && !fromMap && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
                         {
                             tutorialState++;
                             tutorial = false;
@@ -803,8 +807,12 @@ namespace typatro.GameFolder
                             tutorialState = 0;
                             break;
                     }
-                    if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
-                    if (tutorial && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
+                    if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released)
+                    {
+                        tutorial = true;
+                        fromMap = false;
+                    }
+                    if (tutorial && !fromMap && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed))
                     {
                         tutorialState++;
                         tutorial = false;
@@ -1189,6 +1197,7 @@ namespace typatro.GameFolder
                         lastSelectedNode = selectedNode;
                         selectedNode = newNode;
                         roomSelected = true;
+                        fromMap = true;
                     }
                 }
             }
