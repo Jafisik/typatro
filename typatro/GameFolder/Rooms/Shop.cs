@@ -278,9 +278,8 @@ namespace typatro.GameFolder.Rooms{
         private bool Buying(ref long coins, ref bool mousePressed, ref MouseState mouseState, bool mouseOnShopCard)
         {
             KeyboardState state = Keyboard.GetState();
-            if (state.IsKeyDown(Keys.Enter) && !enterPressed ||
-                (mouseState.LeftButton == ButtonState.Pressed && !mousePressed && mouseOnShopCard && !GameLogic.keyboardUsed)
-                && SaveManager.IsUnlockUnlocked("shopTutorial"))
+            if (SaveManager.IsUnlockUnlocked("shopTutorial") && state.IsKeyDown(Keys.Enter) && !enterPressed ||
+                (mouseState.LeftButton == ButtonState.Pressed && !mousePressed && mouseOnShopCard && !GameLogic.keyboardUsed))
             {
                 mousePressed = true;
                 enterPressed = true;
@@ -382,6 +381,7 @@ namespace typatro.GameFolder.Rooms{
 
             }
             else if (state.IsKeyUp(Keys.Enter)) enterPressed = false;
+            else enterPressed = true;
             return false;
         }
 

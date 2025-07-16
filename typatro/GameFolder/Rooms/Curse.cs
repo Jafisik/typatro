@@ -95,7 +95,7 @@ namespace typatro.GameFolder.Rooms
         public void NewCurse()
         {
             curse = (Curses)GameLogic.unseededRandom.Next(0, Enum.GetValues(typeof(Curses)).Length);
-            curse = Curses.GambleVision; //specific curse tester
+            //curse = Curses.GambleVision; //specific curse tester
         }
 
 

@@ -568,6 +568,7 @@ namespace typatro.GameFolder
                     GlyphManager.RemoveAllGlyphs();
                     gameSaveData = null;
                     gameFinished = true;
+                    dead = false;
                     Reset();
                     gameState = GameState.MENU;
                 }
@@ -679,33 +680,34 @@ namespace typatro.GameFolder
                     {
                         SpriteFont font = SaveManager.size == 0 ? MainGame.Gfx.smallTextFont : MainGame.Gfx.menuFont;
                         MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), ThemeColors.ShopReroll);
+                        MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(15, 15, MainGame.screenWidth - 30, MainGame.screenHeight - 30), ThemeColors.ShopReroll);
                         switch (tutorialState)
                         {
                             case 0:
                                 string tutorialString = "<- Type correct letters\n   to deal damage\n   to the enemy";
                                 Vector2 fontSize = font.MeasureString(tutorialString);
-                                Rectangle tutorialBox = new Rectangle(160, 230, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                Rectangle tutorialBox = new Rectangle(200, 190, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
                                 MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                                 break;
                             case 1:
                                 tutorialString = "<- Each correct word\n   in a row gives you\n   a score multiplier";
                                 fontSize = font.MeasureString(tutorialString);
-                                tutorialBox = new Rectangle(MainGame.screenWidth - 100 - (int)fontSize.X, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                tutorialBox = new Rectangle(240, 90, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
                                 MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                                 break;
                             case 2:
                                 tutorialString = "Special words\ngive you effects\nbased on the color\nif written correctly";
                                 fontSize = font.MeasureString(tutorialString);
-                                tutorialBox = new Rectangle(210, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                tutorialBox = new Rectangle(180, 200, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
                                 MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                                 break;
                             case 3:
                                 tutorialString = "Stone words give you a flat + score";
                                 fontSize = font.MeasureString(tutorialString);
-                                tutorialBox = new Rectangle(210, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                tutorialBox = new Rectangle(180, 200, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
                                 MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                                 tutorialString = "Stone words";
@@ -714,7 +716,7 @@ namespace typatro.GameFolder
                             case 4:
                                 tutorialString = "Shiny words give you a * score multiplier";
                                 fontSize = font.MeasureString(tutorialString);
-                                tutorialBox = new Rectangle(210, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                tutorialBox = new Rectangle(180, 200, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
                                 MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                                 tutorialString = "Shiny words";
@@ -723,7 +725,7 @@ namespace typatro.GameFolder
                             case 5:
                                 tutorialString = "Bloom words upgrade the letters in the word";
                                 fontSize = font.MeasureString(tutorialString);
-                                tutorialBox = new Rectangle(210, 150, (int)fontSize.X + 20, (int)fontSize.Y + 20);
+                                tutorialBox = new Rectangle(180, 200, (int)fontSize.X + 20, (int)fontSize.Y + 20);
                                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, tutorialBox, ThemeColors.ExitShop);
                                 MainGame.Gfx.spriteBatch.DrawString(font, tutorialString, new Vector2(tutorialBox.X + 10, tutorialBox.Y + 10), ThemeColors.Text);
                                 tutorialString = "Bloom words";
@@ -821,7 +823,12 @@ namespace typatro.GameFolder
             }
             else if (selectedNode.type == NodeType.CURSE)
             {
-                isFightFinished = curseRoom.CurseRoomDisplay(ref coins, ref mousePressed);
+                TopBannerDisplay(true);
+                if (!inventoryUp)
+                {
+                    isFightFinished = curseRoom.CurseRoomDisplay(ref coins, ref mousePressed);
+                }
+                
             }
 
         }
@@ -1400,7 +1407,10 @@ namespace typatro.GameFolder
                 writeAchievment = true;
             }
 
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"Score:{wordStreak:0.##}x{(int)(currentScore/wordStreak)}={(int)currentScore}", new Vector2(50, 100), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"Mult:{wordStreak: 0.##}x", new Vector2(50, 100), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "Base:", new Vector2(MainGame.screenWidth/2 - MainGame.Gfx.gameFont.MeasureString("Base:").X, 100), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, ((int)(currentScore / wordStreak)).ToString(), new Vector2(MainGame.screenWidth/2, 100), ThemeColors.Text);
+            
             string rewardText = "Reward: " + fight.cashGain;
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, rewardText, new Vector2(MainGame.screenWidth - 50 - MainGame.Gfx.gameFont.MeasureString(rewardText).X, 100), ThemeColors.Text);
 
@@ -1440,7 +1450,7 @@ namespace typatro.GameFolder
                     correctWords++;
                     if (shinyWords.Contains(word))
                     {
-                        shinyMultiplier *= enhancements.shinyScore;
+                        //shinyMultiplier *= enhancements.shinyScore;
                     }
                     else if (stoneWords.Contains(word))
                     {
@@ -1462,9 +1472,12 @@ namespace typatro.GameFolder
                     wordStreak += GlyphManager.IsActive(Glyph.Scarab) ? 0.1 : 0.05;
                     if (wordStreak > highestStreak) highestStreak = (int)((wordStreak-1)*100);
                     extraScore += GlyphManager.IsActive(Glyph.N) && under3Sec ? 2 : 0;
+                    Console.WriteLine(wordStreak);
                     if (shinyWords.Contains(word))
                     {
                         shinyWritten++;
+                        wordStreak += enhancements.shinyChance;
+                        Console.WriteLine(wordStreak);
                     }
                     else if (stoneWords.Contains(word))
                     {

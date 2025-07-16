@@ -17,7 +17,7 @@ namespace typatro.GameFolder.Upgrades{
         public double shinyChance = 0.01, stoneChance = 0.05, bloomChance = 0.02;
         public double shChange, stChange, blChange;
 
-        public double shinyScore = 1.2, shinyScoreChange;
+        public double shinyScore = 50, shinyScoreChange;
         public int stoneScore = 50, stoneScoreChange;
 
         public bool overHundred = false;

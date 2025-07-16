@@ -88,8 +88,11 @@ namespace typatro.GameFolder{
                 mapNodes[pos, 1] = new MapNode(new List<MapNode>(), NodeType.FIGHT,
                     new Vector2(leftOffset, GameLogic.seededRandom.Next(-randomChange, randomChange) + topOffset + pos * columnSpacing), pos, 1);
 
+                int prevPos = pos;
+
                 for (int column = 2; column < mapNodes.GetLength(1) - 1; column++)
                 {
+                    prevPos = pos;
                     pos += GameLogic.seededRandom.Next(-1, 2);
                     pos = Math.Clamp(pos, 0, mapNodes.GetLength(0) - 1);
 
@@ -107,6 +110,11 @@ namespace typatro.GameFolder{
                         else
                         {
                             nodeType = GenerateNodeType();
+                            int safety = 10; 
+                            while (nodeType == mapNodes[prevPos, column -1].type && safety-- > 0)
+                            {
+                                nodeType = GenerateNodeType();
+                            }
                         }
 
                         mapNodes[pos, column] = new MapNode(new List<MapNode>(), nodeType,
@@ -298,7 +306,7 @@ namespace typatro.GameFolder{
 
                             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont,
-                                $"Reward: {Fight.CashGainGen(level, column, difficulty)} coins\nLetter: {letters}\nLength: {Fight.WordsGen(difficulty)} words\nDamage: {Math.Max(1, Fight.SpeedGen(level, column, difficulty) + 1)}/s",
+                                $"Reward: {Fight.CashGainGen(level, column+1, difficulty)} coins\nLetter: {letters}\nLength: {Fight.WordsGen(difficulty)} words\nDamage: {Fight.SpeedGen(level, column+1, difficulty)}/s",
                                 new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
                         }
                         else if (type == NodeType.SHOP)
