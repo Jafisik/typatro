@@ -83,25 +83,49 @@ namespace typatro.GameFolder
 
         //Visualizes user input and highlights mistakes (prints user input and then prints wrongString,
         // which has ' ' for correct letters and the actual letters for wrong letters)
-        public Vector2 UserInputText(char[] printCharArray, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0){
+        public Vector2 UserInputText(char[] printCharArray, int mistakeBlock, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0){
             
             StringBuilder writeLine = new StringBuilder();
             StringBuilder wrongString = new StringBuilder();
+            StringBuilder blockedString = new StringBuilder();
             int indexLine = 0, charIndex = 0;
             for (int i = 0; i < writtenText.Count; i++){
                 charIndex++;
                 if (indexLine < endLineIndexes.Count && i == endLineIndexes[indexLine] - indexLine){
                     writeLine.Append('\n');
                     wrongString.Append('\n');
+                    blockedString.Append('\n');
                     indexLine++;
                     charIndex = 1;
                 }
-                writeLine.Append(printCharArray[i]);
-                wrongString.Append(diffIndexes.Contains(i) ? writtenText[i] : ' ');
+
+                if (diffIndexes.Contains(i))
+                {
+                    if (mistakeBlock == 0)
+                    {
+                        wrongString.Append(writtenText[i]);
+                        blockedString.Append(' ');
+                    }
+                    else
+                    {
+                        mistakeBlock--;
+                        wrongString.Append(' ');
+                        blockedString.Append(writtenText[i]);
+                    }
+                    writeLine.Append(' ');
+                }
+                else
+                {
+                    wrongString.Append(' ');
+                    blockedString.Append(' ');
+                    writeLine.Append(printCharArray[i]);
+                }
+                
             }
 
             string correctText = writeLine.ToString();
             string incorrectText = wrongString.ToString();
+            string blockedText = blockedString.ToString();
 
             Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + yExtraOffset);
 
@@ -109,7 +133,8 @@ namespace typatro.GameFolder
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(charIndex*(int)charSize.X + (int)position.X, (indexLine+1)*(int)charSize.Y + (int)position.Y-1,(int)charSize.X-3,3), ThemeColors.Selected);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, correctText, position + rotationPoint, ThemeColors.Text, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, incorrectText, position + rotationPoint, ThemeColors.Wrong, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            return new Vector2(charIndex*charSize.X-50, -50) + position;
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, blockedText, position + rotationPoint, ThemeColors.Blocked, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            return new Vector2(charIndex * charSize.X - 50, -50) + position;
         }
         Vector2 rotationPoint;
 

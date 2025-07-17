@@ -221,7 +221,7 @@ namespace typatro.GameFolder
                     {
                         if ((int)timeInSeconds % 10 == 0)
                         {
-                            if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.H)) textRotation += Math.PI;
+                            if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.B)) textRotation += Math.PI;
                             if (GlyphManager.IsActive(Glyph.M)) coins += 10;
                         }
                         if ((int)timeInSeconds % 5 == 0 && timeInSeconds != 0)
@@ -341,12 +341,12 @@ namespace typatro.GameFolder
                         map = new Map();
                         enhancements = new Enhancements();
                         enhancements.letters = gameSaveData.letterScores;
-                        enhancements.wordScore = gameSaveData.enhancements[0];
-                        enhancements.damageResist = gameSaveData.enhancements[1];
-                        enhancements.startingScore = gameSaveData.enhancements[2];
+                        enhancements.damageResist = gameSaveData.enhancements[0];
+                        enhancements.mistakeBlock = gameSaveData.enhancements[1];
                         enhancements.shinyChance = gameSaveData.enhChances[0];
                         enhancements.stoneChance = gameSaveData.enhChances[1];
                         enhancements.bloomChance = gameSaveData.enhChances[2];
+                        enhancements.streakMult = gameSaveData.enhChances[3];
                         shop = new Shop(enhancements);
                         treasure = new Treasure(enhancements);
                         curseRoom = new CurseRoom(enhancements);
@@ -421,7 +421,7 @@ namespace typatro.GameFolder
                     curseRoom = new CurseRoom(enhancements);
                     coins = difficulty >= 1 ? 15 : startCoins;
                     gameState = GameState.RUNES;
-                    if (difficulty >= 3) enhancements.wordScore -= 1;
+                    if (difficulty >= 3) enhancements.streakMult -= 1;
                     GlyphManager.RemoveAllGlyphs();
                     GlyphManager.Add(Glyph.NoGlyphsLeft);
                     visitedNodes = new List<int[]>();
@@ -644,7 +644,7 @@ namespace typatro.GameFolder
                 {
                     writer.WriteText(neededText, ThemeColors.Selected, shinyWords, stoneWords, bloomWords, isHintText: true, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
                     Vector2 lastCharPos = new Vector2();
-                    if (SaveManager.IsUnlockUnlocked("fightTutorial")) lastCharPos = writer.UserInputText(Writer.writtenText.ToArray(), rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
+                    if (SaveManager.IsUnlockUnlocked("fightTutorial")) lastCharPos = writer.UserInputText(Writer.writtenText.ToArray(), enhancements.mistakeBlock, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
                     TopBannerDisplay(false);
                     CalculateScore(lastCharPos);
                     HealthBar();
@@ -862,7 +862,7 @@ namespace typatro.GameFolder
                             achievmentBools["HUNDRED"] = writeAchievment = true;
                             writeAchievment = true;
                         }
-                        if (GlyphManager.IsActive(Glyph.B)) enhancements.AddToStartingScore(5);
+                        if (GlyphManager.IsActive(Glyph.B)) enhancements.AddToMistakeBlock(5);
 
                         if (GlyphManager.IsActive(Glyph.Woman))
                         {
@@ -1472,12 +1472,10 @@ namespace typatro.GameFolder
                     wordStreak += GlyphManager.IsActive(Glyph.Scarab) ? 0.1 : 0.05;
                     if (wordStreak > highestStreak) highestStreak = (int)((wordStreak-1)*100);
                     extraScore += GlyphManager.IsActive(Glyph.N) && under3Sec ? 2 : 0;
-                    Console.WriteLine(wordStreak);
                     if (shinyWords.Contains(word))
                     {
                         shinyWritten++;
-                        wordStreak += enhancements.shinyChance;
-                        Console.WriteLine(wordStreak);
+                        wordStreak += enhancements.shinyScore;
                     }
                     else if (stoneWords.Contains(word))
                     {
@@ -1510,14 +1508,14 @@ namespace typatro.GameFolder
 
             if (startedTyping)
             {
-                playerScore = (int)((extraScore + enhancements.startingScore + letterScore + stoneScore) * shinyMultiplier);
+                playerScore = (int)((extraScore + enhancements.mistakeBlock + letterScore + stoneScore) * shinyMultiplier);
                 long enemyDamage = (long)((GlyphManager.IsActive(Glyph.House) ? 0.25 : 1) * (int)timeInSeconds) * fight.speed - enhancements.damageResist;
                 long mistakeDamage = (GlyphManager.IsActive(Glyph.Snake) ? 0 : 1) * (GlyphManager.IsActive(Glyph.R) ? 5 : 1) * (difficulty >= 2 ? 5 : 1) * mistakeCount;
-                currentScore = (int)((playerScore + correctWords * enhancements.wordScore - (enemyDamage < 0 ? 1 * (int)timeInSeconds : enemyDamage) - mistakeDamage) * wordStreak);
+                currentScore = (int)((playerScore + correctWords * enhancements.streakMult - (enemyDamage < 0 ? 1 * (int)timeInSeconds : enemyDamage) - mistakeDamage) * wordStreak);
                 if (Writer.writtenText.Count == 1) lastScore = 0;
                 if (playerScore - lastScore != 0 && timeInSeconds - letterTimer < 0.25 && Writer.writtenText.Count > 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "+" + (playerScore - lastScore).ToString(), lastCharPos, ThemeColors.Correct);
             }
-            else currentScore = enhancements.startingScore;
+            else currentScore = enhancements.mistakeBlock;
             if (currentScore <= -100 && !achievmentBools["SNAKE"])
             {
                 achievmentBools["SNAKE"] = true;
@@ -1554,19 +1552,19 @@ namespace typatro.GameFolder
             if(enhancements.blChange != 0)MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{(int)(enhancements.blChange*100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
 
             lineRow++;
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Shiny mult: {enhancements.shinyScore.ToString("0.##")}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if(enhancements.shinyScoreChange != 0)MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{enhancements.shinyScoreChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Shiny mult: {enhancements.shinyScore.ToString("0.##")}x", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
+            if(enhancements.shinyScoreChange != 0)MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{enhancements.shinyScoreChange}x", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset+26, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Stone add: {enhancements.stoneScore}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
             if(enhancements.stoneScoreChange != 0)MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{enhancements.stoneScoreChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
 
 
             lineRow++;
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Streak: {enhancements.wordScore}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Streak: {enhancements.streakMult.ToString("0.##")}x", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
             if(enhancements.wordChange != 0)MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{enhancements.wordChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Resist: {enhancements.damageResist}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
             if(enhancements.damageChange != 0)MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{enhancements.damageChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Start: {enhancements.startingScore}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if(enhancements.startChange != 0)MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{enhancements.startChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Block: {enhancements.mistakeBlock}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
+            if(enhancements.mistakeChange != 0)MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{enhancements.mistakeChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
 
             Glyph[] glyphs = GlyphManager.GetGlyphs();
             if (glyphs.Length > 1)

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Steamworks;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
@@ -23,9 +21,9 @@ namespace typatro.GameFolder.Rooms{
 
     enum EnhancementsType
     {
-        wordScore,
+        streakMult,
         damageResist,
-        startingScore,
+        mistakeBlock,
         shinyChance,
         stoneChance,
         bloomChance,
@@ -109,13 +107,13 @@ namespace typatro.GameFolder.Rooms{
         {
             return type switch
             {
-                EnhancementsType.wordScore => enhancements.wordScore * 2 + 5,
+                EnhancementsType.streakMult => (int)(enhancements.streakMult * 100 + 5),
                 EnhancementsType.damageResist => enhancements.damageResist * 3 + 5,
-                EnhancementsType.startingScore => enhancements.startingScore / 5 + 5,
+                EnhancementsType.mistakeBlock => enhancements.mistakeBlock * 10 + 10,
                 EnhancementsType.shinyChance => (int)(enhancements.shinyChance * 100 * 10 + 10),
                 EnhancementsType.stoneChance => (int)(enhancements.stoneChance * 100 * 2 + 7),
                 EnhancementsType.bloomChance => (int)(enhancements.bloomChance * 100 * 8 + 10),
-                EnhancementsType.shinyScore => (int)(enhancements.shinyScore * enhancements.shinyScore * 10),
+                EnhancementsType.shinyScore => (int)(enhancements.shinyScore * 30),
                 EnhancementsType.stoneScore => enhancements.stoneScore / 10 + 10,
                 _ => 100,
             };
@@ -422,13 +420,13 @@ namespace typatro.GameFolder.Rooms{
         {
             return type.enhancementsType switch
             {
-                EnhancementsType.wordScore => $"Word score\n\nCost:        {type.cost}",
+                EnhancementsType.streakMult => $"Streak mult\n\nCost:        {type.cost}",
                 EnhancementsType.damageResist => $"Damage resist\n\nCost:        {type.cost}",
-                EnhancementsType.startingScore => $"Starting score\n\nCost:        {type.cost}",
+                EnhancementsType.mistakeBlock => $"Mistake block\n\nCost:        {type.cost}",
                 EnhancementsType.shinyChance => $"Shiny chance\n\nCost:        {type.cost}",
                 EnhancementsType.stoneChance => $"Stone chance\n\nCost:        {type.cost}",
                 EnhancementsType.bloomChance => $"Bloom chance\n\nCost:        {type.cost}",
-                EnhancementsType.shinyScore => $"Shiny score\n\nCost:        {type.cost}",
+                EnhancementsType.shinyScore => $"Shiny mult\n\nCost:        {type.cost}",
                 EnhancementsType.stoneScore => $"Stone score\n\nCost:        {type.cost}",
                 _ => "",
             };
@@ -438,14 +436,14 @@ namespace typatro.GameFolder.Rooms{
         {
             return type.enhancementsType switch
             {
-                EnhancementsType.wordScore => $"Adds +1 score per each correct word\n\nCurrent bonus: {enhancements.wordScore}    Cost: {type.cost}",
+                EnhancementsType.streakMult => $"Adds +0.05 mult per each correct word\n\nCurrent bonus: {enhancements.streakMult}    Cost: {type.cost}",
                 EnhancementsType.damageResist => $"Reduces the incoming damage from enemies\n\nCurrent bonus: {enhancements.damageResist}    Cost: {type.cost}",
-                EnhancementsType.startingScore => $"Adds +10 to the score at begining of the fight\n\nCurrent bonus: {enhancements.startingScore}    Cost: {type.cost}",
+                EnhancementsType.mistakeBlock => $"Lets you block +1 mistake and keep your streak\n\nCurrent bonus: {enhancements.mistakeBlock}    Cost: {type.cost}",
                 EnhancementsType.shinyChance => $"Adds 1% to the chance of spawning a shiny word\n(adds a 1.2x multiplier to all scores in a fight)\n\nCurrent chance: {(enhancements.shinyChance * 100).ToString("0.##")}%    Cost: {type.cost}",
                 EnhancementsType.stoneChance => $"Adds 3% to the chance of spawning a stone word (adds 50 to score)\n\nCurrent chance: {(enhancements.stoneChance * 100).ToString("0.##")}%    Cost: {type.cost}",
                 EnhancementsType.bloomChance => $"Adds 2% to the chance of spawning a bloom word\n(upgrades all the letters in the word by 1)\n\nCurrent chance: {(enhancements.bloomChance * 100).ToString("0.##")}%    Cost: {type.cost}",
                 EnhancementsType.stoneScore => $"Adds +20 to each written stone word\n\nCurrent score: {enhancements.stoneScore}    Cost: {type.cost}",
-                EnhancementsType.shinyScore => $"Adds +0.1 to the shiny multiplier\n\nCurrent multiplier: {enhancements.shinyScore.ToString("0.#")}    Cost: {type.cost}",
+                EnhancementsType.shinyScore => $"Adds +0.25 to the shiny multiplier\n\nCurrent multiplier: {enhancements.shinyScore.ToString("0.##")}    Cost: {type.cost}",
                 _ => "",
             };
         }
@@ -454,14 +452,14 @@ namespace typatro.GameFolder.Rooms{
         {
             switch (upgrade.enhancementsType)
             {
-                case EnhancementsType.wordScore:
-                    enhancements.AddToWordScore(1);
+                case EnhancementsType.streakMult:
+                    enhancements.AddToWordScore(0.05);
                     break;
                 case EnhancementsType.damageResist:
                     enhancements.AddToDamageResist(1);
                     break;
-                case EnhancementsType.startingScore:
-                    enhancements.AddToStartingScore(10);
+                case EnhancementsType.mistakeBlock:
+                    enhancements.AddToMistakeBlock(1);
                     break;
                 case EnhancementsType.shinyChance:
                     enhancements.AddShinyChance(0.01);
@@ -473,7 +471,7 @@ namespace typatro.GameFolder.Rooms{
                     enhancements.AddBloomChance(0.02);
                     break;
                 case EnhancementsType.shinyScore:
-                    enhancements.AddShinyScore(0.1);
+                    enhancements.AddShinyScore(0.25);
                     break;
                 case EnhancementsType.stoneScore:
                     enhancements.AddStoneScore(20);

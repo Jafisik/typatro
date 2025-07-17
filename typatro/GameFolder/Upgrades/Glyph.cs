@@ -14,13 +14,13 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Meaning: \"Sound for 'A', used for names or verbs.\"\n\n+ Adds 5 to all vowels")]
         A,
 
-        [Description("Meaning: \"Sound for 'B', symbol for foot or place.\"\n\n+ Adds +5 to the starting score each fight")]
+        [Description("Meaning: \"Sound for 'B', symbol for foot or place.\"\n\n+ Multiplies 5 random letters by *5\n- Rotates text upside down every 10 seconds")]
         B,
 
         [Description("Meaning: \"Sound for 'D', symbol for hand.\"\n\n+ Multiplies 2 random letter scores by *5")]
         D,
 
-        [Description("Meaning: \"Sound for 'H', symbolizing shelter or building.\"\n\n+ Multiplies 10 random letters by *5\n- Rotates text upside down every 10 seconds")]
+        [Description("Meaning: \"Sound for 'H', symbolizing shelter or building.\"\n\n+ Blocks +2 mistakes per fight")]
         H,
 
         [Description("Meaning: \"Sound for 'J', also symbol for reed or tall grass.\"\n\n+ Add +10 to all letter scores\n- Screen shakes with every input")]
@@ -29,34 +29,34 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Meaning: \"Sound for 'M', can symbolize owl, silence or wisdom.\"\n\n+ Gains 10 coins every 10 seconds in a fight\n- Text changes position every 5 seconds")]
         M,
 
-        [Description("Meaning: \"Sound for 'N', ripple of water, also 'to' or 'for'.\"\n\n+ Words written under 3 seconds are doubled\n- Words written over 3 seconds break streak")]
+        [Description("Meaning: \"Sound for 'N', ripple of water, also 'to' or 'for'.\"\n\n+ Each correct stone word gives you +1% shiny chance\n- Score from correct stone words is negative (eg. +50 is now -50)")]
         N,
 
-        [Description("Meaning: \"Sound for 'R', symbolizing mouth or one whole thing.\"\n\n+ Lets you correct your mistakes\n- Mistakes count as -5")]
+        [Description("Meaning: \"Sound for 'R', symbolizing mouth or one whole thing.\"\n\n+ Lets you correct your mistakes\n- If you leave a mistake, decrease its letter score by -1")]
         R,
 
-        [Description("Meaning: \"Sound for 'S', also sufffix for she, her, hers.\"\n\n+ Elite and boss fights deal less damage")]
+        [Description("Meaning: \"Sound for 'S', also sufffix for she, her, hers.\"\n\n+ Bloom words give you +5 letter score per letter")]
         S,
 
         [Description("Meaning: \"'Sun', representing Ra, the sun god.\"\n\n+ Disables all visual glyphs\n- Letters are less visible")]
         Sun,
 
-        [Description("Meaning: \"'House', represents domestic life or temples.\"\n\n+ Take only quarter damage\n- Every 8 seconds your keyboard stops working")]
+        [Description("Meaning: \"'House', represents domestic life or temples.\"\n\n+ Each correct stone word gives you +10 stone word score\n- Every 8 seconds your keyboard stops working")]
         House,
 
-        [Description("Meaning: \"'Water', often representing rivers or offerings.\"\n\n+ Multiplies final score by *2\n- Add -5 to 5 random letter scores")]
+        [Description("Meaning: \"'Water', often representing rivers or offerings.\"\n\n+ Multiplies 5 random letter scores by *2\n- Add -10 to 5 random letter scores")]
         Water,
 
-        [Description("Meaning: \"'King', signifying royalty or divine authority.\"\n\n+ Multiplies ALL highest letter scores by *5\n- Sets ALL letters with lowest letter score to 0")]
+        [Description("Meaning: \"'King', signifying royalty or divine authority.\"\n\n+ Multiplies all highest letter scores by *50\n- Sets ALL other letter scores to 0")]
         King,
 
-        [Description("Meaning: \"The Eye of Horus, symbolizing protection and health.\"\n\n+ 2 mistakes per round do not count\n- You blink every 5 seconds")]
+        [Description("Meaning: \"The Eye of Horus, symbolizing protection and health.\"\n\n+ Mistakes do not reset your streak\n- You blink every 5 seconds")]
         EyeOfHorus,
 
         [Description("Meaning: \"Osiris, the god of the afterlife and resurrection.\"\n\n+ Revive once per run\n- After ressurection all letters multiplied by *0.8")]
         Osiris,
 
-        [Description("Meaning: \"'Woman', symbolizes feminine names or nurture.\"\n\n+ Multiplies random letter scoreby *2 after each fight\n- Earn only 80% coins")]
+        [Description("Meaning: \"'Woman', symbolizes feminine names or nurture.\"\n\n+ Multiplies random letter score by *2 after each fight\n- Earn only 80% coins")]
         Woman,
 
         [Description("Meaning: \"'Man', used for writing the word 'person'.\"\n\n+ Multiplies coin rewards by *1.5\n- Letter 'x' counts as a mistake")]
@@ -68,10 +68,10 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Meaning: \"'Cat', representing the goddess Bastet, protector of the home.\"\n\n+ Multiplies 9 random letter values by *2\n- A cat will be sleeping on a random location")]
         Cat,
 
-        [Description("Meaning: \"Anubis, the god of mummification and protector of tombs.\"\n\n+ Gain 1 coin per 5 words")]
+        [Description("Meaning: \"Anubis, the god of mummification and protector of tombs.\"\n\n+ Multiplies coin rewards by *2\n- Bloom words are disabled")]
         Anubis,
 
-        [Description("Meaning: \"'Scarab', associated with rebirth and regeneration.\"\n\n+ Streak bonus increases by +3 every consecutive correct word")]
+        [Description("Meaning: \"'Scarab', associated with rebirth and regeneration.\"\n\n+ Streak bonus is doubled")]
         Scarab,
 
         [Description("Meaning: \"'Snake', often signifying danger or protection.\"\n\n+ Mistakes do not subtract from score\n- Some letters are wrong")]

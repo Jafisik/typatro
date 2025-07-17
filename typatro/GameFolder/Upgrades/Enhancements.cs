@@ -9,15 +9,16 @@ namespace typatro.GameFolder.Upgrades{
     public class Enhancements{
         public long[] letters = new long[26];
         public long[] lettersChange = new long[26];
-        public int wordScore = 2;
+        public double streakMult = 0.05;
         public int damageResist = 0;
-        public int startingScore = 0;
-        public int wordChange, damageChange, startChange;
+        public int mistakeBlock = 0;
+        public int damageChange, mistakeChange;
+        public double wordChange;
 
         public double shinyChance = 0.01, stoneChance = 0.05, bloomChance = 0.02;
         public double shChange, stChange, blChange;
 
-        public double shinyScore = 50, shinyScoreChange;
+        public double shinyScore = 0.5, shinyScoreChange;
         public int stoneScore = 50, stoneScoreChange;
 
         public bool overHundred = false;
@@ -33,7 +34,7 @@ namespace typatro.GameFolder.Upgrades{
         public void ResetChange()
         {
             lettersChange = new long[26];
-            wordChange = damageChange = startChange = 0;
+            wordChange = damageChange = mistakeChange = 0;
             shChange = stChange = blChange = 0;
             shinyScoreChange = 0;
             stoneScoreChange = 0;
@@ -99,17 +100,17 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
 
-        public void AddToWordScore(int score)
+        public void AddToWordScore(double score)
         {
-            wordScore += score;
+            streakMult += score;
             wordChange += score;
         }
 
-        public void AddToStartingScore(int score)
+        public void AddToMistakeBlock(int score)
         {
-            startingScore += score;
-            startChange += score;
-            if (startingScore >= 100 && !GameLogic.achievmentBools["H"])
+            mistakeBlock += score;
+            mistakeChange += score;
+            if (mistakeBlock >= 100 && !GameLogic.achievmentBools["H"])
             {
                 GameLogic.achievmentBools["H"] = true;
                 GameLogic.writeAchievment = true;
@@ -191,7 +192,7 @@ namespace typatro.GameFolder.Upgrades{
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 5);
                     MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 5);
                     break;
-                case Glyph.H:
+                case Glyph.B:
                     for (int i = 0; i < 10; i++)
                     {
                         if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
