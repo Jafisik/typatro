@@ -2,12 +2,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
 using typatro.GameFolder.UI;
-using System.Linq;
 using Microsoft.Xna.Framework.Media;
-using Microsoft.VisualBasic;
-using System.Diagnostics;
+using typatro.GameFolder.Services;
 
 
 namespace typatro.GameFolder
@@ -60,7 +57,7 @@ namespace typatro.GameFolder
                 else MainGame.graphics.IsFullScreen = false;
                 MainGame.graphics.ApplyChanges();
             } catch(Exception e){
-                Console.WriteLine("Couldn't load settings " + e.Message);
+                System.Diagnostics.Debug.WriteLine("Couldn't load settings " + e.Message);
             }
             
         }
@@ -270,30 +267,15 @@ namespace typatro.GameFolder
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, fullScr, new Vector2(MainGame.screenWidth / 2 + optionRectWidth / 2 - MainGame.Gfx.menuFont.MeasureString(fullScr).X / 2 +20, optionTopOffset + 20 + menuLineSpacing * 3), ThemeColors.Text);
             return false;
         }
-        private void ChangeScreenSize(int size){
-            switch(size){
-                case 0:
-                    MainGame.screenWidth = 800;
-                    MainGame.screenHeight = 600;
-                    MainGame.graphics.PreferredBackBufferWidth = MainGame.screenWidth;
-                    MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
-                    MainGame.graphics.ApplyChanges();
-                    break;
-                case 1:
-                    MainGame.screenWidth = 1152;
-                    MainGame.screenHeight = 648;
-                    MainGame.graphics.PreferredBackBufferWidth = MainGame.screenWidth;
-                    MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
-                    MainGame.graphics.ApplyChanges();
-                    break;
-                case 2:
-                    MainGame.screenWidth = 1280;
-                    MainGame.screenHeight = 720;
-                    MainGame.graphics.PreferredBackBufferWidth = MainGame.screenWidth;
-                    MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
-                    MainGame.graphics.ApplyChanges();
-                    break;
-            }
+        private void ChangeScreenSize(int size)
+        {
+            (int width, int height)[] resolutions = { (800, 600), (1152, 648), (1280, 720) };
+            if (size < 0 || size >= resolutions.Length) return;
+            MainGame.screenWidth = resolutions[size].width;
+            MainGame.screenHeight = resolutions[size].height;
+            MainGame.graphics.PreferredBackBufferWidth = MainGame.screenWidth;
+            MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
+            MainGame.graphics.ApplyChanges();
         }
 
         private void OptionDecrease(OptionSelect option)
@@ -305,11 +287,7 @@ namespace typatro.GameFolder
                     {
                         SaveManager.theme--;
                         optionNav = false;
-                        if (!GameLogic.achievmentBools["SUN"])
-                        {
-                            GameLogic.achievmentBools["SUN"] = true;
-                            GameLogic.writeAchievment = true;
-                        }
+                        UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Sun);
                     }
                     break;
                 case OptionSelect.volume:
@@ -359,11 +337,7 @@ namespace typatro.GameFolder
                     {
                         SaveManager.theme++;
                         optionNav = false;
-                        if (!GameLogic.achievmentBools["SUN"])
-                        {
-                            GameLogic.achievmentBools["SUN"] = true;
-                            GameLogic.writeAchievment = true;
-                        }
+                        UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Sun);
                     }
                     break;
                 case OptionSelect.volume:

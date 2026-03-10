@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
-using static Microsoft.Xna.Framework.Graphics.SpriteFont;
 
 namespace typatro.GameFolder.Rooms
 {

@@ -6,9 +6,9 @@ using System.IO;
 using System.Text.Json;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
-using Steamworks;
 using System;
 using Microsoft.Xna.Framework.Audio;
+using typatro.GameFolder.Services;
 
 namespace typatro.GameFolder;
 
@@ -44,10 +44,6 @@ public class MainGame : Game
         graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
         Window.IsBorderless = true;
         Window.Title = "GLYPHORA";
-        if (!SteamAPI.Init())
-        {
-            Console.WriteLine("SteamAPI.Init() selhalo.");
-        }
         graphics.ApplyChanges();
         base.Initialize();
     }
@@ -88,8 +84,8 @@ public class MainGame : Game
         sfx.musicMainTheme.Volume = settings[1] / 10f;
         sfx.musicIntro.IsLooped = false;
         sfx.musicIntro.Play();
-        
 
+        if (!SteamManager.Init()) { System.Diagnostics.Debug.WriteLine("SteamAPI.Init() selhalo."); }
         gameLogic = new GameLogic(jsonStrings, Window.Position, sfx);
     }
 

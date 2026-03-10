@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.Xna.Framework.Graphics;
+using typatro.GameFolder.Services;
 using typatro.GameFolder.UI;
+using static typatro.GameFolder.Services.UnlockManager;
 
 namespace typatro.GameFolder.Upgrades{
 
@@ -117,10 +119,9 @@ namespace typatro.GameFolder.Upgrades{
         public static void Add(Glyph glyph)
         {
             activeGlyphs.Add(glyph);
-            if(activeGlyphs.Count >= 7 && !GameLogic.achievmentBools["WOMAN"])
+            if(activeGlyphs.Count >= 7)
             {
-                GameLogic.achievmentBools["WOMAN"] = true;
-                GameLogic.writeAchievment = true;
+                UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Woman);
             }
         }
         public static void Remove(Glyph glyph) => activeGlyphs.Remove(glyph);
@@ -198,32 +199,32 @@ namespace typatro.GameFolder.Upgrades{
             unlockedGlyphs.Add(Glyph.Ten);
             unlockedGlyphs.Add(Glyph.Flower);
             
-            Dictionary<string, bool> unlocks = SaveManager.LoadUnlocks();
+            Dictionary<UnlockType, bool> unlocks = UnlockManager.LoadUnlocks();
             if (unlocks != null)
             {
-                if (unlocks["ANUBIS"]) unlockedGlyphs.Add(Glyph.Anubis);
-                if (unlocks["CAT"]) unlockedGlyphs.Add(Glyph.Cat);
-                if (unlocks["PAPYRUS"]) unlockedGlyphs.Add(Glyph.Papyrus);
-                if (unlocks["THOUSAND"]) unlockedGlyphs.Add(Glyph.Thousand);
-                if (unlocks["J"]) unlockedGlyphs.Add(Glyph.J);
-                if (unlocks["S"]) unlockedGlyphs.Add(Glyph.S);
-                if (unlocks["CROCODILE"]) unlockedGlyphs.Add(Glyph.Crocodile);
-                if (unlocks["EYEOFHORUS"]) unlockedGlyphs.Add(Glyph.EyeOfHorus);
-                if (unlocks["H"]) unlockedGlyphs.Add(Glyph.H);
-                if (unlocks["HEART"]) unlockedGlyphs.Add(Glyph.Heart);
-                if (unlocks["HOUSE"]) unlockedGlyphs.Add(Glyph.House);
-                if (unlocks["HUNDRED"]) unlockedGlyphs.Add(Glyph.Hundred);
-                if (unlocks["KING"]) unlockedGlyphs.Add(Glyph.King);
-                if (unlocks["M"]) unlockedGlyphs.Add(Glyph.M);
-                if (unlocks["MAN"]) unlockedGlyphs.Add(Glyph.Man);
-                if (unlocks["N"]) unlockedGlyphs.Add(Glyph.N);
-                if (unlocks["OSIRIS"]) unlockedGlyphs.Add(Glyph.Osiris);
-                if (unlocks["R"]) unlockedGlyphs.Add(Glyph.R);
-                if (unlocks["SNAKE"]) unlockedGlyphs.Add(Glyph.Snake);
-                if (unlocks["STAR"]) unlockedGlyphs.Add(Glyph.Star);
-                if (unlocks["SUN"]) unlockedGlyphs.Add(Glyph.Sun);
-                if (unlocks["WATER"]) unlockedGlyphs.Add(Glyph.Water);
-                if (unlocks["WOMAN"]) unlockedGlyphs.Add(Glyph.Woman);
+                if (unlocks[UnlockType.Anubis]) unlockedGlyphs.Add(Glyph.Anubis);
+                if (unlocks[UnlockType.Cat]) unlockedGlyphs.Add(Glyph.Cat);
+                if (unlocks[UnlockType.Papyrus]) unlockedGlyphs.Add(Glyph.Papyrus);
+                if (unlocks[UnlockType.Thousand]) unlockedGlyphs.Add(Glyph.Thousand);
+                if (unlocks[UnlockType.J]) unlockedGlyphs.Add(Glyph.J);
+                if (unlocks[UnlockType.S]) unlockedGlyphs.Add(Glyph.S);
+                if (unlocks[UnlockType.Crocodile]) unlockedGlyphs.Add(Glyph.Crocodile);
+                if (unlocks[UnlockType.EyeOfHorus]) unlockedGlyphs.Add(Glyph.EyeOfHorus);
+                if (unlocks[UnlockType.H]) unlockedGlyphs.Add(Glyph.H);
+                if (unlocks[UnlockType.Heart]) unlockedGlyphs.Add(Glyph.Heart);
+                if (unlocks[UnlockType.House]) unlockedGlyphs.Add(Glyph.House);
+                if (unlocks[UnlockType.Hundred]) unlockedGlyphs.Add(Glyph.Hundred);
+                if (unlocks[UnlockType.King]) unlockedGlyphs.Add(Glyph.King);
+                if (unlocks[UnlockType.M]) unlockedGlyphs.Add(Glyph.M);
+                if (unlocks[UnlockType.Man]) unlockedGlyphs.Add(Glyph.Man);
+                if (unlocks[UnlockType.N]) unlockedGlyphs.Add(Glyph.N);
+                if (unlocks[UnlockType.Osiris]) unlockedGlyphs.Add(Glyph.Osiris);
+                if (unlocks[UnlockType.R]) unlockedGlyphs.Add(Glyph.R);
+                if (unlocks[UnlockType.Snake]) unlockedGlyphs.Add(Glyph.Snake);
+                if (unlocks[UnlockType.Star]) unlockedGlyphs.Add(Glyph.Star);
+                if (unlocks[UnlockType.Sun]) unlockedGlyphs.Add(Glyph.Sun);
+                if (unlocks[UnlockType.Water]) unlockedGlyphs.Add(Glyph.Water);
+                if (unlocks[UnlockType.Woman]) unlockedGlyphs.Add(Glyph.Woman);
             }
         }
     }

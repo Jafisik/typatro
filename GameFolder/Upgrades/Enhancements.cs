@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Steamworks;
+using typatro.GameFolder.Services;
 using typatro.GameFolder.UI;
 
 namespace typatro.GameFolder.Upgrades{
@@ -49,15 +50,13 @@ namespace typatro.GameFolder.Upgrades{
             letters[letter - 'a'] += score;
             lettersChange[letter - 'a'] += score;
 
-            if (letters[letter - 'a'] < 0 && !GameLogic.achievmentBools["HALAGAZ0"])
+            if (letters[letter - 'a'] < 0)
             {
-                GameLogic.achievmentBools["HALAGAZ0"] = true;
-                GameLogic.writeAchievment = true;
+                UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Halagaz0);
             }
-            if (letters[letter - 'a'] >= 100 && !GameLogic.achievmentBools["J"])
+            if (letters[letter - 'a'] >= 100)
             {
-                GameLogic.achievmentBools["J"] = true;
-                GameLogic.writeAchievment = true;
+                UnlockManager.UnlockUnlock(UnlockManager.UnlockType.J);
             }
 
             if (letters[letter - 'a'] >= 100) overHundred = true;
@@ -68,10 +67,9 @@ namespace typatro.GameFolder.Upgrades{
             {
                 letters[i] += score;
                 lettersChange[i] += score;
-                if (letters[i] >= 100 && !GameLogic.achievmentBools["J"])
+                if (letters[i] >= 100)
                 {
-                    SaveManager.UnlockUnlock("J");
-                    SteamUserStats.SetAchievement("J");
+                    UnlockManager.UnlockUnlock(UnlockManager.UnlockType.J);
                 } 
 
                 if (letters[i] >= 100) overHundred = true;
@@ -85,7 +83,7 @@ namespace typatro.GameFolder.Upgrades{
             lettersChange[letter - 'a'] += letters[letter - 'a'] - tempLet;
             foreach (long lette in letters)
             {
-                if (lette < 0) SaveManager.UnlockUnlock("halagaz0");
+                if (lette < 0) UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Halagaz0);
             }
             if (letters[letter - 'a'] >= 100) overHundred = true;
         }
@@ -110,11 +108,7 @@ namespace typatro.GameFolder.Upgrades{
         {
             mistakeBlock += score;
             mistakeChange += score;
-            if (mistakeBlock >= 100 && !GameLogic.achievmentBools["H"])
-            {
-                GameLogic.achievmentBools["H"] = true;
-                GameLogic.writeAchievment = true;
-            }
+            if (mistakeBlock >= 100) UnlockManager.UnlockUnlock(UnlockManager.UnlockType.H);
         }
 
         public void AddToDamageResist(int score)
@@ -151,10 +145,9 @@ namespace typatro.GameFolder.Upgrades{
         {
             stoneScore += score;
             stoneScoreChange += score;
-            if (stoneScore >= 100 && !GameLogic.achievmentBools["H"])
+            if (stoneScore >= 100)
             {
-                GameLogic.achievmentBools["H"] = true;
-                GameLogic.writeAchievment = true;
+                UnlockManager.UnlockUnlock(UnlockManager.UnlockType.H);
             }
         }
 
@@ -262,7 +255,7 @@ namespace typatro.GameFolder.Upgrades{
             }
             foreach (long letter in letters)
             {
-                if (letter < 0) SaveManager.UnlockUnlock("halagaz0");
+                if (letter < 0) UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Halagaz0);
             }
         }
 

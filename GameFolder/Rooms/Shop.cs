@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using typatro.GameFolder.Services;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
@@ -50,6 +51,8 @@ namespace typatro.GameFolder.Rooms{
         int selectedRow = 0, selectedCol = 0;
         readonly int horizontalSpacing = 160, verticalSpacing = 100, cardHeight = 80, cardWidth = 150, cardTextTopOffset = 10, cardTextLeftOffset = 5;
         readonly int topOffset = 100, leftOffset = 30, cardCount = 5, glyphCount = 2, enhancementsCount = 3;
+        int rerollIndex, glyph1Index;
+        readonly int glyph2Index = 6, enh1Index = 8, enh2Index = 9, enh3Index = 10, exitIndex = 11;
         Vector2 descPos;
         int rerollCost = 5, glyphCost = 50;
 
@@ -170,6 +173,8 @@ namespace typatro.GameFolder.Rooms{
 
         public void NewShop()
         {
+            rerollIndex = SaveManager.size == 0 ? 7 : 5;
+            glyph1Index = SaveManager.size == 0 ? 5 : 7;
             GenerateShop();
             rerollCost = 5;
             selectedCol = 0;
@@ -196,11 +201,12 @@ namespace typatro.GameFolder.Rooms{
                     int selectedOffset = 50;
                     Color selected = ThemeColors.Selected;
                     Color notSelected = ThemeColors.NotSelected;
-                    if(cardIndex == (SaveManager.size == 0 ? 7 : 5))
+
+                    if(cardIndex == rerollIndex)
                     {
                         notSelected = ThemeColors.ShopReroll;
                         selected = new Color(notSelected.R+selectedOffset, notSelected.G+selectedOffset, notSelected.B+selectedOffset);
-                    } else if(cardIndex == 11)
+                    } else if(cardIndex == exitIndex)
                     {
                         notSelected = ThemeColors.ExitShop;
                         selected = new Color(notSelected.R+selectedOffset, notSelected.G+selectedOffset, notSelected.B+selectedOffset);
@@ -234,39 +240,35 @@ namespace typatro.GameFolder.Rooms{
                             if (selectedCardIndex == cardIndex) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, description, descPos, ThemeColors.Text);
                         }
                     }
-                    else if (cardIndex == (SaveManager.size == 0 ? 7 : 5))
+                    else if (cardIndex == rerollIndex)
                     {
                         MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $" Reroll\n\n Cost:        {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset + rerollExitOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == (SaveManager.size == 0 ? 7 : 5)) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Rerolls all items in the shop for {rerollCost} coins", descPos, ThemeColors.Text);
                     }
-                    else if (cardIndex == 6)
+                    else if (cardIndex == glyph1Index)
                     {
                         MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
                         if(glyphs[0] != Glyph.NoGlyphsLeft) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 6) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
+                        if (selectedCardIndex == glyph1Index) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
                     }
-                    else if (cardIndex == (SaveManager.size == 0 ? 5 : 7))
+                    else if (cardIndex == glyph2Index)
                     {
+                        
                         MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
                         if(glyphs[1] != Glyph.NoGlyphsLeft) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == (SaveManager.size == 0 ? 5 : 7)) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
+                        if (selectedCardIndex == glyph2Index)
+                        {
+                            System.Diagnostics.Debug.WriteLine(SaveManager.size);
+                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
+                        }
                     }
-                    else if (cardIndex == 8)
+                    else if (cardIndex >= enh1Index && cardIndex <= enh3Index)
                     {
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 8) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[0]), descPos, ThemeColors.Text);
+                        int enhIdx = cardIndex - enh1Index;
+                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[enhIdx]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        if (selectedCardIndex == cardIndex) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[enhIdx]), descPos, ThemeColors.Text);
                     }
-                    else if (cardIndex == 9)
-                    {
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 9) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[1]), descPos, ThemeColors.Text);
-                    }
-                    else if (cardIndex == 10)
-                    {
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[2]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == 10) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[2]), descPos, ThemeColors.Text);
-                    }
-                    else if (cardIndex == 11) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "\n Exit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset + rerollExitOffset + 18, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                    else if (cardIndex == exitIndex) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "\n Exit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset + rerollExitOffset + 18, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                 }
             }
             if (Buying(ref coins, ref mousePressed, ref mouseState, mouseOnShopCard)) return true;
@@ -276,7 +278,7 @@ namespace typatro.GameFolder.Rooms{
         private bool Buying(ref long coins, ref bool mousePressed, ref MouseState mouseState, bool mouseOnShopCard)
         {
             KeyboardState state = Keyboard.GetState();
-            if (SaveManager.IsUnlockUnlocked("shopTutorial") && state.IsKeyDown(Keys.Enter) && !enterPressed ||
+            if (UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.ShopTutorial) && state.IsKeyDown(Keys.Enter) && !enterPressed ||
                 (mouseState.LeftButton == ButtonState.Pressed && !mousePressed && mouseOnShopCard && !GameLogic.keyboardUsed))
             {
                 mousePressed = true;
@@ -296,86 +298,29 @@ namespace typatro.GameFolder.Rooms{
                         cards[selectionIndex] = GenerateCard();
                     }
                 }
-                if (selectionIndex == 5 && coins >= rerollCost)
+                if (selectionIndex == rerollIndex && coins >= rerollCost)
                 {
                     coins -= rerollCost;
                     rerollCost += 2;
                     GenerateShop();
                 }
-                if (selectionIndex == 6 && coins >= glyphCost)
+                if (selectionIndex == glyph1Index && coins >= glyphCost) { coins -= glyphCost; BuyGlyph(0, ref coins); }
+                if (selectionIndex == glyph2Index && coins >= glyphCost) { coins -= glyphCost; BuyGlyph(1, ref coins); }
+
+                for (int i = 0; i < enhancementsCount; i++)
                 {
-                    coins -= glyphCost;
-                    Glyph glyph = glyphs[0];
-                    GlyphManager.Add(glyph);
-                    if (glyph == Glyph.Hundred) coins += 100;
-                    enhancements.AddGlyphEnhancementsUpdate(glyph);
-                    for (int j = 0; j <= 20; j++)
+                    if (selectionIndex == enh1Index + i && coins >= enhancementsUpgrades[i].cost)
                     {
-                        if (glyph == glyphs[1] || GlyphManager.IsActive(glyph))
-                        {
-                            glyph = GlyphManager.GetRandomUnusedGlyph();
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        coins -= enhancementsUpgrades[i].cost;
+                        EnhancementsTypeUpgrade(enhancementsUpgrades[i]);
+                        enhancementsUpgrades[i] = GenerateEnhancement();
                     }
-                    if (glyph == glyphs[1] || GlyphManager.IsActive(glyph))
-                    {
-                        glyph = Glyph.NoGlyphsLeft;
-                    }
-                    glyphs[0] = glyph;
-                    glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
                 }
-                if (selectionIndex == 7 && coins >= glyphCost)
+                if (coins == 0)
                 {
-                    coins -= glyphCost;
-                    Glyph glyph = glyphs[1];
-                    GlyphManager.Add(glyph);
-                    if (glyph == Glyph.Hundred) coins += 100;
-                    enhancements.AddGlyphEnhancementsUpdate(glyph);
-                    for (int j = 0; j <= 20; j++)
-                    {
-                        if (glyph == glyphs[0] || GlyphManager.IsActive(glyph))
-                        {
-                            glyph = GlyphManager.GetRandomUnusedGlyph();
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    if (glyph == glyphs[0] || GlyphManager.IsActive(glyph))
-                    {
-                        glyph = Glyph.NoGlyphsLeft;
-                    }
-                    glyphs[1] = glyph;
-                    glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
+                    UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Crocodile);
                 }
-                if (selectionIndex == 8 && coins >= enhancementsUpgrades[0].cost)
-                {
-                    coins -= enhancementsUpgrades[0].cost;
-                    EnhancementsTypeUpgrade(enhancementsUpgrades[0]);
-                    enhancementsUpgrades[0] = GenerateEnhancement();
-                }
-                if (selectionIndex == 9 && coins >= enhancementsUpgrades[1].cost)
-                {
-                    coins -= enhancementsUpgrades[1].cost;
-                    EnhancementsTypeUpgrade(enhancementsUpgrades[1]);
-                    enhancementsUpgrades[1] = GenerateEnhancement();
-                }
-                if (selectionIndex == 10 && coins >= enhancementsUpgrades[2].cost)
-                {
-                    coins -= enhancementsUpgrades[2].cost;
-                    EnhancementsTypeUpgrade(enhancementsUpgrades[2]);
-                    enhancementsUpgrades[2] = GenerateEnhancement();
-                }
-                if (coins == 0 && !GameLogic.achievmentBools["CROCODILE"])
-                {
-                    GameLogic.achievmentBools["CROCODILE"] = true;
-                    GameLogic.writeAchievment = true;
-                }
-                if (selectionIndex == 11) return true;
+                if (selectionIndex == exitIndex) return true;
 
             }
             else if (state.IsKeyUp(Keys.Enter)) enterPressed = false;
@@ -478,6 +423,25 @@ namespace typatro.GameFolder.Rooms{
                     break;
             }
             EnhancementCostUpdate();
+        }
+
+        private void BuyGlyph(int slotIndex, ref long coins)
+        {
+            Glyph glyph = glyphs[slotIndex];
+            GlyphManager.Add(glyph);
+            if (glyph == Glyph.Hundred) coins += 100;
+            enhancements.AddGlyphEnhancementsUpdate(glyph);
+            for (int j = 0; j <= 20; j++)
+            {
+                if (glyph == glyphs[slotIndex] || GlyphManager.IsActive(glyph))
+                    glyph = GlyphManager.GetRandomUnusedGlyph();
+                else
+                    break;
+            }
+            if (glyph == glyphs[slotIndex] || GlyphManager.IsActive(glyph))
+                glyph = Glyph.NoGlyphsLeft;
+            glyphs[slotIndex] = glyph;
+            glyphCost = 40 + 10 * GlyphManager.GetGlyphCount();
         }
     }
 }
