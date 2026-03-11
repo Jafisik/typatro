@@ -12,6 +12,8 @@ namespace typatro.GameFolder.Services
         public string Text;
         public Color? OverrideColor;
         public Func<SpriteFont, Rectangle> GetBox;
+        public string SecondaryText;
+        public Color? SecondaryColor;
     }
 
     public static class TutorialManager
@@ -20,12 +22,15 @@ namespace typatro.GameFolder.Services
         private static int currentStep = 0;
         private static bool tutorial = false;
         private static bool waitingForRelease = false;
+        private static bool startWaiting = false;
 
-        public static void Start(List<TutorialStep> steps)
+        public static void Start(List<TutorialStep> steps, bool waitForRelease = false)
         {
             currentSteps = steps;
             currentStep = 0;
             tutorial = false;
+            waitingForRelease = false;
+            startWaiting = waitForRelease;
         }
 
         public static bool Draw(KeyboardState state, MouseState mouseState, SpriteFont font)
@@ -49,10 +54,19 @@ namespace typatro.GameFolder.Services
 
             TutorialStep step = currentSteps[currentStep];
             Rectangle box = step.GetBox(font);
-            Color color = step.OverrideColor ?? ThemeColors.Text;
 
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, box, ThemeColors.ExitShop);
-            MainGame.Gfx.spriteBatch.DrawString(font, step.Text, new Vector2(box.X + 10, box.Y + 10), color);
+            MainGame.Gfx.spriteBatch.DrawString(font, step.Text, new Vector2(box.X + 10, box.Y + 10), step.OverrideColor ?? ThemeColors.Text);
+
+            if (step.SecondaryText != null)
+                MainGame.Gfx.spriteBatch.DrawString(font, step.SecondaryText, new Vector2(box.X + 10, box.Y + 10), step.SecondaryColor ?? ThemeColors.Text);
+
+            if (startWaiting)
+            {
+                if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released)
+                    startWaiting = false;
+                return false;
+            }
 
             if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released)
                 tutorial = true;
@@ -70,6 +84,106 @@ namespace typatro.GameFolder.Services
             }
 
             return false;
+        }
+
+        public static List<TutorialStep> FightSteps()
+        {
+            return new List<TutorialStep>
+            {
+                new TutorialStep
+                {
+                    Text = "<- Type correct letters\n   to deal damage\n   to the enemy",
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("<- Type correct letters\n   to deal damage\n   to the enemy");
+                        return new Rectangle(200, 190, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+                new TutorialStep
+                {
+                    Text = "<- Each correct word\n   in a row gives you\n   a score multiplier",
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("<- Each correct word\n   in a row gives you\n   a score multiplier");
+                        return new Rectangle(240, 90, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+                new TutorialStep
+                {
+                    Text = "Special words\ngive you effects\nbased on the color\nif written correctly",
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("Special words\ngive you effects\nbased on the color\nif written correctly");
+                        return new Rectangle(180, 200, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+                new TutorialStep
+                {
+                    Text = "Stone words give you a flat + score",
+                    SecondaryText = "Stone words",
+                    SecondaryColor = Color.Gray,
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("Stone words give you a flat + score");
+                        return new Rectangle(180, 200, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+                new TutorialStep
+                {
+                    Text = "Shiny words give you a * score multiplier",
+                    SecondaryText = "Shiny words",
+                    SecondaryColor = ThemeColors.Selected,
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("Shiny words give you a * score multiplier");
+                        return new Rectangle(180, 200, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+                new TutorialStep
+                {
+                    Text = "Bloom words upgrade the letters in the word",
+                    SecondaryText = "Bloom words",
+                    SecondaryColor = Color.DarkGreen,
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("Bloom words upgrade the letters in the word");
+                        return new Rectangle(180, 200, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+            };
+        }
+
+        public static List<TutorialStep> MapSteps()
+        {
+            return new List<TutorialStep>
+            {
+                new TutorialStep
+                {
+                    Text = "    Use arrow keys\n<- or mouse\n    to pick a room",
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("    Use arrow keys\n<- or mouse\n    to pick a room");
+                        return new Rectangle(70, 110, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+                new TutorialStep
+                {
+                    Text = "Click here        ->\nor press tab\nto view your\ninventory",
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("Click here        ->\nor press tab\nto view your\ninventory");
+                        return new Rectangle(MainGame.screenWidth - 100 - (int)size.X, 120, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+                new TutorialStep
+                {
+                    Text = "Click here or     ->\npress escape to\ngo to the menu\n(progress will\nbe saved)",
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("Click here or     ->\npress escape to\ngo to the menu\n(progress will\nbe saved)");
+                        return new Rectangle(MainGame.screenWidth - 100 - (int)size.X, 65, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+                new TutorialStep
+                {
+                    Text = "<-   Defeat 3 levels to win",
+                    GetBox = font => {
+                        Vector2 size = font.MeasureString("<-   Defeat 3 levels to win");
+                        return new Rectangle(210, 20, (int)size.X + 20, (int)size.Y + 20);
+                    }
+                },
+            };
         }
 
         public static List<TutorialStep> CharacterSteps()

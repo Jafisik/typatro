@@ -110,7 +110,7 @@ namespace typatro.GameFolder.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine($"Nepodařilo se připojit na steam: {e.Message}");
             }
             return _initialized;
         }
