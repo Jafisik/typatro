@@ -146,16 +146,16 @@ namespace typatro.GameFolder
             switch (SaveManager.size)
             {
                 case 0:
-                    maxCharsPerLine = 35;
+                    maxCharsPerLine = 25;
                     break;
                 case 1:
-                    maxCharsPerLine = 50;
+                    maxCharsPerLine = 40;
                     break;
                 case 2:
-                    maxCharsPerLine = 60;
+                    maxCharsPerLine = 50;
                     break;
                 case 3:
-                    maxCharsPerLine = 90;
+                    maxCharsPerLine = 80;
                     break;
 
             }

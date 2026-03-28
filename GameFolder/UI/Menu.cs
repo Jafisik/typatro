@@ -113,8 +113,7 @@ namespace typatro.GameFolder
                 current = end;
             }
 
-            if(!introFinished) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.logoFont, title, current, ThemeColors.Text, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
-            else MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.logoFont, title, current, ThemeColors.Text, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.logoFont, title, current, ThemeColors.Text, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.6f);
 
             if (totalSeconds >= 4 || introFinished){
                 float alpha = MathHelper.Clamp((float)((totalSeconds - 4) / 2), 0f, 1f);
@@ -125,7 +124,9 @@ namespace typatro.GameFolder
 
                     Rectangle menuItemPos = new Rectangle((MainGame.screenWidth - menuRectWidth) / 2 - SaveManager.size * 5/2, (int)(MainGame.screenHeight / 5 * 1.5f) +
                     (int)(MainGame.screenHeight / 6.5f) * line - SaveManager.size * 5/2, menuRectWidth + SaveManager.size * 5, menuRectHeight + SaveManager.size * 5);
-                    MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, menuItemPos,rectColor);
+                    MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, menuItemPos, rectColor);
+                    if ((int)menuSelect == line)
+                        ThemeColors.DrawGlowCorners(menuItemPos, ThemeColors.Text * (introFinished ? 1 : alpha));
                     if (menuItemPos.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                     {
                         menuSelect = (MenuSelect)line;
@@ -211,10 +212,6 @@ namespace typatro.GameFolder
                         {
                             mousePressed = true;
                             OptionDecrease(optionSelect);
-                            if (line == optionTexts.Length - 1)
-                            {
-                                return true;
-                            }
                         }
                     }
                     Rectangle menuItemPosRight = new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset + optionRectWidth / 2, optionTopOffset + menuLineSpacing * line, optionRectWidth / 2, optionRectHeight);
@@ -225,14 +222,10 @@ namespace typatro.GameFolder
                         {
                             mousePressed = true;
                             OptionIncrease(optionSelect);
-                            if (line == optionTexts.Length - 1)
-                            {
-                                SaveManager.SaveSettings(SaveManager.theme, SaveManager.volume, SaveManager.size, SaveManager.fullscreen);
-                                return true;
-                            }
                         }
                     }
                     MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, menuItemPos, menuColors[line]);
+                    if ((int)optionSelect == line) ThemeColors.DrawGlowCorners(menuItemPos, ThemeColors.Text);
                     textSize = MainGame.Gfx.menuFont.MeasureString(optionTexts[line]);
                     textPos = new Vector2(MainGame.screenWidth / 2 - textSize.X - 40, optionTopOffset + optionRectHeight / 2 - textSize.Y / 3 + menuLineSpacing * line);
                     MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, optionTexts[line], textPos, ThemeColors.Text);

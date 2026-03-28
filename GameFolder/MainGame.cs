@@ -21,6 +21,8 @@ public class MainGame : Game
         public static Texture2D texture, catPic, bg;
         public static Texture2D mouse1, mouse2;
         public static SpriteFont gameFont, smallTextFont, menuFont, textFont, smallMapFont, logoFont;
+        public static Texture2D[] enemyNormal;
+        public static Texture2D enemyElite, enemyBoss;
     }
     public struct SoundEffects
     {
@@ -42,7 +44,6 @@ public class MainGame : Game
     protected override void Initialize(){
         graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
         graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-        Window.IsBorderless = true;
         Window.Title = "GLYPHORA";
         graphics.ApplyChanges();
         base.Initialize();
@@ -68,6 +69,14 @@ public class MainGame : Game
         Gfx.texture.SetData(new[] { Color.White });
 
         GlyphImageLoad();
+        Gfx.enemyNormal = new Texture2D[]
+        {
+            Content.Load<Texture2D>("Images/a"),
+            Content.Load<Texture2D>("Images/e"),
+            Content.Load<Texture2D>("Images/i"),
+            Content.Load<Texture2D>("Images/o"),
+            Content.Load<Texture2D>("Images/u"),
+        };
         
         int[] settings = SaveManager.LoadSettings();
         ThemeColors.Apply(settings[0]);
@@ -85,7 +94,7 @@ public class MainGame : Game
         sfx.musicIntro.IsLooped = false;
         sfx.musicIntro.Play();
 
-        if (!SteamManager.Init()) { System.Diagnostics.Debug.WriteLine("SteamAPI.Init() selhalo."); }
+        SteamManager.Init();
         gameLogic = new GameLogic(jsonStrings, Window.Position, sfx);
     }
 

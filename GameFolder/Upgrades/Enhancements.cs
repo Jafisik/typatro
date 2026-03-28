@@ -180,16 +180,13 @@ namespace typatro.GameFolder.Upgrades{
                     AddLetterScore('u', 5);
                     break;
                 case Glyph.D:
-                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                    MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 5);
-                    MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 5);
+                    MultiplyLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), 5);
+                    MultiplyLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), 5);
                     break;
                 case Glyph.B:
                     for (int i = 0; i < 10; i++)
                     {
-                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                        MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 5);
+                            MultiplyLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), 5);
                     }
                     break;
                 case Glyph.J:
@@ -198,8 +195,7 @@ namespace typatro.GameFolder.Upgrades{
                 case Glyph.Water:
                     for (int i = 0; i < 5; i++)
                     {
-                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                        AddLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), -5);
+                            AddLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), -5);
                     }
                     break;
                 case Glyph.King:
@@ -210,8 +206,8 @@ namespace typatro.GameFolder.Upgrades{
                     {
                         if (letters[i] == maxVal)
                         {
-                            lettersChange[i] = letters[i] * 5;
-                            letters[i] *= 5;
+                            lettersChange[i] = letters[i] * 50;
+                            letters[i] *= 50;
                         }
                         if (setZero && letters[i] == minVal)
                         {
@@ -223,30 +219,25 @@ namespace typatro.GameFolder.Upgrades{
                 case Glyph.Cat:
                     for (int i = 0; i < 9; i++)
                     {
-                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                        MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 2);
+                            MultiplyLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), 2);
                     }
                     break;
                 case Glyph.Crocodile:
-                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                    MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 20);
-                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                    char letter = (char)GameLogic.seededRandom.Next(0, 26);
-                    lettersChange[letter] -= letters[letter];
-                    letters[letter] = 0;
+                    MultiplyLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), 20);
+                    char letter = (char)(GameLogic.contextRandom.Next(0, 26) + 'a');
+                    lettersChange[letter - 'a'] -= letters[letter - 'a'];
+                    letters[letter - 'a'] = 0;
                     break;
                 case Glyph.One:
                     AllLettersAddScore(1);
                     break;
                 case Glyph.Ten:
-                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                    MultiplyLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 10);
+                    MultiplyLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), 10);
                     break;
                 case Glyph.Bread:
                     for (int i = 0; i < 6; i++)
                     {
-                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                        AddLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), 3);
+                            AddLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), 3);
                     }
                     break;
                 case Glyph.Star:

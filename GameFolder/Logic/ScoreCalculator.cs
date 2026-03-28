@@ -10,7 +10,7 @@ namespace typatro.GameFolder.Logic
 {
     public class ScoreCalculator
     {
-        int charCounter = 0, lastCharCount = 0, wordCounter = 0, lastWordCount = 1, lastCorrectWord = 0, extraScore = 0;
+        int charCounter = 0, lastCharCount = 0, wordCounter = 0, lastWordCount = 1, lastCorrectWord = 0, extraScore = 0, lastMistakeCount = 0;
         long playerScore = 0, lastScore = 0;
         public long currentScore = 0;
         long shinyWritten, stoneWritten, bloomWritten;
@@ -25,11 +25,7 @@ namespace typatro.GameFolder.Logic
             long letterScore = 0;
             for (int i = 0; i < Writer.writtenText.Count; i++)
             {
-                bool canAdd = true;
-                for (int j = 0; j < Writer.diffIndexes.Count; j++)
-                {
-                    if (i == j) canAdd = false;
-                }
+                bool canAdd = !Writer.diffIndexes.Contains(i);
                 if (canAdd && Writer.writtenText[i] != ' ')
                 {
                     letterScore += enhancements.letters[Writer.writtenText[i] - 'a'];
@@ -100,7 +96,7 @@ namespace typatro.GameFolder.Logic
                     correctWords++;
                     if (gameLogic.shinyWords.Contains(word))
                     {
-                        //shinyMultiplier *= enhancements.shinyScore;
+                        shinyMultiplier *= enhancements.shinyScore;
                     }
                     else if (gameLogic.stoneWords.Contains(word))
                     {
@@ -145,7 +141,8 @@ namespace typatro.GameFolder.Logic
                 else if (correctWords == lastCorrectWord)
                 {
                     lastCorrectWord = correctWords;
-                    gameLogic.wordStreak = 1;
+                    if (!GlyphManager.IsActive(Glyph.Snake))
+                        gameLogic.wordStreak = 1;
                 }
             }
 
@@ -159,9 +156,16 @@ namespace typatro.GameFolder.Logic
             if (gameLogic.startedTyping)
             {
                 playerScore = (int)((extraScore + enhancements.mistakeBlock + letterScore + stoneScore) * shinyMultiplier);
-                long enemyDamage = (long)((GlyphManager.IsActive(Glyph.House) ? 0.25 : 1) * (int)gameLogic.timeInSeconds) * fight.speed - enhancements.damageResist;
-                long mistakeDamage = (GlyphManager.IsActive(Glyph.Snake) ? 0 : 1) * (GlyphManager.IsActive(Glyph.R) ? 5 : 1) * (gameLogic.difficulty >= 2 ? 5 : 1) * mistakeCount;
-                currentScore = (int)((playerScore + correctWords * enhancements.streakMult - (enemyDamage < 0 ? 1 * (int)gameLogic.timeInSeconds : enemyDamage) - mistakeDamage) * gameLogic.wordStreak);
+                double houseReduction = GlyphManager.IsActive(Glyph.House) ? 0.25 : 1;
+                long enemyDamage = (long)(houseReduction * (int)gameLogic.timeInSeconds) * fight.speed - enhancements.damageResist;
+                long clampedEnemyDamage = enemyDamage < 0 ? (int)gameLogic.timeInSeconds : enemyDamage;
+
+                if (GlyphManager.IsActive(Glyph.R) && mistakeCount > lastMistakeCount)
+                    gameLogic.wordStreak = Math.Min(gameLogic.wordStreak, 0.8);
+                lastMistakeCount = mistakeCount;
+
+                long positiveScore = Math.Max(0, playerScore + (long)(correctWords * enhancements.streakMult));
+                currentScore = (long)(positiveScore * gameLogic.wordStreak) - clampedEnemyDamage;
                 if (Writer.writtenText.Count == 1) lastScore = 0;
                 if (playerScore - lastScore != 0 && gameLogic.timeInSeconds - gameLogic.letterTimer < 0.25 && Writer.writtenText.Count > 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "+" + (playerScore - lastScore).ToString(), lastCharPos, ThemeColors.Correct);
             }
@@ -179,21 +183,11 @@ namespace typatro.GameFolder.Logic
             lastCorrectWord = 0;
             extraScore = 0;
             lastScore = 0;
+            lastMistakeCount = 0;
         }
 
-        public long getShinyWritten()
-        {
-            return shinyWritten;
-        }
-
-        public long getStoneWritten()
-        {
-            return stoneWritten;
-        }
-
-        public long getBloomWritten()
-        {
-            return bloomWritten;
-        }
+        public long GetShinyWritten() => shinyWritten;
+        public long GetStoneWritten() => stoneWritten;
+        public long GetBloomWritten() => bloomWritten;
     }
 }

@@ -106,8 +106,7 @@ namespace typatro.GameFolder.Rooms
                     coins += 150;
                     for (int i = 0; i < 5; i++)
                     {
-                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                        enhancements.AddLetterScore((char)(GameLogic.seededRandom.Next(0, 26) + 'a'), -5);
+                        enhancements.AddLetterScore((char)(GameLogic.contextRandom.Next(0, 26) + 'a'), -5);
                     }
                     break;
                 case Curses.ChanceForCoins:
@@ -123,8 +122,7 @@ namespace typatro.GameFolder.Rooms
                     enhancements.stoneChance = 0;
                     break;
                 case Curses.AroundTheWorld:
-                    if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
-                    char randLetter = (char)(GameLogic.seededRandom.Next(0, 26) + 'a');
+                    char randLetter = (char)(GameLogic.contextRandom.Next(0, 26) + 'a');
                     enhancements.AddLetterScore(randLetter, -20);
                     enhancements.MultiplyLetterScore(randLetter, -1);
                     break;
@@ -151,8 +149,7 @@ namespace typatro.GameFolder.Rooms
                 case Curses.DoYouBelieve:
                     for (int i = 0; i < 26; i++)
                     {
-                        enhancements.AddLetterScore((char)('a' + i), GameLogic.seededRandom.Next(0, 2) == 1 ? 20 : -20);
-                        if(!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("randomLetter", ""));
+                        enhancements.AddLetterScore((char)('a' + i), GameLogic.contextRandom.Next(0, 2) == 1 ? 20 : -20);
                     }
                     break;
                 case Curses.AllForGlyphs:
@@ -164,13 +161,13 @@ namespace typatro.GameFolder.Rooms
                     enhancements.AllLettersMultiplyScore(1.5);
                     break;
                 case Curses.HangingRook:
-                    enhancements.AllLettersAddScore(25);
+                    enhancements.AllLettersAddScore(5);
                     enhancements.MultiplyLetterScore(enhancements.HighestLetter().bestLetter,0);
                     break;
                 case Curses.SilenceOfSound:
                     enhancements.AllLettersMultiplyScore(1.5);
                     enhancements.MultiplyLetterScore('a', 0);
-                    enhancements.MultiplyLetterScore('a', 0);
+                    enhancements.MultiplyLetterScore('e', 0);
                     enhancements.MultiplyLetterScore('i', 0);
                     enhancements.MultiplyLetterScore('o', 0);
                     enhancements.MultiplyLetterScore('u', 0);
@@ -205,7 +202,7 @@ namespace typatro.GameFolder.Rooms
             DoYouBelieve,
             [Description("- Your highest letter score is set to 0\n\n+ Multiply all letters by 2x")]
             HangingQueen,
-            [Description("- Your highest letter score is set to 0\n\n+ Add +25 to all other letters")]
+            [Description("- Your highest letter score is set to 0\n\n+ Add +5 to all other letters")]
             HangingRook,
             [Description("- Set coins to -100\n\n+ Gain a random glyph")]
             AllForGlyphs,

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace typatro.GameFolder.Services
 {
@@ -197,7 +195,6 @@ namespace typatro.GameFolder.Services
             {
                 unlocks[id] = true;
                 SaveUnlocks();
-                System.Diagnostics.Debug.WriteLine($"Unlock unlocked: {id}");
 
                 if (steamAchievements.Contains(id)) SteamManager.UnlockAchievement(ToKey(id));
             }

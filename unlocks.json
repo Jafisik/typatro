@@ -1,5 +1,5 @@
 {
-  "CharacterTutorial": false,
+  "CharacterTutorial": true,
   "MapTutorial": false,
   "FightTutorial": false,
   "ShopTutorial": false,

@@ -33,8 +33,9 @@ namespace typatro.GameFolder.Services
             startWaiting = waitForRelease;
         }
 
-        public static bool Draw(KeyboardState state, MouseState mouseState, SpriteFont font)
+        public static bool Draw(KeyboardState state, MouseState mouseState)
         {
+            SpriteFont font = TutorialFont();
             if (waitingForRelease)
             {
                 if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released)
@@ -85,6 +86,10 @@ namespace typatro.GameFolder.Services
 
             return false;
         }
+
+        public static SpriteFont TutorialFont() =>
+            SaveManager.size == 0 ? MainGame.Gfx.smallTextFont : MainGame.Gfx.menuFont;
+
 
         public static List<TutorialStep> FightSteps()
         {
@@ -242,9 +247,9 @@ namespace typatro.GameFolder.Services
                 },
                 new TutorialStep
                 {
-                    Text = "<- When highlited\n   each card\n   will show its\n   description",
+                    Text = "<- When highlighted\n   each card\n   will show its\n   description",
                     GetBox = font => {
-                        Vector2 size = font.MeasureString("<- When highlited\n   each card\n   will show its\n   description");
+                        Vector2 size = font.MeasureString("<- When highlighted\n   each card\n   will show its\n   description");
                         return new Rectangle(400, SaveManager.size == 0 ? 300 : (MainGame.screenHeight / 3) * 2 - 30,
                             (int)size.X + 20, (int)size.Y + 20);
                     }

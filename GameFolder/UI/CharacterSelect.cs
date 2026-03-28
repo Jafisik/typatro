@@ -54,6 +54,24 @@ namespace typatro.GameFolder.UI
             if (mouseState.LeftButton == ButtonState.Released) gameLogic.mousePressed = false;
 
             int rectWidth = MainGame.screenWidth / 3, rectHeight = MainGame.screenHeight / 2;
+
+            // Precompute hover for center darkening (includes arrow areas)
+            bool leftHover = false, rightHover = false;
+            if (gameLogic.selectedRune != 0)
+            {
+                Rectangle lr = new Rectangle(MainGame.screenWidth / 5 - rectWidth / 4 + SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
+                Rectangle lArrow = new Rectangle(lr.X - 60, lr.Y, 60, lr.Height);
+                Rectangle lExtra = new Rectangle(lr.X + lr.Width, lr.Y, 50, lr.Height);
+                leftHover = !GameLogic.keyboardUsed && (lr.Contains(mouseState.Position) || lExtra.Contains(mouseState.Position) || lArrow.Contains(mouseState.Position));
+            }
+            if (gameLogic.selectedRune != maxRunes - 1)
+            {
+                Rectangle rr = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4 - SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
+                Rectangle rArrow = new Rectangle(rr.X + rr.Width, rr.Y, 60, rr.Height);
+                Rectangle rExtra = new Rectangle(rr.X - 50, rr.Y, 50, rr.Height);
+                rightHover = !GameLogic.keyboardUsed && (rr.Contains(mouseState.Position) || rExtra.Contains(mouseState.Position) || rArrow.Contains(mouseState.Position));
+            }
+
             if (runeMove)
             {
                 if (state.IsKeyDown(Keys.Left))
@@ -96,7 +114,8 @@ namespace typatro.GameFolder.UI
             {
                 Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 5 - rectWidth / 4 + SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
                 Rectangle extraSpace = new Rectangle(runeSelect.X + runeSelect.Width, runeSelect.Y, 50, runeSelect.Height);
-                if (!gameLogic.mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position)) && mouseState.LeftButton == ButtonState.Pressed && windowActive)
+                Rectangle arrowSpace = new Rectangle(runeSelect.X - 60, runeSelect.Y, 60, runeSelect.Height);
+                if (!gameLogic.mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position) || arrowSpace.Contains(mouseState.Position)) && mouseState.LeftButton == ButtonState.Pressed && windowActive)
                 {
                     if (!diffMove && gameLogic.selectedRune != 0)
                     {
@@ -106,7 +125,7 @@ namespace typatro.GameFolder.UI
                     gameLogic.mousePressed = true;
                     diffMove = false;
                 }
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, runeSelect, ThemeColors.NotSelected);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, runeSelect, leftHover ? ThemeColors.Selected : ThemeColors.NotSelected);
                 string runeName = ((Runes.Runes)gameLogic.selectedRune - 1).ToString().Substring(0, 1);
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, runeName, new Vector2(MainGame.screenWidth / 4 - MainGame.Gfx.menuFont.MeasureString(runeName).X / 2, (int)(MainGame.screenHeight / 2.5f) - MainGame.Gfx.menuFont.MeasureString(runeName).Y / 2), ThemeColors.Text);
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "<", new Vector2(runeSelect.X - MainGame.Gfx.menuFont.MeasureString("<").X * 2, (int)(MainGame.screenHeight / 2.5f) - 20), ThemeColors.Text);
@@ -133,7 +152,8 @@ namespace typatro.GameFolder.UI
                     }
                 }
 
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, runeSelect, diffMove ? ThemeColors.NotSelected : ThemeColors.Selected);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, runeSelect, (diffMove || leftHover || rightHover) ? ThemeColors.NotSelected : ThemeColors.Selected);
+                ThemeColors.DrawGlowCorners(runeSelect, ThemeColors.Text);
                 string runeName = ((Runes.Runes)gameLogic.selectedRune).ToString();
                 int topOffset = 10;
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, runeName, new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.menuFont.MeasureString(runeName).X / 2, (int)(MainGame.screenHeight / 2.5f) - MainGame.Gfx.menuFont.MeasureString(runeName).Y * 3 + topOffset * 2), ThemeColors.Text);
@@ -170,68 +190,75 @@ namespace typatro.GameFolder.UI
             {
                 Rectangle runeSelect = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4 - SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
                 Rectangle extraSpace = new Rectangle(runeSelect.X - 50, runeSelect.Y, 50, runeSelect.Height);
-                if (!gameLogic.mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position)) &&
+                Rectangle arrowSpace = new Rectangle(runeSelect.X + runeSelect.Width, runeSelect.Y, 60, runeSelect.Height);
+                if (!gameLogic.mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position) || arrowSpace.Contains(mouseState.Position)) &&
                     mouseState.LeftButton == ButtonState.Pressed && windowActive && UnlockManager.IsUnlockUnlocked(UnlockType.CharacterTutorial))
                 {
-                    if (gameLogic.selectedRune != maxRunes - 1)
-                    {
-                        gameLogic.selectedRune++;
-                        gameLogic.difficulty = 0;
-                    }
+                    gameLogic.selectedRune++;
+                    gameLogic.difficulty = 0;
                     gameLogic.mousePressed = true;
                     diffMove = false;
                 }
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, runeSelect, ThemeColors.NotSelected);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, runeSelect, rightHover ? ThemeColors.Selected : ThemeColors.NotSelected);
                 string runeName = ((Runes.Runes)gameLogic.selectedRune + 1).ToString().Substring(0, 1);
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, runeName, new Vector2(MainGame.screenWidth - MainGame.screenWidth / 4 - MainGame.Gfx.menuFont.MeasureString(runeName).X / 2, (int)(MainGame.screenHeight / 2.5f) - MainGame.Gfx.menuFont.MeasureString(runeName).Y / 2), ThemeColors.Text);
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, ">", new Vector2(runeSelect.X + runeSelect.Width + MainGame.Gfx.menuFont.MeasureString(">").X, (int)(MainGame.screenHeight / 2.5f) - 20), ThemeColors.Text);
             }
 
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "Difficulty: ", new Vector2(MainGame.screenWidth / 2f - MainGame.Gfx.menuFont.MeasureString("Difficulty: ").X, MainGame.screenHeight - 150), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "Difficulty:", new Vector2(MainGame.screenWidth / 2f - MainGame.Gfx.menuFont.MeasureString("Difficulty:   ").X, MainGame.screenHeight - 150), ThemeColors.Text);
 
-            int padding = 10;
-
-            string diffString = $"<{gameLogic.difficulty}: {DifficultyText(gameLogic.difficulty)}>";
-            if (gameLogic.difficulty != 0
+            bool locked = gameLogic.difficulty != 0
                 && runeUnlocks.TryGetValue(((Runes.Runes)gameLogic.selectedRune, gameLogic.difficulty), out UnlockType diffUnlock)
-                && !UnlockManager.IsUnlockUnlocked(diffUnlock))
+                && !UnlockManager.IsUnlockUnlocked(diffUnlock);
+
+            string diffNum = gameLogic.difficulty.ToString();
+            string diffName = locked ? " ???" : DifficultyText(gameLogic.difficulty);
+            Color diffColor = locked ? ThemeColors.Wrong : ThemeColors.Text;
+
+            int padding = 6;
+            float diffY = MainGame.screenHeight - 150;
+            Vector2 leftArrowSize = MainGame.Gfx.menuFont.MeasureString("<");
+            Vector2 numSize = MainGame.Gfx.menuFont.MeasureString(diffNum);
+            float fixedNumWidth = MainGame.Gfx.menuFont.MeasureString("0").X;
+            Vector2 rightArrowSize = MainGame.Gfx.menuFont.MeasureString(">");
+
+            float numX = MainGame.screenWidth / 2f;
+            float leftArrowX = numX - padding - fixedNumWidth / 2 - leftArrowSize.X;
+            float rightArrowX = numX + padding + fixedNumWidth / 2;
+
+            Rectangle leftArrowRect = new Rectangle((int)leftArrowX - padding, (int)diffY - padding, (int)leftArrowSize.X + padding * 2, (int)leftArrowSize.Y + padding * 2);
+            Rectangle rightArrowRect = new Rectangle((int)rightArrowX - padding, (int)diffY - padding, (int)rightArrowSize.X + padding * 2, (int)rightArrowSize.Y + padding * 2);
+
+            if (leftArrowRect.Contains(mouseState.Position) || rightArrowRect.Contains(mouseState.Position))
             {
-                diffString = "<?>";
-            }
-            Vector2 diffStringSize = MainGame.Gfx.menuFont.MeasureString(diffString);
-            Rectangle diffRectLeft = new Rectangle(MainGame.screenWidth / 2 - padding, MainGame.screenHeight - 150 - padding, ((int)diffStringSize.X + padding * 2) / 2, (int)diffStringSize.Y + padding);
-            Rectangle diffRectRight = new Rectangle(MainGame.screenWidth / 2 - padding + ((int)diffStringSize.X + padding * 2) / 2, MainGame.screenHeight - 150 - padding, ((int)diffStringSize.X + padding * 2) / 2, (int)diffStringSize.Y + padding);
-            if (diffRectLeft.Contains(mouseState.Position) || diffRectRight.Contains(mouseState.Position))
-            {
+                diffMove = true;
+                gameLogic.canStartFight = false;
                 if (!gameLogic.mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive
                     && UnlockManager.IsUnlockUnlocked(UnlockType.CharacterTutorial))
                 {
-                    if (diffRectLeft.Contains(mouseState.Position))
-                    {
-                        if (gameLogic.difficulty != 0)
-                        {
-                            gameLogic.difficulty--;
-                        }
-                    }
-                    else if (diffRectRight.Contains(mouseState.Position))
-                    {
-                        if (gameLogic.difficulty != 5)
-                        {
-                            gameLogic.difficulty++;
-                        }
-                    }
-                    
+                    if (leftArrowRect.Contains(mouseState.Position) && gameLogic.difficulty != 0)
+                        gameLogic.difficulty--;
+                    else if (rightArrowRect.Contains(mouseState.Position) && gameLogic.difficulty != 5)
+                        gameLogic.difficulty++;
+                    gameLogic.mousePressed = true;
                 }
-
-                gameLogic.canStartFight = false;
-                diffMove = true;
             }
+            else if (!GameLogic.keyboardUsed)
+            {
+                diffMove = false;
+            }
+
+            Color leftArrowColor = diffMove && leftArrowRect.Contains(mouseState.Position) ? ThemeColors.Selected : diffColor;
+            Color rightArrowColor = diffMove && rightArrowRect.Contains(mouseState.Position) ? ThemeColors.Selected : diffColor;
             if (diffMove)
             {
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, diffRectLeft, (diffString == "<?>") ? ThemeColors.Wrong : ThemeColors.Selected);
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, diffRectRight, (diffString == "<?>") ? ThemeColors.Wrong : ThemeColors.Selected);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, leftArrowRect, locked ? ThemeColors.Wrong : ThemeColors.NotSelected);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, rightArrowRect, locked ? ThemeColors.Wrong : ThemeColors.NotSelected);
             }
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, diffString, new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight - 150), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "<", new Vector2(leftArrowX, diffY), leftArrowColor);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, diffNum, new Vector2(numX - numSize.X / 2f, diffY), diffColor);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, ">", new Vector2(rightArrowX, diffY), rightArrowColor);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, diffName, new Vector2(rightArrowX + rightArrowSize.X + padding * 2, diffY), diffColor);
         }
 
 

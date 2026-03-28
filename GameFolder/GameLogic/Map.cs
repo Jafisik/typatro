@@ -34,19 +34,33 @@ namespace typatro.GameFolder
                     if (newNode != selectedNode)
                     {
                         visitedNodes.Add(new int[] { selectedNode.column, selectedNode.row });
+                        SetContext(newNode.column, newNode.row, level);
                         Reset();
                         if (GlyphManager.IsActive(Glyph.Cat)) catPos = new Vector2(unseededRandom.Next(100, MainGame.screenWidth - 100), unseededRandom.Next(100, MainGame.screenHeight - 100));
                         if (newNode.type == NodeType.RANDOM) newNode.type = map.GenerateNodeTypeFromRandom();
                         switch (newNode.type)
                         {
                             case NodeType.FIGHT:
-                                fight = Fight.Create(1, level, newNode.column);
-                                break;
                             case NodeType.ELITE:
-                                fight = Fight.Create(2, level, newNode.column);
-                                break;
                             case NodeType.BOSS:
-                                fight = Fight.Create(3, level, newNode.column);
+                                int fightDifficulty = newNode.type == NodeType.FIGHT ? 1 : newNode.type == NodeType.ELITE ? 2 : 3;
+                                fight = Fight.Create(fightDifficulty, level, newNode.column);
+                                if (newNode.type == NodeType.FIGHT)
+                                {
+                                    int enemyIndex = unseededRandom.Next(MainGame.Gfx.enemyNormal.Length);
+                                    currentEnemy = MainGame.Gfx.enemyNormal[enemyIndex];
+                                    currentEnemyDesc = EnemyDescriptions[enemyIndex];
+                                }
+                                else if (newNode.type == NodeType.ELITE)
+                                {
+                                    currentEnemy = MainGame.Gfx.enemyElite;
+                                    currentEnemyDesc = "Elite enemy";
+                                }
+                                else
+                                {
+                                    currentEnemy = MainGame.Gfx.enemyBoss;
+                                    currentEnemyDesc = "Boss enemy";
+                                }
                                 break;
                             case NodeType.TREASURE:
                                 treasure.NewGlyph();
@@ -55,8 +69,7 @@ namespace typatro.GameFolder
                                 shop.NewShop();
                                 if (GlyphManager.IsActive(Glyph.Life))
                                 {
-                                    if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
-                                    enhancements.AddLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 5);
+                                    enhancements.AddLetterScore((char)(contextRandom.Next(0, 26) + 'a'), 5);
                                 }
                                 break;
                             case NodeType.CURSE:
@@ -66,10 +79,10 @@ namespace typatro.GameFolder
                         if (IsFight(newNode.type))
                         {
                             neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus) ? 20 : 0) - (difficulty >= 5 ? 5 : 0));
+                            if (difficulty >= 4) fight.speed *= 2;
                             if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.FightTutorial))
                                 TutorialManager.Start(TutorialManager.FightSteps(), waitForRelease: true);
                         }
-                        if (difficulty >= 4) fight.speed *= 2;
                         Writer.writtenText.Clear();
                         startedTyping = false;
                         lastSelectedNode = selectedNode;
@@ -85,8 +98,7 @@ namespace typatro.GameFolder
                     TutorialManager.Start(TutorialManager.MapSteps());
                     mapTutorialStarted = true;
                 }
-                SpriteFont font = SaveManager.size == 0 ? MainGame.Gfx.smallTextFont : MainGame.Gfx.menuFont;
-                if (TutorialManager.Draw(state, mouseState, font))
+                if (TutorialManager.Draw(state, mouseState))
                     UnlockManager.UnlockUnlock(UnlockManager.UnlockType.MapTutorial);
             }
         }

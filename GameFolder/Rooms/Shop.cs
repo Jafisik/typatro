@@ -52,7 +52,7 @@ namespace typatro.GameFolder.Rooms{
         readonly int horizontalSpacing = 160, verticalSpacing = 100, cardHeight = 80, cardWidth = 150, cardTextTopOffset = 10, cardTextLeftOffset = 5;
         readonly int topOffset = 100, leftOffset = 30, cardCount = 5, glyphCount = 2, enhancementsCount = 3;
         int rerollIndex, glyph1Index;
-        readonly int glyph2Index = 6, enh1Index = 8, enh2Index = 9, enh3Index = 10, exitIndex = 11;
+        readonly int glyph2Index = 6, enh1Index = 8, enh3Index = 10, exitIndex = 11;
         Vector2 descPos;
         int rerollCost = 5, glyphCost = 50;
 
@@ -93,10 +93,9 @@ namespace typatro.GameFolder.Rooms{
 
         public LetterUpgrade GenerateCard()
         {
-            if (!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GenerateCard", ""));
-            char letter = (char)(GameLogic.seededRandom.Next(0, 26) + 'a');
-            bool mult = GameLogic.seededRandom.Next(1, 101) >= 75;
-            long value = mult ? GameLogic.seededRandom.Next(2, 5) : GameLogic.seededRandom.Next(2, 11);
+            char letter = (char)(GameLogic.contextRandom.Next(0, 26) + 'a');
+            bool mult = GameLogic.contextRandom.Next(1, 101) >= 75;
+            long value = mult ? GameLogic.contextRandom.Next(2, 5) : GameLogic.contextRandom.Next(2, 11);
             return new LetterUpgrade(letter, mult, value, mult ? (value / 2 + enhancements.GetLetterScore(letter)) * 3 : (value / 2 + enhancements.GetLetterScore(letter)));
         }
 
@@ -236,7 +235,6 @@ namespace typatro.GameFolder.Rooms{
                             string description;
                             if (selectedCard.mult) description = $"Muliplies letter value of '{selectedCard.letter}' by *{selectedCard.value}\n\nCurrent letter score value:{enhancements.GetLetterScore(selectedCard.letter)}    Price of upgrade:{selectedCard.cost}";
                             else description = $"Adds +{selectedCard.value} to the letter value of '{selectedCard.letter}'\n\nCurrent letter score value:{enhancements.GetLetterScore(selectedCard.letter)}    Price of upgrade:{selectedCard.cost}";
-                            //MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, description, descPos, ThemeColors.Text);
                             if (selectedCardIndex == cardIndex) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, description, descPos, ThemeColors.Text);
                         }
                     }
@@ -253,14 +251,10 @@ namespace typatro.GameFolder.Rooms{
                     }
                     else if (cardIndex == glyph2Index)
                     {
-                        
                         MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
                         if(glyphs[1] != Glyph.NoGlyphsLeft) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                         if (selectedCardIndex == glyph2Index)
-                        {
-                            System.Diagnostics.Debug.WriteLine(SaveManager.size);
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
-                        }
                     }
                     else if (cardIndex >= enh1Index && cardIndex <= enh3Index)
                     {
@@ -271,8 +265,7 @@ namespace typatro.GameFolder.Rooms{
                     else if (cardIndex == exitIndex) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "\n Exit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset + rerollExitOffset + 18, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
                 }
             }
-            if (Buying(ref coins, ref mousePressed, ref mouseState, mouseOnShopCard)) return true;
-            return false;
+            return Buying(ref coins, ref mousePressed, ref mouseState, mouseOnShopCard);
         }
 
         private bool Buying(ref long coins, ref bool mousePressed, ref MouseState mouseState, bool mouseOnShopCard)

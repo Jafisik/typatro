@@ -34,7 +34,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Meaning: \"Sound for 'N', ripple of water, also 'to' or 'for'.\"\n\n+ Each correct stone word gives you +1% shiny chance\n- Score from correct stone words is negative (eg. +50 is now -50)")]
         N,
 
-        [Description("Meaning: \"Sound for 'R', symbolizing mouth or one whole thing.\"\n\n+ Lets you correct your mistakes\n- If you leave a mistake, decrease its letter score by -1")]
+        [Description("Meaning: \"Sound for 'R', symbolizing mouth or one whole thing.\"\n\n+ Lets you correct your mistakes\n- Each mistake resets streak to 0.8x")]
         R,
 
         [Description("Meaning: \"Sound for 'S', also sufffix for she, her, hers.\"\n\n+ Bloom words give you +5 letter score per letter")]
@@ -76,7 +76,7 @@ namespace typatro.GameFolder.Upgrades{
         [Description("Meaning: \"'Scarab', associated with rebirth and regeneration.\"\n\n+ Streak bonus is doubled")]
         Scarab,
 
-        [Description("Meaning: \"'Snake', often signifying danger or protection.\"\n\n+ Mistakes do not subtract from score\n- Some letters are wrong")]
+        [Description("Meaning: \"'Snake', often signifying danger or protection.\"\n\n+ Mistakes do not reset your streak\n- Some letters are wrong")]
         Snake,
 
         [Description("Meaning: \"'Life', representing the eternal or divine life force.\"\n\n+ Add 5 to a random letter score each time you visit a shop")]
@@ -129,20 +129,19 @@ namespace typatro.GameFolder.Upgrades{
         {
             if (activeGlyphs.Count > 0)
             {
-                Remove(activeGlyphs.ElementAt(GameLogic.seededRandom.Next(0, activeGlyphs.Count)));
+                Remove(activeGlyphs.ElementAt(GameLogic.contextRandom.Next(0, activeGlyphs.Count)));
             }
         }
         public static bool IsActive(Glyph glyph) => activeGlyphs.Contains(glyph);
 
         public static Glyph GetRandomUnusedGlyph()
         {
-            if (!GameLogic.isReplay) GameLogic.actions.Add(new UserAction("GetRandomUnusedGlyph", ""));
             var unusedGlyphs = unlockedGlyphs.Except(activeGlyphs).ToList();
             if (unusedGlyphs.Count == 0)
             {
                 return Glyph.NoGlyphsLeft;
             }
-            int index = GameLogic.seededRandom.Next(unusedGlyphs.Count);
+            int index = GameLogic.contextRandom.Next(unusedGlyphs.Count);
             return unusedGlyphs[index];
         }
 
@@ -202,7 +201,6 @@ namespace typatro.GameFolder.Upgrades{
             Dictionary<UnlockType, bool> unlocks = UnlockManager.LoadUnlocks();
             if (unlocks != null)
             {
-                if (unlocks[UnlockType.Anubis]) unlockedGlyphs.Add(Glyph.Anubis);
                 if (unlocks[UnlockType.Cat]) unlockedGlyphs.Add(Glyph.Cat);
                 if (unlocks[UnlockType.Papyrus]) unlockedGlyphs.Add(Glyph.Papyrus);
                 if (unlocks[UnlockType.Thousand]) unlockedGlyphs.Add(Glyph.Thousand);

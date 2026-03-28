@@ -15,11 +15,6 @@ namespace typatro.GameFolder.Rooms{
             this.scoreNeeded = scoreNeeded;
         }
 
-        public string FightInfo()
-        {
-            return $"Reward: {cashGain}$\nDifficulty: {difficulty}\nSpeed: {speed}";
-        }
-
         public static Fight Create(int difficulty, int level, int floor)
         {
             return new Fight(
@@ -27,7 +22,7 @@ namespace typatro.GameFolder.Rooms{
                 WordsGen(difficulty),
                 CashGainGen(level, floor, difficulty),
                 SpeedGen(level, floor, difficulty),
-                ScoreNeddedGen(level, floor, difficulty)
+                ScoreNeededGen(level, floor, difficulty)
             );
         }
 
@@ -41,7 +36,7 @@ namespace typatro.GameFolder.Rooms{
             return (int)((level * level * 0.8 + floor * 0.2) * (difficulty * multPerDiff * (GlyphManager.IsActive(Glyph.S) ? 0.5 : 0.8)));
         }
 
-        public static int ScoreNeddedGen(int level, int floor, int difficulty)
+        public static int ScoreNeededGen(int level, int floor, int difficulty)
         {
             return (int)(50 + ((level - 1) * (level - 1) * (level - 1) * 80 + floor * floor * 1.5) * (difficulty * multPerDiff * 1.2));
         }

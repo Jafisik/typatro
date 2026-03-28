@@ -26,7 +26,6 @@ namespace typatro.GameFolder
                 if (!dead)
                 {
                     SaveManager.SaveGame(seed, level, coins, lastSelectedNode, enhancements, difficulty, selectedRune, visitedNodes);
-                    SaveManager.SaveActions(lastActions);
                     gameSaveData = SaveManager.LoadGame();
                 }
                 dead = false;
@@ -98,10 +97,6 @@ namespace typatro.GameFolder
         Keys[] prevKeys = new Keys[0];
         float pitch = 0f;
         int prevMistakes = 0;
-
-        private SpriteFont TutorialFont() =>
-            SaveManager.size == 0 ? MainGame.Gfx.smallTextFont : MainGame.Gfx.menuFont;
-
         private void RoomHandler(KeyboardState state, MouseState mouseState)
         {
             if (state.IsKeyDown(Keys.Tab) && (!IsFight(selectedNode.type) || timeInSeconds == 0))
@@ -126,7 +121,7 @@ namespace typatro.GameFolder
                     if (!inventoryUp) isFightFinished = shop.DisplayShop(ref coins, ref mousePressed);
                     gameUi.TopBannerDisplay(true);
                     if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.ShopTutorial))
-                        if (TutorialManager.Draw(state, mouseState, TutorialFont()))
+                        if (TutorialManager.Draw(state, mouseState))
                             UnlockManager.UnlockUnlock(UnlockManager.UnlockType.ShopTutorial);
                     break;
                 case NodeType.CURSE:
@@ -148,6 +143,34 @@ namespace typatro.GameFolder
 
             PlayTypeSound(state);
 
+            if (currentEnemy != null)
+            {
+                int frameWidth = currentEnemy.Width / 4;
+                int frameHeight = currentEnemy.Height;
+                int frame = (int)(MainGame.time.TotalGameTime.TotalSeconds) % 4;
+                int scale = 6;
+                int border = 6;
+                Rectangle sourceRect = new Rectangle(frame * frameWidth, 0, frameWidth, frameHeight);
+                Rectangle destRect = new Rectangle(MainGame.screenWidth - frameWidth * scale - frameWidth, MainGame.screenHeight - frameHeight * scale - frameHeight, frameWidth * scale, frameHeight * scale);
+                Rectangle borderRect = new Rectangle(destRect.X - border, destRect.Y - border, destRect.Width + border * 2, destRect.Height + border * 2);
+
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(borderRect.X, borderRect.Y, borderRect.Width, border), ThemeColors.Foreground);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(borderRect.X, borderRect.Bottom - border, borderRect.Width, border), ThemeColors.Foreground);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(borderRect.X, borderRect.Y, border, borderRect.Height), ThemeColors.Foreground);
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(borderRect.Right - border, borderRect.Y, border, borderRect.Height), ThemeColors.Foreground);
+
+                MainGame.Gfx.spriteBatch.Draw(currentEnemy, destRect, sourceRect, Color.White);
+
+                if (!startedTyping && currentEnemyDesc != null)
+                {
+                    string wrapped = WrapText(MainGame.Gfx.smallTextFont, currentEnemyDesc, borderRect.Width);
+                    Vector2 descSize = MainGame.Gfx.smallTextFont.MeasureString(wrapped);
+                    MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, wrapped,
+                        new Vector2(borderRect.X + borderRect.Width / 2 - descSize.X / 2, borderRect.Y - descSize.Y - 5),
+                        ThemeColors.Text);
+                }
+            }
+
             if (eyeOfHorusActive)
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(0, 0, MainGame.screenWidth, MainGame.screenHeight), Color.Black);
             if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.Cat))
@@ -157,7 +180,7 @@ namespace typatro.GameFolder
                 isFightFinished = true;
 
             if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.FightTutorial))
-                if (TutorialManager.Draw(state, mouseState, TutorialFont()))
+                if (TutorialManager.Draw(state, mouseState))
                     UnlockManager.UnlockUnlock(UnlockManager.UnlockType.FightTutorial);
         }
 
@@ -185,14 +208,12 @@ namespace typatro.GameFolder
         {
             MouseState mouseState = Mouse.GetState();
             lastSelectedNode = selectedNode;
-            lastActions = actions;
 
             if (!IsFight(selectedNode.type))
             {
                 roomSelected = false;
                 canStartFight = false;
                 SaveManager.SaveGame(seed, level, coins, lastSelectedNode, enhancements, difficulty, selectedRune, visitedNodes);
-                SaveManager.SaveActions(lastActions);
                 return;
             }
 
@@ -204,8 +225,10 @@ namespace typatro.GameFolder
 
         private void ProcessFightResult()
         {
-            scoreCalculator.currentScore *= (long)((GlyphManager.IsActive(Glyph.Flower) ? (1 + 0.1 * GlyphManager.GetGlyphCount()) : 1) *
-                (GlyphManager.IsActive(Glyph.Water) ? 2 : 1) * (GlyphManager.IsActive(Glyph.Heart) ? (Writer.diffIndexes.Count > 0 ? 3 : 0.5) : 1));
+            double flowerMult = GlyphManager.IsActive(Glyph.Flower) ? (1 + 0.1 * GlyphManager.GetGlyphCount()) : 1;
+            double waterMult  = GlyphManager.IsActive(Glyph.Water)  ? 2 : 1;
+            double heartMult  = GlyphManager.IsActive(Glyph.Heart)  ? (Writer.diffIndexes.Count > 0 ? 3 : 0.5) : 1;
+            scoreCalculator.currentScore *= (long)(flowerMult * waterMult * heartMult);
 
             bool playerSurvived;
             if (scoreCalculator.currentScore >= fight.scoreNeeded)
@@ -250,16 +273,16 @@ namespace typatro.GameFolder
         private void OnFightWon()
         {
             double cashMultiply = (GlyphManager.IsActive(Glyph.Woman) ? 0.8 : 1) * (GlyphManager.IsActive(Glyph.Man) ? 1.5 : 1);
-            coins += (int)(fight.cashGain * cashMultiply);
-            coinsGained += (int)(fight.cashGain * cashMultiply);
+            int cashGained = (int)(fight.cashGain * cashMultiply);
+            coins += cashGained;
+            coinsGained += cashGained;
             if (coins > maxCoins) maxCoins = coins;
             if (coins >= 200) UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Jera0);
             if (coins >= 100) UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Hundred);
             if (GlyphManager.IsActive(Glyph.B)) enhancements.AddToMistakeBlock(5);
             if (GlyphManager.IsActive(Glyph.Woman))
             {
-                if (!isReplay) actions.Add(new UserAction("randomLetter", ""));
-                enhancements.MultiplyLetterScore((char)(seededRandom.Next(0, 26) + 'a'), 2);
+                    enhancements.MultiplyLetterScore((char)(contextRandom.Next(0, 26) + 'a'), 2);
             }
             if (Writer.writtenText.Count >= neededText.Length - 10)
                 UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Heart);
@@ -353,7 +376,6 @@ namespace typatro.GameFolder
                 enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
 
             SaveManager.SaveGame(seed, level, coins, lastSelectedNode, enhancements, difficulty, selectedRune, visitedNodes);
-            SaveManager.SaveActions(lastActions);
             roomSelected = false;
             canStartFight = false;
 
@@ -366,6 +388,7 @@ namespace typatro.GameFolder
                     UnlockManager.UnlockUnlock(UnlockManager.UnlockType.R);
                 level++;
                 visitedNodes = new List<int[]>();
+                SetContext(-1, 0);
                 map.GenerateNodes();
                 selectedNode = map.GetFirstNode();
             }

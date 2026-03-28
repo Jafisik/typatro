@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using typatro.GameFolder.Models;
 using typatro.GameFolder.Upgrades;
@@ -18,8 +17,6 @@ namespace typatro.GameFolder.Services
 
         private static readonly string settingsPath = "settings.json";
         private static readonly string gameSavePath = "gameSave.json";
-        private static readonly string actionSavePath = "actionSave.json";
-        
 
         public static void SaveSettings(int theme, int volume, int size, int fullScreen)
         {
@@ -59,18 +56,15 @@ namespace typatro.GameFolder.Services
             };
             string json = JsonSerializer.Serialize(gameSaveData, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(gameSavePath, json);
-            System.Diagnostics.Debug.WriteLine("Game saved");
         }
 
         public static void RemoveGameData()
         {
             File.WriteAllText(gameSavePath, "");
-            File.WriteAllText(actionSavePath, "");
         }
 
         public static GameSaveData LoadGame()
         {
-            System.Diagnostics.Debug.WriteLine("Game loaded");
             if (!File.Exists(gameSavePath)) return null;
             var json = File.ReadAllText(gameSavePath);
             try
@@ -84,31 +78,5 @@ namespace typatro.GameFolder.Services
             }
         }
 
-        public static void SaveActions(List<UserAction> actions)
-        {
-            var actionStrings = actions.Select(a => a.ToStringArray()).ToArray();
-            string json = JsonSerializer.Serialize(actionStrings, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(actionSavePath, json);
-            System.Diagnostics.Debug.WriteLine("Actions saved");
-        }
-
-        public static UserAction[] LoadActions()
-        {
-            if (!File.Exists(actionSavePath)) return null;
-            System.Diagnostics.Debug.WriteLine("Actions loaded");
-            var json = File.ReadAllText(actionSavePath);
-            try
-            {
-                string[][] actionStrings = JsonSerializer.Deserialize<string[][]>(json);
-                return actionStrings.Select(UserAction.FromStringArray).ToArray();
-            }
-            catch (Exception e)
-            {
-                System.Diagnostics.Debug.WriteLine("Couldn't read actions: " + e.Message);
-                return null;
-            }
-        }
-
-        
     }
 }
