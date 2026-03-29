@@ -131,7 +131,15 @@ namespace typatro.GameFolder
             Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + yExtraOffset);
 
             Vector2 charSize = MainGame.Gfx.textFont.MeasureString(" ");
-            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(charIndex*(int)charSize.X + (int)position.X, (indexLine+1)*(int)charSize.Y + (int)position.Y-1,(int)charSize.X-3,3), ThemeColors.Selected);
+            float cursorW = charSize.X - 3;
+            float cursorH = 3;
+            float cursorX = charIndex * charSize.X + position.X;
+            float cursorY = (indexLine + 1) * charSize.Y + position.Y - 1;
+            Vector2 rotCenter = position + rotationPoint;
+            Vector2 rel = new Vector2(cursorX, cursorY) - rotCenter;
+            float cos = (float)Math.Cos(rotation), sin = (float)Math.Sin(rotation);
+            Vector2 rotatedCursorPos = rotCenter + new Vector2(rel.X * cos - rel.Y * sin, rel.X * sin + rel.Y * cos);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, rotatedCursorPos, null, ThemeColors.Selected, (float)rotation, Vector2.Zero, new Vector2(cursorW, cursorH), SpriteEffects.None, 0f);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, correctText, position + rotationPoint, ThemeColors.Text, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, incorrectText, position + rotationPoint, ThemeColors.Wrong, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, blockedText, position + rotationPoint, ThemeColors.Blocked, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);

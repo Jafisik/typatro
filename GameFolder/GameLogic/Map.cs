@@ -47,20 +47,17 @@ namespace typatro.GameFolder
                                 fight = Fight.Create(fightDifficulty, level, newNode.column);
                                 if (newNode.type == NodeType.FIGHT)
                                 {
-                                    int enemyIndex = unseededRandom.Next(MainGame.Gfx.enemyNormal.Length);
-                                    currentEnemy = MainGame.Gfx.enemyNormal[enemyIndex];
-                                    currentEnemyDesc = EnemyDescriptions[enemyIndex];
+                                    currentEnemy = Services.EnemyManager.Normal[contextRandom.Next(Services.EnemyManager.Normal.Length)];
                                 }
                                 else if (newNode.type == NodeType.ELITE)
                                 {
-                                    currentEnemy = MainGame.Gfx.enemyElite;
-                                    currentEnemyDesc = "Elite enemy";
+                                    currentEnemy = Services.EnemyManager.Elite[contextRandom.Next(Services.EnemyManager.Elite.Length)];
                                 }
                                 else
                                 {
-                                    currentEnemy = MainGame.Gfx.enemyBoss;
-                                    currentEnemyDesc = "Boss enemy";
+                                    currentEnemy = Services.EnemyManager.Boss[contextRandom.Next(Services.EnemyManager.Boss.Length)];
                                 }
+                                Services.EnemyManager.SetActive(currentEnemy.Type);
                                 break;
                             case NodeType.TREASURE:
                                 treasure.NewGlyph();

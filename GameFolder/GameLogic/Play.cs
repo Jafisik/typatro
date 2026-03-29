@@ -9,6 +9,7 @@ using typatro.GameFolder.Services;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 using static typatro.GameFolder.Services.UnlockManager;
+using static typatro.GameFolder.Services.EnemyManager;
 
 namespace typatro.GameFolder
 {
@@ -90,7 +91,8 @@ namespace typatro.GameFolder
             {
                 dead = false;
                 Reset();
-                gameState = GameState.MENU;
+                gameState = isDebugFight ? GameState.DEBUG : GameState.MENU;
+                isDebugFight = false;
             }
         }
 
@@ -139,31 +141,39 @@ namespace typatro.GameFolder
                 lastCharPos = writer.UserInputText(Writer.writtenText.ToArray(), enhancements.mistakeBlock, rotation: textRotation, xExtraOffset: xTextOffset, yExtraOffset: yTextOffset);
             gameUi.TopBannerDisplay(false);
             scoreCalculator.CalculateScore(lastCharPos, ref fight, ref enhancements);
-            gameUi.HealthBar(ref fight, scoreCalculator.currentScore);
+            if (!EnemyManager.Is(EnemyType.C))
+                gameUi.HealthBar(ref fight, scoreCalculator.currentScore);
+            if (kHeperShieldActive)
+            {
+                string shieldText = "SHIELD";
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, shieldText,
+                    new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.gameFont.MeasureString(shieldText).X / 2, 160),
+                    ThemeColors.Selected);
+            }
 
             PlayTypeSound(state);
 
-            if (currentEnemy != null)
+            if (currentEnemy?.Texture != null)
             {
-                int frameWidth = currentEnemy.Width / 4;
-                int frameHeight = currentEnemy.Height;
+                int frameWidth = currentEnemy.Texture.Width / 4;
+                int frameHeight = currentEnemy.Texture.Height;
                 int frame = (int)(MainGame.time.TotalGameTime.TotalSeconds) % 4;
                 int scale = 6;
                 int border = 6;
                 Rectangle sourceRect = new Rectangle(frame * frameWidth, 0, frameWidth, frameHeight);
                 Rectangle destRect = new Rectangle(MainGame.screenWidth - frameWidth * scale - frameWidth, MainGame.screenHeight - frameHeight * scale - frameHeight, frameWidth * scale, frameHeight * scale);
                 Rectangle borderRect = new Rectangle(destRect.X - border, destRect.Y - border, destRect.Width + border * 2, destRect.Height + border * 2);
-
+                
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(borderRect.X, borderRect.Y, borderRect.Width, border), ThemeColors.Foreground);
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(borderRect.X, borderRect.Bottom - border, borderRect.Width, border), ThemeColors.Foreground);
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(borderRect.X, borderRect.Y, border, borderRect.Height), ThemeColors.Foreground);
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(borderRect.Right - border, borderRect.Y, border, borderRect.Height), ThemeColors.Foreground);
 
-                MainGame.Gfx.spriteBatch.Draw(currentEnemy, destRect, sourceRect, Color.White);
+                MainGame.Gfx.spriteBatch.Draw(currentEnemy.Texture, destRect, sourceRect, Color.White);
 
-                if (!startedTyping && currentEnemyDesc != null)
+                if (!startedTyping)
                 {
-                    string wrapped = WrapText(MainGame.Gfx.smallTextFont, currentEnemyDesc, borderRect.Width);
+                    string wrapped = WrapText(MainGame.Gfx.smallTextFont, currentEnemy.Description, borderRect.Width);
                     Vector2 descSize = MainGame.Gfx.smallTextFont.MeasureString(wrapped);
                     MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, wrapped,
                         new Vector2(borderRect.X + borderRect.Width / 2 - descSize.X / 2, borderRect.Y - descSize.Y - 5),
@@ -171,10 +181,23 @@ namespace typatro.GameFolder
                 }
             }
 
-            if (eyeOfHorusActive)
+            if (jumpscareActive && MainGame.Gfx.foxy != null)
+            {
+                float t = (float)((timeInSeconds - (jumpscareEndTime - 0.4)) / 0.4);
+                t = Math.Clamp(t, 0f, 1f);
+                int w = (int)(MainGame.screenWidth * t);
+                int h = (int)(MainGame.screenHeight * t);
+                int x = (MainGame.screenWidth - w) / 2;
+                int y = (MainGame.screenHeight - h) / 2;
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.foxy, new Rectangle(x, y, w, h), Color.White);
+            }
+
+            if (eyeOfHorusActive || molochActive)
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(0, 0, MainGame.screenWidth, MainGame.screenHeight), Color.Black);
             if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.Cat))
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.catPic, new Rectangle((int)catPos.X, (int)catPos.Y, 120, 80), Color.White);
+            foreach (var (pos, _) in wendigoBugs)
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)pos.X, (int)pos.Y, 4, 4), Color.Green);
 
             if (Writer.writtenText.Count == neededText.Length || scoreCalculator.currentScore >= fight.scoreNeeded)
                 isFightFinished = true;
@@ -375,9 +398,17 @@ namespace typatro.GameFolder
             else
                 enhancements.AddLetterScore(cards[afterFightSelect].letter, cards[afterFightSelect].value);
 
-            SaveManager.SaveGame(seed, level, coins, lastSelectedNode, enhancements, difficulty, selectedRune, visitedNodes);
+            if (!isDebugFight)
+                SaveManager.SaveGame(seed, level, coins, lastSelectedNode, enhancements, difficulty, selectedRune, visitedNodes);
             roomSelected = false;
             canStartFight = false;
+
+            if (isDebugFight)
+            {
+                isDebugFight = false;
+                gameState = GameState.DEBUG;
+                return;
+            }
 
             var completedNodeType = selectedNode.type;
 

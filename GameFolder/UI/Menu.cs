@@ -23,10 +23,11 @@ namespace typatro.GameFolder
             start,
             options,
             exit,
+            debug,
             empty
         }
         private MenuSelect menuSelect = MenuSelect.start;
-        string[] menuTexts = new string[] { "continue", "new game", "options", "exit"};
+        string[] menuTexts = new string[] { "continue", "new game", "options", "exit", "debug" };
         
 
         enum OptionSelect{

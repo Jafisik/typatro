@@ -18,15 +18,13 @@ public class MainGame : Game
     public static class Gfx
     {
         public static SpriteBatch spriteBatch;
-        public static Texture2D texture, catPic, bg;
+        public static Texture2D texture, catPic, bg, foxy;
         public static Texture2D mouse1, mouse2;
         public static SpriteFont gameFont, smallTextFont, menuFont, textFont, smallMapFont, logoFont;
-        public static Texture2D[] enemyNormal;
-        public static Texture2D enemyElite, enemyBoss;
     }
     public struct SoundEffects
     {
-        public SoundEffect typeSound;
+        public SoundEffect typeSound, jumpscareSound;
         public SoundEffectInstance musicIntro, musicMainTheme;
     }
     GameLogic gameLogic;
@@ -62,6 +60,7 @@ public class MainGame : Game
         Gfx.textFont = Content.Load<SpriteFont>("Fonts/textFont");
         Gfx.logoFont = Content.Load<SpriteFont>("Fonts/logoFont");
         Gfx.catPic = Content.Load<Texture2D>("Images/catPic");
+        Gfx.foxy = Content.Load<Texture2D>("Images/foxy");
         Gfx.bg = Content.Load<Texture2D>("Images/bg");
         Gfx.mouse1 = Content.Load<Texture2D>("Images/mouseOpenY");
         Gfx.mouse2 = Content.Load<Texture2D>("Images/mouseClosedY");
@@ -69,14 +68,7 @@ public class MainGame : Game
         Gfx.texture.SetData(new[] { Color.White });
 
         GlyphImageLoad();
-        Gfx.enemyNormal = new Texture2D[]
-        {
-            Content.Load<Texture2D>("Images/a"),
-            Content.Load<Texture2D>("Images/e"),
-            Content.Load<Texture2D>("Images/i"),
-            Content.Load<Texture2D>("Images/o"),
-            Content.Load<Texture2D>("Images/u"),
-        };
+        EnemyManager.Load(Content);
         
         int[] settings = SaveManager.LoadSettings();
         ThemeColors.Apply(settings[0]);
@@ -85,6 +77,7 @@ public class MainGame : Game
             musicIntro = Content.Load<SoundEffect>("Music/intro").CreateInstance(),
             musicMainTheme = Content.Load<SoundEffect>("Music/mainTheme").CreateInstance(),
             typeSound = Content.Load<SoundEffect>("Music/typing2"),
+            jumpscareSound = Content.Load<SoundEffect>("Music/jumpscare"),
         };
         
         MediaPlayer.IsRepeating = false;

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using typatro.GameFolder.Rooms;
 using typatro.GameFolder.Services;
+using static typatro.GameFolder.Services.EnemyManager;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
@@ -14,6 +15,7 @@ namespace typatro.GameFolder.Logic
         long playerScore = 0, lastScore = 0;
         public long currentScore = 0;
         long shinyWritten, stoneWritten, bloomWritten;
+        HashSet<int> kHeperBlockedIndexes = new();
         GameLogic gameLogic;
         public ScoreCalculator(GameLogic gameLogic)
         {
@@ -28,7 +30,15 @@ namespace typatro.GameFolder.Logic
                 bool canAdd = !Writer.diffIndexes.Contains(i);
                 if (canAdd && Writer.writtenText[i] != ' ')
                 {
-                    letterScore += enhancements.letters[Writer.writtenText[i] - 'a'];
+                    char c = Writer.writtenText[i];
+                    bool blockedByEnemy = (c == 'a' && EnemyManager.Is(EnemyType.A))
+                                      || (c == 'e' && EnemyManager.Is(EnemyType.E))
+                                      || (c == 'i' && EnemyManager.Is(EnemyType.I))
+                                      || (c == 'o' && EnemyManager.Is(EnemyType.O))
+                                      || (c == 'u' && EnemyManager.Is(EnemyType.U))
+                                      || kHeperBlockedIndexes.Contains(i);
+                    if (!blockedByEnemy)
+                        letterScore += enhancements.letters[c - 'a'];
                 }
             }
 
@@ -43,6 +53,17 @@ namespace typatro.GameFolder.Logic
                         extraScore += 100000;
                     }
                 }
+                if (Is(EnemyType.H) && gameLogic.kHeperShieldActive && Writer.writtenText.Count > lastCharCount)
+                    kHeperBlockedIndexes.Add(Writer.writtenText.Count - 1);
+                if (Is(EnemyType.T) && Writer.writtenText.Count > lastCharCount)
+                {
+                    char newChar = Writer.writtenText[Writer.writtenText.Count - 1];
+                    if (newChar != ' ')
+                    {
+                        bool isMistake = Writer.diffIndexes.Contains(Writer.writtenText.Count - 1);
+                        enhancements.AddLetterScore(newChar, isMistake ? -10 : 1);
+                    }
+                }
                 lastScore = playerScore;
                 gameLogic.letterTimer = gameLogic.timeInSeconds;
                 lastCharCount = Writer.writtenText.Count;
@@ -53,12 +74,14 @@ namespace typatro.GameFolder.Logic
                 UnlockManager.UnlockUnlock(UnlockManager.UnlockType.M);
             }
 
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"Mult:{gameLogic.wordStreak: 0.##}x", new Vector2(50, 100), ThemeColors.Text);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "Base:", new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.gameFont.MeasureString("Base:").X, 100), ThemeColors.Text);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, ((int)(currentScore / gameLogic.wordStreak)).ToString(), new Vector2(MainGame.screenWidth / 2, 100), ThemeColors.Text);
-
-            string rewardText = "Reward: " + fight.cashGain;
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, rewardText, new Vector2(MainGame.screenWidth - 50 - MainGame.Gfx.gameFont.MeasureString(rewardText).X, 100), ThemeColors.Text);
+            if (!Is(EnemyType.C))
+            {
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"Mult:{gameLogic.wordStreak: 0.##}x", new Vector2(50, 100), ThemeColors.Text);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "Base:", new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.gameFont.MeasureString("Base:").X, 100), ThemeColors.Text);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, ((int)(currentScore / gameLogic.wordStreak)).ToString(), new Vector2(MainGame.screenWidth / 2, 100), ThemeColors.Text);
+                string rewardText = "Reward: " + fight.cashGain;
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, rewardText, new Vector2(MainGame.screenWidth - 50 - MainGame.Gfx.gameFont.MeasureString(rewardText).X, 100), ThemeColors.Text);
+            }
 
             int mistakeCount = Math.Max(Writer.diffIndexes.Count - (GlyphManager.IsActive(Glyph.EyeOfHorus) ? 2 : 0), 0);
             if (GlyphManager.IsActive(Glyph.Star) && mistakeCount > 0) gameLogic.dead = true;
@@ -109,6 +132,8 @@ namespace typatro.GameFolder.Logic
             {
                 bool under3Sec = gameLogic.timeInSeconds - gameLogic.timeSinceLastWord < 3;
                 if (!under3Sec && GlyphManager.IsActive(Glyph.N)) gameLogic.wordStreak = 0;
+                bool under2Sec = gameLogic.timeInSeconds - gameLogic.timeSinceLastWord < 2;
+                if (!under2Sec && Is(EnemyType.J)) gameLogic.wordStreak = 1;
                 gameLogic.timeSinceLastWord = gameLogic.timeInSeconds;
                 lastWordCount = userWords.Length;
                 wordCounter++;
@@ -162,6 +187,8 @@ namespace typatro.GameFolder.Logic
 
                 if (GlyphManager.IsActive(Glyph.R) && mistakeCount > lastMistakeCount)
                     gameLogic.wordStreak = Math.Min(gameLogic.wordStreak, 0.8);
+                if (Is(EnemyType.B) && mistakeCount > lastMistakeCount)
+                    gameLogic.coins = Math.Max(0, gameLogic.coins - (mistakeCount - lastMistakeCount) * 10);
                 lastMistakeCount = mistakeCount;
 
                 long positiveScore = Math.Max(0, playerScore + (long)(correctWords * enhancements.streakMult));
@@ -178,6 +205,7 @@ namespace typatro.GameFolder.Logic
 
         public void Reset()
         {
+            kHeperBlockedIndexes.Clear();
             lastCharCount = 0;
             lastWordCount = 1;
             lastCorrectWord = 0;

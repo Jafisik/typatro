@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using typatro.GameFolder.Services;
 using typatro.GameFolder.UI;
@@ -223,46 +224,75 @@ namespace typatro.GameFolder.Rooms{
                         mouseOnShopCard = true;
                     }
                     MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, cardRect, cardColor);
+                    if (row == selectedRow && col == selectedCol)
+                        ThemeColors.DrawGlowCorners(cardRect, ThemeColors.Text);
+
+                    SpriteFont sfCard = MainGame.Gfx.smallTextFont;
+                    float ctx = col * horizontalSpacing + cardTextLeftOffset + leftOffset;
+                    float cty = row * verticalSpacing + cardTextTopOffset + topOffset;
+                    float cLineH = sfCard.LineSpacing;
 
                     if (cardIndex < cardCount)
                     {
                         cards[cardIndex].cost = cards[cardIndex].mult ? (cards[cardIndex].value + enhancements.GetLetterScore(cards[cardIndex].letter)) * 3 : (cards[cardIndex].value + enhancements.GetLetterScore(cards[cardIndex].letter));
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $" {cards[cardIndex].letter}:  {enhancements.GetLetterScore(cards[cardIndex].letter)}       {(cards[cardIndex].mult ? "*" : "+")} {cards[cardIndex].value}\n\n Cost:        {cards[cardIndex].cost}",
-                        new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+
+                        string letterWithScore = $" {cards[cardIndex].letter}: {enhancements.GetLetterScore(cards[cardIndex].letter)}";
+                        string upgradeStr = $"{(cards[cardIndex].mult ? "*" : "+")} {cards[cardIndex].value}";
+                        float upgradeW = sfCard.MeasureString(upgradeStr).X;
+                        float cardRightX = col * horizontalSpacing + leftOffset + cardWidth;
+
+                        DrawValueRect(sfCard, letterWithScore, ctx, cty, cardRect);
+                        float upgradeX = cardRightX - upgradeW - 6;
+                        DrawValueRect(sfCard, upgradeStr, upgradeX, cty, cardRect);
+
+                        MainGame.Gfx.spriteBatch.DrawString(sfCard, " Cost:", new Vector2(ctx, cty + cLineH * 2), ThemeColors.Text);
+                        DrawCostWithRect(sfCard, cards[cardIndex].cost, cardRect);
+
                         if (selectedCardIndex < cardCount)
                         {
                             LetterUpgrade selectedCard = cards[selectedCardIndex];
                             string description;
                             if (selectedCard.mult) description = $"Muliplies letter value of '{selectedCard.letter}' by *{selectedCard.value}\n\nCurrent letter score value:{enhancements.GetLetterScore(selectedCard.letter)}    Price of upgrade:{selectedCard.cost}";
                             else description = $"Adds +{selectedCard.value} to the letter value of '{selectedCard.letter}'\n\nCurrent letter score value:{enhancements.GetLetterScore(selectedCard.letter)}    Price of upgrade:{selectedCard.cost}";
-                            if (selectedCardIndex == cardIndex) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, description, descPos, ThemeColors.Text);
+                            if (selectedCardIndex == cardIndex) MainGame.Gfx.spriteBatch.DrawString(sfCard, description, descPos, ThemeColors.Text);
                         }
                     }
                     else if (cardIndex == rerollIndex)
                     {
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $" Reroll\n\n Cost:        {rerollCost}", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset + rerollExitOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == (SaveManager.size == 0 ? 7 : 5)) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Rerolls all items in the shop for {rerollCost} coins", descPos, ThemeColors.Text);
+                        float rx = ctx + rerollExitOffset;
+                        MainGame.Gfx.spriteBatch.DrawString(sfCard, " Reroll\n\n Cost:", new Vector2(rx, cty), ThemeColors.Text);
+                        DrawCostWithRect(sfCard, rerollCost, cardRect);
+                        if (selectedCardIndex == (SaveManager.size == 0 ? 7 : 5)) MainGame.Gfx.spriteBatch.DrawString(sfCard, $"Rerolls all items in the shop for {rerollCost} coins", descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == glyph1Index)
                     {
-                        MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[0]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
-                        if(glyphs[0] != Glyph.NoGlyphsLeft) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == glyph1Index) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
+                        MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[0]), new Vector2(ctx, cty), cardColor);
+                        if (glyphs[0] != Glyph.NoGlyphsLeft)
+                        {
+                            MainGame.Gfx.spriteBatch.DrawString(sfCard, "   Cost:", new Vector2(64 + ctx, cty), ThemeColors.Text);
+                            DrawCostWithRect(sfCard, glyphCost, cardRect);
+                        }
+                        if (selectedCardIndex == glyph1Index) MainGame.Gfx.spriteBatch.DrawString(sfCard, GlyphManager.GetDescription(glyphs[0]), descPos, ThemeColors.Text);
                     }
                     else if (cardIndex == glyph2Index)
                     {
-                        MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), cardColor);
-                        if(glyphs[1] != Glyph.NoGlyphsLeft) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"   Cost:\n\n     {glyphCost}", new Vector2(64 + col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                        MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyphs[1]), new Vector2(ctx, cty), cardColor);
+                        if (glyphs[1] != Glyph.NoGlyphsLeft)
+                        {
+                            MainGame.Gfx.spriteBatch.DrawString(sfCard, "   Cost:", new Vector2(64 + ctx, cty), ThemeColors.Text);
+                            DrawCostWithRect(sfCard, glyphCost, cardRect);
+                        }
                         if (selectedCardIndex == glyph2Index)
-                            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
+                            MainGame.Gfx.spriteBatch.DrawString(sfCard, GlyphManager.GetDescription(glyphs[1]), descPos, ThemeColors.Text);
                     }
                     else if (cardIndex >= enh1Index && cardIndex <= enh3Index)
                     {
                         int enhIdx = cardIndex - enh1Index;
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeTitle(enhancementsUpgrades[enhIdx]), new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
-                        if (selectedCardIndex == cardIndex) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, EnhancementsTypeDesc(enhancementsUpgrades[enhIdx]), descPos, ThemeColors.Text);
+                        MainGame.Gfx.spriteBatch.DrawString(sfCard, EnhancementsTypeTitle(enhancementsUpgrades[enhIdx]) + "\n\n Cost:", new Vector2(ctx, cty), ThemeColors.Text);
+                        DrawCostWithRect(sfCard, enhancementsUpgrades[enhIdx].cost, cardRect);
+                        if (selectedCardIndex == cardIndex) MainGame.Gfx.spriteBatch.DrawString(sfCard, EnhancementsTypeDesc(enhancementsUpgrades[enhIdx]), descPos, ThemeColors.Text);
                     }
-                    else if (cardIndex == exitIndex) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, "\n Exit shop", new Vector2(col * horizontalSpacing + cardTextLeftOffset + leftOffset + rerollExitOffset + 18, row * verticalSpacing + cardTextTopOffset + topOffset), ThemeColors.Text);
+                    else if (cardIndex == exitIndex) MainGame.Gfx.spriteBatch.DrawString(sfCard, "\n Exit shop", new Vector2(ctx + rerollExitOffset + 18, cty), ThemeColors.Text);
                 }
             }
             return Buying(ref coins, ref mousePressed, ref mouseState, mouseOnShopCard);
@@ -358,16 +388,40 @@ namespace typatro.GameFolder.Rooms{
         {
             return type.enhancementsType switch
             {
-                EnhancementsType.streakMult => $"Streak mult\n\nCost:        {type.cost}",
-                EnhancementsType.damageResist => $"Damage resist\n\nCost:        {type.cost}",
-                EnhancementsType.mistakeBlock => $"Mistake block\n\nCost:        {type.cost}",
-                EnhancementsType.shinyChance => $"Shiny chance\n\nCost:        {type.cost}",
-                EnhancementsType.stoneChance => $"Stone chance\n\nCost:        {type.cost}",
-                EnhancementsType.bloomChance => $"Bloom chance\n\nCost:        {type.cost}",
-                EnhancementsType.shinyScore => $"Shiny mult\n\nCost:        {type.cost}",
-                EnhancementsType.stoneScore => $"Stone score\n\nCost:        {type.cost}",
+                EnhancementsType.streakMult => "Streak mult",
+                EnhancementsType.damageResist => "Damage resist",
+                EnhancementsType.mistakeBlock => "Mistake block",
+                EnhancementsType.shinyChance => "Shiny chance",
+                EnhancementsType.stoneChance => "Stone chance",
+                EnhancementsType.bloomChance => "Bloom chance",
+                EnhancementsType.shinyScore => "Shiny mult",
+                EnhancementsType.stoneScore => "Stone score",
                 _ => "",
             };
+        }
+
+        private void DrawValueRect(SpriteFont sf, string text, float x, float y, Rectangle cardRect)
+        {
+            Color f = ThemeColors.NotSelected;
+            Color bg = new Color((int)(f.R * 1.1f), (int)(f.G * 1.1f), (int)(f.B * 1.1f), f.A);
+            int blockW = (int)(cardRect.Width /2.3);
+            int blockH = (cardRect.Height * 2 / 5);
+            bool isRight = x > cardRect.X + cardRect.Width / 2f;
+            bool isBottom = y > cardRect.Y + cardRect.Height / 2f;
+            int rx = isRight ? cardRect.Right - blockW : cardRect.X;
+            int ry = isBottom ? cardRect.Bottom - blockH : cardRect.Y;
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(rx, ry, blockW, blockH), bg);
+            MainGame.Gfx.spriteBatch.DrawString(sf, text, new Vector2(x, y), ThemeColors.Text);
+        }
+
+        private void DrawCostWithRect(SpriteFont sf, long cost, Rectangle cardRect, int margin = 5)
+        {
+            string costStr = cost.ToString();
+            float costW = sf.MeasureString(costStr).X;
+            float lineH = sf.LineSpacing;
+            float x = cardRect.Right - costW - margin;
+            float y = cardRect.Bottom - lineH - margin;
+            DrawValueRect(sf, costStr, x, y, cardRect);
         }
 
         private string EnhancementsTypeDesc(EnhancementsUpgrade type)

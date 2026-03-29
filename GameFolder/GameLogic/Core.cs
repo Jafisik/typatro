@@ -19,6 +19,7 @@ namespace typatro.GameFolder
             NEWGAME,
             OPTIONS,
             EXIT,
+            DEBUG,
             MENU,
             RUNES,
         }
@@ -80,16 +81,12 @@ namespace typatro.GameFolder
         Vector2 catPos = Vector2.One;
 
         // Enemy
-        public Microsoft.Xna.Framework.Graphics.Texture2D currentEnemy;
-        public string currentEnemyDesc;
-        public static readonly string[] EnemyDescriptions =
-        {
-            "Enemy A: letter 'a' scores 0",
-            "Enemy E: letter 'e' scores 0",
-            "Enemy I: letter 'i' scores 0",
-            "Enemy O: letter 'o' scores 0",
-            "Enemy U: letter 'u' scores 0",
-        };
+        public Models.Enemy currentEnemy;
+        public bool isDebugFight;
+        bool jumpscareActive, molochActive;
+        public bool kHeperShieldActive;
+        double jumpscareEndTime, jumpscareNextTime = -1;
+        public List<(Vector2 pos, Vector2 vel)> wendigoBugs = new();
 
         // Map
         Map map;
