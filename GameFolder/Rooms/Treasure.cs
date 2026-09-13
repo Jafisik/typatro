@@ -3,6 +3,8 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using typatro.GameFolder;
+using typatro.GameFolder.Services;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
@@ -12,31 +14,70 @@ namespace typatro.GameFolder.Rooms{
         Glyph currentGlyph;
         Enhancements enhancements;
         bool pickUp = true, keyDown;
-        readonly int topOffset = 80, leftOffset = 50, rectTopOffset = 200, rectWidth = 170, rectHeight = 60, rectOffset;
+        readonly int rectTopOffset = 200, rectWidth = 170, rectHeight = 60;
+        readonly Rectangle panelRect;
 
         public Treasure(Enhancements enhancements){
             this.enhancements = enhancements;
             GlyphManager.Add(Glyph.NoGlyphsLeft);
-            rectOffset = MainGame.screenWidth/4;
+            int panelWidth = 850;
+            panelRect = new Rectangle((MainGame.screenWidth - panelWidth) / 2, 80, panelWidth, 480);
         }
+
+        // Position of the checkmark/cross baked into Backgrounds/treasure.png, within its
+        // native 128x64 canvas - yes.png/no.png are the same canvas size, so drawing either
+        // over the same rect the background uses lines them up exactly on top of the
+        // check/cross already in the background art.
+        static readonly Rectangle yesHitboxNative = new Rectangle(48, 43, 14, 13);
+        static readonly Rectangle noHitboxNative = new Rectangle(64, 42, 15, 14);
 
         public bool DisplayTreasure(ref long coins, ref bool mousePressed){
             MouseState mouseState = Mouse.GetState();
             Glyph glyph = currentGlyph;
             string treasureDescriptionText = GlyphManager.GetDescription(glyph);
-            MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), new Rectangle(leftOffset, topOffset, 128, 128), ThemeColors.Foreground);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, treasureDescriptionText, new Vector2(leftOffset, topOffset*3), ThemeColors.Text);
+
+            // Confined to the play field - below the top banner, with a matching gap at the
+            // bottom - instead of stretching the art edge to edge over the whole window.
+            Rectangle screenRect = new Rectangle(0, 55, MainGame.screenWidth, MainGame.screenHeight - 55 - 15);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.treasureBg, screenRect, Color.White);
+
+            int leftOffset = panelRect.X + 80;
+            int glyphSize = 150;
+            Rectangle glyphRect = new Rectangle(panelRect.X + panelRect.Width / 2 - glyphSize / 2, panelRect.Y + 60, glyphSize, glyphSize);
+            MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), glyphRect, ThemeColors.Foreground);
+            float descScale = 1.15f;
+            // Wrapped narrower than the panel itself so long descriptions (e.g. Cat's) stay
+            // inside the visible circle instead of running past its edge.
+            float wrapWidth = 520f;
+            string wrappedDescription = GameLogic.WrapText(MainGame.Gfx.smallTextFont, treasureDescriptionText, wrapWidth);
+
+            // Each line centered individually (rather than the whole block left-aligned) since
+            // the wrapped lines vary a lot in width.
+            int descCenterX = panelRect.X + panelRect.Width / 2;
+            float descLineH = MainGame.Gfx.smallTextFont.LineSpacing * descScale;
+            float descY = panelRect.Y + 225;
+            foreach (string line in wrappedDescription.Split('\n'))
+            {
+                float lineWidth = MainGame.Gfx.smallTextFont.MeasureString(line).X * descScale;
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, line, new Vector2(descCenterX - lineWidth / 2, descY),
+                    ThemeColors.Text, 0f, Vector2.Zero, descScale, SpriteEffects.None, 0f);
+                descY += descLineH;
+            }
 
             if(glyph != Glyph.NoGlyphsLeft){
                 var state = Keyboard.GetState();
-                if(!keyDown && (state.IsKeyDown(Keys.Left) || state.IsKeyDown(Keys.Right))){
-                    pickUp = !pickUp;
+                if(!keyDown && state.IsKeyDown(Keys.Left)){
+                    pickUp = true;
+                    keyDown = true;
+                }
+                else if(!keyDown && state.IsKeyDown(Keys.Right)){
+                    pickUp = false;
                     keyDown = true;
                 }
                 if(state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right)){
                     keyDown = false;
                 }
-                if(state.IsKeyDown(Keys.Enter)){
+                if(UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.TreasureTutorial) && state.IsKeyDown(Keys.Enter)){
                     if (pickUp)
                     {
                         GlyphManager.Add(glyph);
@@ -51,8 +92,11 @@ namespace typatro.GameFolder.Rooms{
                     mousePressed = false;
                 }
 
-                Rectangle yesRect = new Rectangle(rectOffset, topOffset*5, rectWidth, rectHeight);
-                if (yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                float scaleX = screenRect.Width / 128f, scaleY = screenRect.Height / 64f;
+                Rectangle yesRect = new Rectangle(screenRect.X + (int)(yesHitboxNative.X * scaleX), screenRect.Y + (int)(yesHitboxNative.Y * scaleY), (int)(yesHitboxNative.Width * scaleX), (int)(yesHitboxNative.Height * scaleY));
+                Rectangle noRect = new Rectangle(screenRect.X + (int)(noHitboxNative.X * scaleX), screenRect.Y + (int)(noHitboxNative.Y * scaleY), (int)(noHitboxNative.Width * scaleX), (int)(noHitboxNative.Height * scaleY));
+
+                if (!TutorialManager.IsShowing() && yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                 {
                     if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
                     {
@@ -64,14 +108,7 @@ namespace typatro.GameFolder.Rooms{
                     }
                     pickUp = true;
                 }
-
-                Vector2 yesSize = MainGame.Gfx.gameFont.MeasureString("accept");
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "accept", new Vector2(yesRect.X + yesRect.Width / 2 - yesSize.X / 2, yesRect.Y + yesRect.Height / 2 - yesSize.Y / 2+5), ThemeColors.Text);
-
-
-                Rectangle noRect = new Rectangle(rectOffset*2, topOffset*5, rectWidth, rectHeight);
-                if (noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+                if (!TutorialManager.IsShowing() && noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
                 {
                     if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
                     {
@@ -80,11 +117,9 @@ namespace typatro.GameFolder.Rooms{
                     }
                     pickUp = false;
                 }
-                Vector2 noSize = MainGame.Gfx.gameFont.MeasureString("decline");
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "decline", new Vector2(noRect.X + noRect.Width/2 - noSize.X/2, noRect.Y + noRect.Height / 2 - noSize.Y / 2+5), ThemeColors.Text);
 
-            } 
+                MainGame.Gfx.spriteBatch.Draw(pickUp ? MainGame.Gfx.yesOverlay : MainGame.Gfx.noOverlay, screenRect, Color.White);
+            }
             else{
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(leftOffset, rectTopOffset, rectWidth, rectHeight), ThemeColors.NotSelected);
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(leftOffset*2+rectHeight, rectTopOffset, rectWidth, rectHeight), ThemeColors.Selected);
@@ -92,8 +127,8 @@ namespace typatro.GameFolder.Rooms{
             return false;
         }
 
-        public void NewGlyph(){
-            currentGlyph = GlyphManager.GetRandomUnusedGlyph();
+        public void NewGlyph(bool forceCat = false){
+            currentGlyph = forceCat ? Glyph.Cat : GlyphManager.GetRandomUnusedGlyph();
         }
 
         

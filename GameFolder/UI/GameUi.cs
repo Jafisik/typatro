@@ -17,53 +17,146 @@ namespace typatro.GameFolder.UI
     public class GameUi
     {
         GameLogic gameLogic;
-        public GameUi(GameLogic gameLogic) 
+        public GameUi(GameLogic gameLogic)
         {
             this.gameLogic = gameLogic;
+        }
+
+        void DrawBoxBg(Rectangle rect)
+        {
+            Color bg = ThemeColors.Background;
+            bg.A = 160;
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, rect, bg);
+        }
+
+        void DrawBorder(Rectangle rect, Color color, int thickness = 2)
+        {
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(rect.X, rect.Y, rect.Width, thickness), color);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(rect.X, rect.Bottom - thickness, rect.Width, thickness), color);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(rect.X, rect.Y, thickness, rect.Height), color);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(rect.Right - thickness, rect.Y, thickness, rect.Height), color);
+        }
+
+        // bg drawn first so text can be painted on top of it; border drawn separately
+        // afterwards wherever the caller needs it to sit above already-drawn text.
+        void DrawOutline(Rectangle rect, Color color, int thickness = 2)
+        {
+            DrawBoxBg(rect);
+            DrawBorder(rect, color, thickness);
         }
 
         public void Inventory(KeyboardState state = default)
         {
             MouseState mouseState = Mouse.GetState();
             gameLogic.inventoryUp = true;
-            int columns = 4, rows = 8;
-            int columnSpacing = (int)(MainGame.screenWidth / 4.5);
-            int leftOffset = 40;
+            int columns = 3, rows = 9;
 
+            // Whole screen split top/bottom - 3/4 for letters+enhancements, 1/4 for glyphs -
+            // with a real gap between every panel instead of them nearly touching.
+            int margin = 35, gap = 30, rowGap = 15;
+            int contentTop = 65, contentBottom = MainGame.screenHeight - 30;
+            int contentLeft = margin, contentRight = MainGame.screenWidth - margin;
+            int totalHeight = contentBottom - contentTop;
+            int bottomHeight = (int)(totalHeight * 0.36f);
+            int topHeight = totalHeight - bottomHeight - rowGap;
+
+            int sidePanelWidth = 280;
+            Rectangle lettersPanel = new Rectangle(contentLeft, contentTop, contentRight - contentLeft - gap - sidePanelWidth, topHeight);
+            Rectangle sidePanel = new Rectangle(lettersPanel.Right + gap, contentTop, sidePanelWidth, topHeight);
+            Rectangle glyphPanel = new Rectangle(contentLeft, lettersPanel.Bottom + rowGap, contentRight - contentLeft, bottomHeight);
+
+            Color panelColor = Color.Lerp(ThemeColors.Background, ThemeColors.Text, 0.15f);
+            panelColor.A = 235;
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, lettersPanel, panelColor);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, sidePanel, panelColor);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, glyphPanel, panelColor);
+
+            // Section labels eat a bit of vertical space at the top of each panel - the
+            // content below (letter grid rows, enhancement text scale) is shrunk slightly to
+            // still fit under them.
+            int labelH = 42;
+            float labelScale = 1.8f;
+            void DrawPanelLabel(string text, Rectangle panel, int xOffset = 22, int yOffset = 11)
+            {
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, text, new Vector2(panel.X + xOffset, panel.Y + yOffset),
+                    ThemeColors.Text, 0f, Vector2.Zero, labelScale, SpriteEffects.None, 0f);
+            }
+            DrawPanelLabel("Letter scores", lettersPanel);
+            DrawPanelLabel("Enhancements", sidePanel, xOffset: 15);
+            DrawPanelLabel("Glyphs", glyphPanel, yOffset: 4);
+
+            int colWidth = lettersPanel.Width / columns;
+            int rowSpacing = 36;
             for (int column = 0; column < columns; column++)
             {
                 for (int row = 0; row < rows; row++)
                 {
                     if (column * rows + row >= 26) break;
                     SpriteFont font = gameLogic.enhancements.overHundred ? MainGame.Gfx.smallTextFont : MainGame.Gfx.gameFont;
-                    MainGame.Gfx.spriteBatch.DrawString(font, (char)(column * rows + row + 'a') + ": " + gameLogic.enhancements.letters[column * rows + row], new Vector2(columnSpacing / 2 + column * columnSpacing - leftOffset, 70 + row * 40), ThemeColors.Text);
+                    int colX = lettersPanel.X + 30 + column * colWidth;
+                    int rowY = lettersPanel.Y + labelH + 14 + row * rowSpacing;
+                    DrawBoxBg(new Rectangle(lettersPanel.X + 18 + column * colWidth, lettersPanel.Y + labelH + 12 + row * rowSpacing, colWidth - 30, 34));
+                    MainGame.Gfx.spriteBatch.DrawString(font, (char)(column * rows + row + 'a') + ": " + gameLogic.enhancements.letters[column * rows + row], new Vector2(colX, rowY), ThemeColors.Text, 0f, Vector2.Zero, 0.95f, SpriteEffects.None, 0f);
                     long change = gameLogic.enhancements.lettersChange[column * rows + row];
-                    if (change != 0) MainGame.Gfx.spriteBatch.DrawString(font, (change < 0 ? "" : "+") + change, new Vector2(columnSpacing + column * columnSpacing + 25 - leftOffset, 70 + row * 40), change < 0 ? ThemeColors.Wrong : ThemeColors.Correct);
+                    if (change != 0) MainGame.Gfx.spriteBatch.DrawString(font, (change < 0 ? "" : "+") + change, new Vector2(colX + 150, rowY), change < 0 ? ThemeColors.Wrong : ThemeColors.Correct, 0f, Vector2.Zero, 0.95f, SpriteEffects.None, 0f);
                 }
             }
 
-            int lineRow = -3, changeOffset = 150;
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Shiny: {(int)(gameLogic.enhancements.shinyChance * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if (gameLogic.enhancements.shChange != 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{(int)(gameLogic.enhancements.shChange * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Stone: {(int)(gameLogic.enhancements.stoneChance * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if (gameLogic.enhancements.stChange != 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{(int)(gameLogic.enhancements.stChange * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Bloom: {(int)(gameLogic.enhancements.bloomChance * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if (gameLogic.enhancements.blChange != 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{(int)(gameLogic.enhancements.blChange * 100)}%", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
+            // Aligned to the same top edge the letter columns start from, and bigger than
+            // before so it doesn't read as an afterthought crammed into the leftover space.
+            int enhX = sidePanel.X + 20, changeOffset = 155;
+            float enhScale = 1.05f;
+            float enhLineH = MainGame.Gfx.smallTextFont.LineSpacing * enhScale + 6;
+            float enhY = sidePanel.Y + labelH + 20;
 
-            lineRow++;
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Shiny mult: {gameLogic.enhancements.shinyScore.ToString("0.##")}x", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if (gameLogic.enhancements.shinyScoreChange != 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{gameLogic.enhancements.shinyScoreChange}x", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset + 26, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Stone add: {gameLogic.enhancements.stoneScore}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if (gameLogic.enhancements.stoneScoreChange != 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{gameLogic.enhancements.stoneScoreChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
+            void DrawEnh(string label, string changeText = null)
+            {
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, label, new Vector2(enhX, enhY),
+                    ThemeColors.Text, 0f, Vector2.Zero, enhScale, SpriteEffects.None, 0f);
+                if (changeText != null)
+                    MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, changeText, new Vector2(enhX + changeOffset, enhY),
+                        ThemeColors.Correct, 0f, Vector2.Zero, enhScale, SpriteEffects.None, 0f);
+                enhY += enhLineH;
+            }
 
+            // Each special word type (shiny/stone/bloom) gets its own box around its chance +
+            // add lines, instead of one box for all three chances and another for all three
+            // adds - so each word type reads as its own self-contained group.
+            int enhBoxWidth = sidePanel.Right - 15 - (enhX - 10);
+            void DrawEnhGroup(int lineCount, Action drawLines)
+            {
+                // Line count is known up front, so the box size is too - the bg can be painted
+                // before the text (and the border after), instead of the bg landing on top of
+                // already-drawn text and darkening it.
+                Rectangle box = new Rectangle(enhX - 10, (int)enhY - 5, enhBoxWidth, (int)(enhLineH * lineCount) + 5);
+                DrawBoxBg(box);
+                drawLines();
+                DrawBorder(box, ThemeColors.NotSelected);
+                enhY += enhLineH * 0.35f;
+            }
 
-            lineRow++;
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Streak: {gameLogic.enhancements.streakMult.ToString("0.##")}x", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if (gameLogic.enhancements.wordChange != 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{gameLogic.enhancements.wordChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Resist: {gameLogic.enhancements.damageResist}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if (gameLogic.enhancements.damageChange != 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{gameLogic.enhancements.damageChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"Block: {gameLogic.enhancements.mistakeBlock}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset, 75 + 3 * 40 + ++lineRow * 24), ThemeColors.Text);
-            if (gameLogic.enhancements.mistakeChange != 0) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, $"+{gameLogic.enhancements.mistakeChange}", new Vector2(columnSpacing / 2 + 3 * columnSpacing - leftOffset + changeOffset, 75 + 3 * 40 + lineRow * 24), ThemeColors.Correct);
+            DrawEnhGroup(2, () =>
+            {
+                DrawEnh($"Shiny: {(int)(gameLogic.enhancements.shinyChance * 100)}%", gameLogic.enhancements.shChange != 0 ? $"+{(int)(gameLogic.enhancements.shChange * 100)}%" : null);
+                DrawEnh($"Shiny mult: {gameLogic.enhancements.shinyScore.ToString("0.##")}x", gameLogic.enhancements.shinyScoreChange != 0 ? $"+{gameLogic.enhancements.shinyScoreChange}x" : null);
+            });
+            DrawEnhGroup(2, () =>
+            {
+                DrawEnh($"Stone: {(int)(gameLogic.enhancements.stoneChance * 100)}%", gameLogic.enhancements.stChange != 0 ? $"+{(int)(gameLogic.enhancements.stChange * 100)}%" : null);
+                DrawEnh($"Stone add: {gameLogic.enhancements.stoneScore}", gameLogic.enhancements.stoneScoreChange != 0 ? $"+{gameLogic.enhancements.stoneScoreChange}" : null);
+            });
+            DrawEnhGroup(2, () =>
+            {
+                DrawEnh($"Bloom: {(int)(gameLogic.enhancements.bloomChance * 100)}%", gameLogic.enhancements.blChange != 0 ? $"+{(int)(gameLogic.enhancements.blChange * 100)}%" : null);
+                DrawEnh($"Bloom add: {gameLogic.enhancements.bloomScore}", gameLogic.enhancements.bloomScoreChange != 0 ? $"+{gameLogic.enhancements.bloomScoreChange}" : null);
+            });
+            enhY += enhLineH * 0.25f;
+            DrawEnhGroup(3, () =>
+            {
+                DrawEnh($"Streak: {gameLogic.enhancements.streakMult.ToString("0.##")}x", gameLogic.enhancements.wordChange != 0 ? $"+{gameLogic.enhancements.wordChange}" : null);
+                DrawEnh($"Resist: {gameLogic.enhancements.damageResist}", gameLogic.enhancements.damageChange != 0 ? $"+{gameLogic.enhancements.damageChange}" : null);
+                DrawEnh($"Block: {gameLogic.enhancements.mistakeBlock}", gameLogic.enhancements.mistakeChange != 0 ? $"+{gameLogic.enhancements.mistakeChange}" : null);
+            });
 
             Glyph[] glyphs = GlyphManager.GetGlyphs();
             if (glyphs.Length > 1)
@@ -80,15 +173,31 @@ namespace typatro.GameFolder.UI
                 }
                 if (state.IsKeyUp(Keys.Left) && state.IsKeyUp(Keys.Right)) gameLogic.inventoryMove = true;
 
-                int borderOffset = 5, imageSize = 64, yOffset = 400, descOffset = 80, xColumnOffset = 80, xSideOffset = -30;
-                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(xColumnOffset * gameLogic.inventoryGlyphSelect - borderOffset + xSideOffset, yOffset - borderOffset, imageSize + borderOffset * 2, imageSize + borderOffset * 2), ThemeColors.Selected);
-                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[gameLogic.inventoryGlyphSelect]), new Vector2(xColumnOffset + xSideOffset, yOffset + descOffset), ThemeColors.Text);
+                int borderOffset = 5, imageSize = 60, xColumnOffset = 76;
+                int descX = glyphPanel.X + 20;
+                int iconX = glyphPanel.X - 50;
+                int yOffset = glyphPanel.Y + labelH + 18;
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(xColumnOffset * gameLogic.inventoryGlyphSelect - borderOffset + iconX, yOffset - borderOffset, imageSize + borderOffset * 2, imageSize + borderOffset * 2), ThemeColors.Selected);
+
+                // Icons are small and sit in their own row up top, so the description - the
+                // part that was actually running off the bottom of the screen - gets most of
+                // the panel's remaining height, wrapped and scaled down to fit inside it.
+                float descScale = 0.95f;
+                string description = GameLogic.WrapText(MainGame.Gfx.smallTextFont, GlyphManager.GetDescription(glyphs[gameLogic.inventoryGlyphSelect]), glyphPanel.Width - 60);
+                float descLineH = MainGame.Gfx.smallTextFont.LineSpacing * descScale;
+                float descY = yOffset + imageSize + 12;
+                foreach (string line in description.Split('\n'))
+                {
+                    MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, line, new Vector2(descX, descY),
+                        ThemeColors.Text, 0f, Vector2.Zero, descScale, SpriteEffects.None, 0f);
+                    descY += descLineH;
+                }
                 columns = 0;
                 foreach (Glyph glyph in glyphs)
                 {
                     if (glyph != Glyph.NoGlyphsLeft)
                     {
-                        Rectangle glyphRect = new Rectangle(xColumnOffset * columns + xSideOffset, yOffset, imageSize, imageSize);
+                        Rectangle glyphRect = new Rectangle(xColumnOffset * columns + iconX, yOffset, imageSize, imageSize);
                         if (glyphRect.Contains(mouseState.Position)) gameLogic.inventoryGlyphSelect = columns;
                         MainGame.Gfx.spriteBatch.Draw(GlyphManager.GetGlyphImage(glyph), glyphRect, ThemeColors.Foreground);
                     }
@@ -97,7 +206,7 @@ namespace typatro.GameFolder.UI
             }
         }
 
-        public void TopBannerDisplay(bool onMap)
+        public void TopBannerDisplay(bool onMap, bool showCoins = true)
         {
             KeyboardState keyboardState = Keyboard.GetState();
             MouseState mouseState = Mouse.GetState();
@@ -113,7 +222,8 @@ namespace typatro.GameFolder.UI
 
             //if (!tabPressed) MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "tab -> inventory", new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.gameFont.MeasureString("tab -> inventory").X / 2, textOffset.Y), ThemeColors.Text);
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"level:{gameLogic.level}/3", textOffset, ThemeColors.Text);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"coins:{gameLogic.coins}", new Vector2(MainGame.screenWidth - MainGame.Gfx.gameFont.MeasureString($"coins:{gameLogic.coins}").X - textOffset.X, textOffset.Y), ThemeColors.Text);
+            if (showCoins)
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, $"coins:{gameLogic.coins}", new Vector2(MainGame.screenWidth - MainGame.Gfx.gameFont.MeasureString($"coins:{gameLogic.coins}").X - textOffset.X, textOffset.Y), ThemeColors.Text);
 
             if (onMap && !keyboardState.IsKeyDown(Keys.Tab))
             {
@@ -155,10 +265,10 @@ namespace typatro.GameFolder.UI
 
         }
 
-        public void HealthBar(ref Fight fight, long currentScore)
+        public void HealthBar(ref Fight fight, long currentScore, double displayedScore)
         {
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(40, 60, MainGame.screenWidth - 80, 35), ThemeColors.Background);
-            int redBarLength = (int)((double)Math.Min(fight.scoreNeeded, fight.scoreNeeded - currentScore) / fight.scoreNeeded * (MainGame.screenWidth - 90));
+            int redBarLength = (int)(Math.Min(fight.scoreNeeded, fight.scoreNeeded - displayedScore) / fight.scoreNeeded * (MainGame.screenWidth - 90));
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(45, 65, redBarLength, 25), ThemeColors.Selected);
             string score = $"{currentScore}/{fight.scoreNeeded}  -{fight.speed}/s";
             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, score, new Vector2(MainGame.screenWidth / 2 - MainGame.Gfx.smallTextFont.MeasureString(score).X / 2, 68), ThemeColors.Text);

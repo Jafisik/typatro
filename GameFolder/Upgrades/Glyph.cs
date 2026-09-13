@@ -13,100 +13,100 @@ namespace typatro.GameFolder.Upgrades{
     {
         [Description("You can't buy any more glyphs")]
         NoGlyphsLeft,
-        [Description("Meaning: \"Sound for 'A', used for names or verbs.\"\n\n+ Adds 5 to all vowels")]
+        [Description("\"Sound for 'A', used for names or verbs.\"\n\n+ Adds 5 to all vowels")]
         A,
 
-        [Description("Meaning: \"Sound for 'B', symbol for foot or place.\"\n\n+ Multiplies 5 random letters by *5\n- Rotates text upside down every 10 seconds")]
+        [Description("\"Sound for 'B', symbol for foot or place.\"\n\n+ Multiplies 5 random letters by *5\n- Rotates text upside down every 10 seconds")]
         B,
 
-        [Description("Meaning: \"Sound for 'D', symbol for hand.\"\n\n+ Multiplies 2 random letter scores by *5")]
+        [Description("\"Sound for 'D', symbol for hand.\"\n\n+ Multiplies 2 random letter scores by *5")]
         D,
 
-        [Description("Meaning: \"Sound for 'H', symbolizing shelter or building.\"\n\n+ Blocks +2 mistakes per fight")]
+        [Description("\"Sound for 'H', symbolizing shelter or building.\"\n\n+ Blocks +2 mistakes per fight")]
         H,
 
-        [Description("Meaning: \"Sound for 'J', also symbol for reed or tall grass.\"\n\n+ Add +10 to all letter scores\n- Screen shakes with every input")]
+        [Description("\"Sound for 'J', also symbol for reed or tall grass.\"\n\n+ Add +10 to all letter scores\n- Screen shakes with every input")]
         J,
 
-        [Description("Meaning: \"Sound for 'M', can symbolize owl, silence or wisdom.\"\n\n+ Gains 10 coins every 10 seconds in a fight\n- Text changes position every 5 seconds")]
+        [Description("\"Sound for 'M', can symbolize owl, silence or wisdom.\"\n\n+ Gains 10 coins every 10 seconds in a fight\n- Text changes position every 5 seconds")]
         M,
 
-        [Description("Meaning: \"Sound for 'N', ripple of water, also 'to' or 'for'.\"\n\n+ Each correct stone word gives you +1% shiny chance\n- Score from correct stone words is negative (eg. +50 is now -50)")]
+        [Description("\"Sound for 'N', ripple of water, also 'to' or 'for'.\"\n\n+ Each correct stone word gives you +1% shiny chance\n- Score from correct stone words is negative (eg. +50 is now -50)")]
         N,
 
-        [Description("Meaning: \"Sound for 'R', symbolizing mouth or one whole thing.\"\n\n+ Lets you correct your mistakes\n- Each mistake resets streak to 0.8x")]
+        [Description("\"Sound for 'R', symbolizing mouth or one whole thing.\"\n\n+ Lets you correct your mistakes\n- Each mistake resets streak to 0.8x")]
         R,
 
-        [Description("Meaning: \"Sound for 'S', also sufffix for she, her, hers.\"\n\n+ Bloom words give you +5 letter score per letter")]
+        [Description("\"Sound for 'S', also sufffix for she, her, hers.\"\n\n+ Bloom words give you +5 letter score per letter")]
         S,
 
-        [Description("Meaning: \"'Sun', representing Ra, the sun god.\"\n\n+ Disables all visual glyphs\n- Letters are less visible")]
+        [Description("\"'Sun', representing Ra, the sun god.\"\n\n+ Disables all visual glyphs\n- Letters are less visible")]
         Sun,
 
-        [Description("Meaning: \"'House', represents domestic life or temples.\"\n\n+ Each correct stone word gives you +10 stone word score\n- Every 8 seconds your keyboard stops working")]
+        [Description("\"'House', represents domestic life or temples.\"\n\n+ Each correct stone word gives you +10 stone word score\n- Every 8 seconds your keyboard stops working")]
         House,
 
-        [Description("Meaning: \"'Water', often representing rivers or offerings.\"\n\n+ Multiplies 5 random letter scores by *2\n- Add -10 to 5 random letter scores")]
+        [Description("\"'Water', often representing rivers or offerings.\"\n\n+ Multiplies 5 random letter scores by *2\n- Add -10 to 5 random letter scores")]
         Water,
 
-        [Description("Meaning: \"'King', signifying royalty or divine authority.\"\n\n+ Multiplies all highest letter scores by *50\n- Sets ALL other letter scores to 0")]
+        [Description("\"'King', signifying royalty or divine authority.\"\n\n+ Multiplies all highest letter scores by *50\n- Sets ALL other letter scores to 0")]
         King,
 
-        [Description("Meaning: \"The Eye of Horus, symbolizing protection and health.\"\n\n+ Mistakes do not reset your streak\n- You blink every 5 seconds")]
+        [Description("\"The Eye of Horus, symbolizing protection and health.\"\n\n+ Mistakes do not reset your streak\n- You blink every 5 seconds")]
         EyeOfHorus,
 
-        [Description("Meaning: \"Osiris, the god of the afterlife and resurrection.\"\n\n+ Revive once per run\n- After ressurection all letters multiplied by *0.8")]
+        [Description("\"Osiris, the god of the afterlife and resurrection.\"\n\n+ Revive once per run\n- After ressurection all letters multiplied by *0.8")]
         Osiris,
 
-        [Description("Meaning: \"'Woman', symbolizes feminine names or nurture.\"\n\n+ Multiplies random letter score by *2 after each fight\n- Earn only 80% coins")]
+        [Description("\"'Woman', symbolizes feminine names or nurture.\"\n\n+ Multiplies random letter score by *2 after each fight\n- Earn only 80% coins")]
         Woman,
 
-        [Description("Meaning: \"'Man', used for writing the word 'person'.\"\n\n+ Multiplies coin rewards by *1.5\n- Letter 'x' counts as a mistake")]
+        [Description("\"'Man', used for writing the word 'person'.\"\n\n+ Multiplies coin rewards by *1.5\n- Letter 'x' counts as a mistake")]
         Man,
 
-        [Description("Meaning: \"'Flower', meaning 'to be' or 'to exist'.\"\n\n+ Adds +0.1 to the final score multiplier for each active glyph")]
+        [Description("\"'Flower', meaning 'to be' or 'to exist'.\"\n\n+ Adds +0.1 to the final score multiplier for each active glyph")]
         Flower,
 
-        [Description("Meaning: \"'Cat', representing the goddess Bastet, protector of the home.\"\n\n+ Multiplies 9 random letter values by *2\n- A cat will be sleeping on a random location")]
+        [Description("\"'Cat', representing the goddess Bastet, protector of the home.\"\n\n+ Multiplies 9 random letter values by *2\n- A cat will be sleeping on a random location")]
         Cat,
 
-        [Description("Meaning: \"Anubis, the god of mummification and protector of tombs.\"\n\n+ Multiplies coin rewards by *2\n- Bloom words are disabled")]
+        [Description("\"Anubis, the god of mummification and protector of tombs.\"\n\n+ Multiplies coin rewards by *2\n- Bloom words are disabled")]
         Anubis,
 
-        [Description("Meaning: \"'Scarab', associated with rebirth and regeneration.\"\n\n+ Streak bonus is doubled")]
+        [Description("\"'Scarab', associated with rebirth and regeneration.\"\n\n+ Streak bonus is doubled")]
         Scarab,
 
-        [Description("Meaning: \"'Snake', often signifying danger or protection.\"\n\n+ Mistakes do not reset your streak\n- Some letters are wrong")]
+        [Description("\"'Snake', often signifying danger or protection.\"\n\n+ Mistakes do not reset your streak\n- Some letters are wrong")]
         Snake,
 
-        [Description("Meaning: \"'Life', representing the eternal or divine life force.\"\n\n+ Add 5 to a random letter score each time you visit a shop")]
+        [Description("\"'Life', representing the eternal or divine life force.\"\n\n+ Add 5 to a random letter score each time you visit a shop")]
         Life,
 
-        [Description("Meaning: \"'Heart', associated with soul and divine judgment.\"\n\n+ Multiplies final score by *3 on perfect rounds\n- Halves score if you make a mistake")]
+        [Description("\"'Heart', associated with soul and divine judgment.\"\n\n+ Multiplies final score by *3 on perfect rounds\n- Halves score if you make a mistake")]
         Heart,
 
-        [Description("Meaning: \"'Crocodile', associated with danger.\"\n\n+ Multiplies random letter value by *20\n- Sets random letter value to 0")]
+        [Description("\"'Crocodile', associated with danger.\"\n\n+ Multiplies random letter value by *20\n- Sets random letter value to 0")]
         Crocodile,
 
-        [Description("Meaning: \"Symbol for the number one.\"\n\n+ Adds +1 to every letter value")]
+        [Description("\"Symbol for the number one.\"\n\n+ Adds +1 to every letter value")]
         One,
 
-        [Description("Meaning: \"Symbol for the number ten, cattle hobble.\"\n\n+ Multiplies random letter value by *10")]
+        [Description("\"Symbol for the number ten, cattle hobble.\"\n\n+ Multiplies random letter value by *10")]
         Ten,
 
-        [Description("Meaning: \"Symbol for the number one hundred, coil of rope.\"\n\n+ Adds 100 coins")]
+        [Description("\"Symbol for the number one hundred, coil of rope.\"\n\n+ Adds 100 coins")]
         Hundred,
 
-        [Description("Meaning: \"Symbol for the number one thousand, water lily.\"\n\n+ Every 1000 letters automatically wins fight")]
+        [Description("\"Symbol for the number one thousand, water lily.\"\n\n+ Every 1000 letters automatically wins fight")]
         Thousand,
 
-        [Description("Meaning: \"'Bread', representing basic sustenance and offerings.\"\n\n+ Add +3 to 6 random letter scores")]
+        [Description("\"'Bread', representing basic sustenance and offerings.\"\n\n+ Add +3 to 6 random letter scores")]
         Bread,
 
-        [Description("Meaning: \"'Papyrus', representing writing, knowledge, and records.\"\n\n+ Adds +20 extra words in fights")]
+        [Description("\"'Papyrus', representing writing, knowledge, and records.\"\n\n+ Adds +20 extra words in fights")]
         Papyrus,
 
-        [Description("Meaning: \"'Star', often associated with the divine or celestial bodies.\"\n\n+ Multiplies all letter scores by *20\n- If you make a single mistake, you die instantly")]
+        [Description("\"'Star', often associated with the divine or celestial bodies.\"\n\n+ Multiplies all letter scores by *20\n- If you make a single mistake, you die instantly")]
         Star
     }
 
@@ -125,12 +125,18 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
         public static void Remove(Glyph glyph) => activeGlyphs.Remove(glyph);
-        public static void RemoveRandom()
+
+        // Returns the glyph that got removed (or NoGlyphsLeft if there was nothing to remove)
+        // so the caller can reverse whatever one-time enhancement bonus it applied.
+        public static Glyph RemoveRandom()
         {
-            if (activeGlyphs.Count > 0)
-            {
-                Remove(activeGlyphs.ElementAt(GameLogic.contextRandom.Next(0, activeGlyphs.Count)));
-            }
+            // NoGlyphsLeft is a placeholder that lives in activeGlyphs to represent "you have
+            // none" - it must never itself be picked as the glyph being traded away.
+            List<Glyph> realGlyphs = activeGlyphs.Where(g => g != Glyph.NoGlyphsLeft).ToList();
+            if (realGlyphs.Count == 0) return Glyph.NoGlyphsLeft;
+            Glyph removed = realGlyphs[GameLogic.contextRandom.Next(0, realGlyphs.Count)];
+            Remove(removed);
+            return removed;
         }
         public static bool IsActive(Glyph glyph) => activeGlyphs.Contains(glyph);
 

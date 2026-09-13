@@ -82,9 +82,31 @@ namespace typatro.GameFolder
             return '\0';
         }
 
+        // Draws text character-by-character with a vertical sine wave offset (Apnea).
+        // Ignores rotation - A never runs alongside another rotating enemy.
+        private static void DrawWavyText(SpriteFont font, string text, Vector2 position, Color color)
+        {
+            double time = MainGame.time.TotalGameTime.TotalSeconds;
+            float lineHeight = font.LineSpacing;
+            Vector2 cursor = Vector2.Zero;
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c == '\n')
+                {
+                    cursor.X = 0;
+                    cursor.Y += lineHeight;
+                    continue;
+                }
+                float wave = (float)Math.Sin(time * 5 + i * 0.4) * 4f;
+                MainGame.Gfx.spriteBatch.DrawString(font, c.ToString(), position + cursor + new Vector2(0, wave), color);
+                cursor.X += font.MeasureString(c.ToString()).X;
+            }
+        }
+
         //Visualizes user input and highlights mistakes (prints user input and then prints wrongString,
         // which has ' ' for correct letters and the actual letters for wrong letters)
-        public Vector2 UserInputText(char[] printCharArray, int mistakeBlock, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0){
+        public void UserInputText(char[] printCharArray, int mistakeBlock, long wordBase = 0, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0){
             
             StringBuilder writeLine = new StringBuilder();
             StringBuilder wrongString = new StringBuilder();
@@ -102,18 +124,25 @@ namespace typatro.GameFolder
 
                 if (diffIndexes.Contains(i))
                 {
-                    if (mistakeBlock == 0)
+                    if (Services.EnemyManager.Is(Services.EnemyType.U))
+                    {
+                        wrongString.Append(' ');
+                        blockedString.Append(' ');
+                        writeLine.Append(printCharArray[i]);
+                    }
+                    else if (mistakeBlock == 0)
                     {
                         wrongString.Append(writtenText[i]);
                         blockedString.Append(' ');
+                        writeLine.Append(' ');
                     }
                     else
                     {
                         mistakeBlock--;
                         wrongString.Append(' ');
                         blockedString.Append(writtenText[i]);
+                        writeLine.Append(' ');
                     }
-                    writeLine.Append(' ');
                 }
                 else
                 {
@@ -135,45 +164,61 @@ namespace typatro.GameFolder
             float cursorH = 3;
             float cursorX = charIndex * charSize.X + position.X;
             float cursorY = (indexLine + 1) * charSize.Y + position.Y - 1;
+            if (Services.EnemyManager.Is(Services.EnemyType.A))
+                cursorY += (float)Math.Sin(MainGame.time.TotalGameTime.TotalSeconds * 5 + writtenText.Count * 0.4) * 4f;
             Vector2 rotCenter = position + rotationPoint;
             Vector2 rel = new Vector2(cursorX, cursorY) - rotCenter;
             float cos = (float)Math.Cos(rotation), sin = (float)Math.Sin(rotation);
             Vector2 rotatedCursorPos = rotCenter + new Vector2(rel.X * cos - rel.Y * sin, rel.X * sin + rel.Y * cos);
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, rotatedCursorPos, null, ThemeColors.Selected, (float)rotation, Vector2.Zero, new Vector2(cursorW, cursorH), SpriteEffects.None, 0f);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, correctText, position + rotationPoint, ThemeColors.Text, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, incorrectText, position + rotationPoint, ThemeColors.Wrong, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, blockedText, position + rotationPoint, ThemeColors.Blocked, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            return new Vector2(charIndex * charSize.X - 50, -50) + position;
+            if (Services.EnemyManager.Is(Services.EnemyType.A))
+            {
+                DrawWavyText(MainGame.Gfx.textFont, correctText, position, ThemeColors.Text);
+                DrawWavyText(MainGame.Gfx.textFont, incorrectText, position, ThemeColors.Wrong);
+                DrawWavyText(MainGame.Gfx.textFont, blockedText, position, ThemeColors.Blocked);
+            }
+            else
+            {
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, correctText, position + rotationPoint, ThemeColors.Text, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, incorrectText, position + rotationPoint, ThemeColors.Wrong, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, blockedText, position + rotationPoint, ThemeColors.Blocked, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            }
+
+            // The current word's live base, drawn above the cursor using the same rotation (and
+            // enemy A's wavy cursorY) as the cursor itself, so it stays glued to the caret
+            // instead of drifting off when the text rotates or wobbles. Always sits above the
+            // first line, even once typing has wrapped onto a later line.
+            if (wordBase != 0)
+            {
+                string baseText = wordBase.ToString();
+                Vector2 baseSize = MainGame.Gfx.textFont.MeasureString(baseText);
+                float firstLineY = charSize.Y + position.Y - 1;
+                if (Services.EnemyManager.Is(Services.EnemyType.A))
+                    firstLineY += (float)Math.Sin(MainGame.time.TotalGameTime.TotalSeconds * 5 + writtenText.Count * 0.4) * 4f;
+                Vector2 baseLocal = new Vector2(cursorX - baseSize.X / 2 - 13 + charSize.X * 0.25f, firstLineY - 55);
+                Vector2 baseRel = baseLocal - rotCenter;
+                Vector2 rotatedBasePos = rotCenter + new Vector2(baseRel.X * cos - baseRel.Y * sin, baseRel.X * sin + baseRel.Y * cos);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, baseText, rotatedBasePos, ThemeColors.Correct, (float)rotation, Vector2.Zero, 1f, SpriteEffects.None, 0f);
+            }
         }
         Vector2 rotationPoint;
 
         public void WriteText(string printString, Color color, List<int> shinyWords = null, List<int> stoneWords = null, List<int> bloomWords = null,
-            int line = 0, bool isHintText = false, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0, bool treasure = false)
+            int line = 0, bool isHintText = false, double rotation = 0, int xExtraOffset = 0, int yExtraOffset = 0, bool treasure = false,
+            int flashWordIndex = -1, Color flashColor = default, float flashAlpha = 0f)
         {
             int word = 0;
-            switch (SaveManager.size)
-            {
-                case 0:
-                    maxCharsPerLine = 25;
-                    break;
-                case 1:
-                    maxCharsPerLine = 40;
-                    break;
-                case 2:
-                    maxCharsPerLine = 50;
-                    break;
-                case 3:
-                    maxCharsPerLine = 80;
-                    break;
-
-            }
+            maxCharsPerLine = 50;
 
             char[] printCharArray = printString.ToCharArray();
             StringBuilder writeLine = new StringBuilder(printString.Length);
             StringBuilder shinyWriteLine = new StringBuilder(printString.Length);
             StringBuilder stoneWriteLine = new StringBuilder(printString.Length);
             StringBuilder bloomWriteLine = new StringBuilder(printString.Length);
-            int beginingOfWord = 0, currentLineLength = 0;
+            // Background box drawn behind a special word the moment it's completed (hit or
+            // miss) - a single fading flash, never a lasting mark.
+            (int lineNum, int col, int len, Color color, float alpha)? highlightBox = null;
+            int beginingOfWord = 0, currentLineLength = 0, currentLineNumber = 0;
             if (isHintText) endLineIndexes.Clear();
             for (int i = 0; i < printCharArray.Length; i++)
             {
@@ -189,6 +234,7 @@ namespace typatro.GameFolder
                         bloomWriteLine.Append('\n');
                         if (isHintText) writeLine.Append('\n');
                         currentLineLength = 0;
+                        currentLineNumber++;
                     }
                     if(shinyWords != null && stoneWords != null && bloomWords != null)
                     {
@@ -198,8 +244,15 @@ namespace typatro.GameFolder
                         else stoneWriteLine.Append(new string(' ', wordLength));
                         if (bloomWords.Contains(word)) bloomWriteLine.Append(new string(printCharArray, beginingOfWord, wordLength));
                         else bloomWriteLine.Append(new string(' ', wordLength));
+                        if (word == flashWordIndex && flashAlpha > 0f)
+                        {
+                            // wordLength includes the trailing space (or, for the very last
+                            // word, doesn't) - the box itself should only cover the letters.
+                            int boxLen = Math.Max(1, printCharArray[i] == ' ' ? wordLength - 1 : wordLength);
+                            highlightBox = (currentLineNumber, currentLineLength, boxLen, flashColor, flashAlpha * 0.5f);
+                        }
                     }
-                    
+
                     word++;
                     writeLine.Append(new string(printCharArray, beginingOfWord, wordLength));
                     currentLineLength += wordLength;
@@ -210,6 +263,25 @@ namespace typatro.GameFolder
             Vector2 position = new Vector2(leftOffset + xExtraOffset, yOffset + (line * 30) + yExtraOffset);
             Vector2 size = MainGame.Gfx.textFont.MeasureString(finalText);
             rotationPoint = size / 2f;
+
+            if (highlightBox is { } box)
+            {
+                Vector2 charSize = MainGame.Gfx.textFont.MeasureString(" ");
+                bool wavy = Services.EnemyManager.Is(Services.EnemyType.A);
+                Vector2 boxSize = new Vector2(box.len * charSize.X, charSize.Y - 2f);
+                Vector2 boxLocal = new Vector2(position.X + box.col * charSize.X, position.Y + box.lineNum * charSize.Y + 1f);
+                Vector2 drawPos;
+                if (wavy)
+                    drawPos = boxLocal;
+                else
+                {
+                    Vector2 rotCenter = position + rotationPoint;
+                    float cos = (float)Math.Cos(rotation), sin = (float)Math.Sin(rotation);
+                    Vector2 rel = boxLocal - rotCenter;
+                    drawPos = rotCenter + new Vector2(rel.X * cos - rel.Y * sin, rel.X * sin + rel.Y * cos);
+                }
+                MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, drawPos, null, box.color * box.alpha, wavy ? 0f : (float)rotation, Vector2.Zero, boxSize, SpriteEffects.None, 0f);
+            }
 
             if (GlyphManager.IsActive(Glyph.Sun))
             {
@@ -230,10 +302,20 @@ namespace typatro.GameFolder
                 }
             }
 
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, finalText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, shinyWriteLine.ToString(), position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, stoneWriteLine.ToString(), position + rotationPoint, Color.Gray, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, bloomWriteLine.ToString(), position + rotationPoint, Color.DarkGreen, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            if (Services.EnemyManager.Is(Services.EnemyType.A))
+            {
+                DrawWavyText(MainGame.Gfx.textFont, finalText, position, color);
+                DrawWavyText(MainGame.Gfx.textFont, shinyWriteLine.ToString(), position, Color.Gold);
+                DrawWavyText(MainGame.Gfx.textFont, stoneWriteLine.ToString(), position, Color.Gray);
+                DrawWavyText(MainGame.Gfx.textFont, bloomWriteLine.ToString(), position, Color.DarkGreen);
+            }
+            else
+            {
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, finalText, position + rotationPoint, color, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, shinyWriteLine.ToString(), position + rotationPoint, Color.Gold, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, stoneWriteLine.ToString(), position + rotationPoint, Color.Gray, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.textFont, bloomWriteLine.ToString(), position + rotationPoint, Color.DarkGreen, (float)rotation, rotationPoint, 1f, SpriteEffects.None, 0f);
+            }
         }
     }
 }

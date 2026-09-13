@@ -16,6 +16,8 @@ namespace typatro.GameFolder.UI{
         public static Color Wrong;
         public static Color Blocked;
 
+        static Color baseBackground, baseForeground;
+
         public static void Apply(int themeName)
         {
             switch (themeName)
@@ -90,6 +92,25 @@ namespace typatro.GameFolder.UI{
                     Blocked = Color.Yellow;
                     break;
             }
+
+            baseBackground = Background;
+            baseForeground = Foreground;
+        }
+
+        // Blends the player's chosen theme towards a level-specific hue, so the run visibly
+        // escalates (level 1 neutral -> 2 scorched orange -> 3 dark underworld) without
+        // touching the base theme's semantic colors (Text, Correct, Wrong, etc.).
+        public static void ApplyLevelTint(int level)
+        {
+            Color tint = level switch
+            {
+                2 => new Color(190, 110, 40),
+                3 => new Color(90, 30, 110),
+                _ => baseBackground,
+            };
+            float strength = level <= 1 ? 0f : 0.28f;
+            Background = Color.Lerp(baseBackground, tint, strength);
+            Foreground = Color.Lerp(baseForeground, tint, strength);
         }
 
         public static void DrawGlowCorners(Rectangle rect, Color color, int cornerLen = 36, int thickness = 3)

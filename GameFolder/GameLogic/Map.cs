@@ -27,7 +27,8 @@ namespace typatro.GameFolder
             {
                 firstEnter = false;
                 if (state.IsKeyUp(Keys.Enter) && mouseState.LeftButton == ButtonState.Released) tutorial = true;
-                if (state.IsKeyUp(Keys.Tab) && !inventoryUp && UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.MapTutorial) && tutorial)
+                bool choiceTutorialPending = selectedNode.forward.Count > 1 && !UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.MapChoiceTutorial);
+                if (state.IsKeyUp(Keys.Tab) && !inventoryUp && UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.MapTutorial) && tutorial && !choiceTutorialPending && !TutorialManager.IsShowing())
                 {
                     MapNode newNode = map.NodeSelect(selectedNode, ref mousePressed, selectedNode.column, level);
 
@@ -44,8 +45,23 @@ namespace typatro.GameFolder
                             case NodeType.ELITE:
                             case NodeType.BOSS:
                                 int fightDifficulty = newNode.type == NodeType.FIGHT ? 1 : newNode.type == NodeType.ELITE ? 2 : 3;
-                                fight = Fight.Create(fightDifficulty, level, newNode.column);
-                                if (newNode.type == NodeType.FIGHT)
+                                fight = Fight.Create(fightDifficulty, level, newNode.column, newNode.row);
+                                // Tutorial map: fixed enemies instead of random ones, so the
+                                // same curated fight shows up for every player - Oculus first,
+                                // then Apnea (normal) / Kudlanka (elite) at the branch.
+                                if (map.isTutorialMap && newNode.type == NodeType.FIGHT && newNode.column == 1)
+                                {
+                                    currentEnemy = Services.EnemyManager.Get(Services.EnemyType.O);
+                                }
+                                else if (map.isTutorialMap && newNode.type == NodeType.FIGHT && newNode.column == 2)
+                                {
+                                    currentEnemy = Services.EnemyManager.Get(Services.EnemyType.A);
+                                }
+                                else if (map.isTutorialMap && newNode.type == NodeType.ELITE)
+                                {
+                                    currentEnemy = Services.EnemyManager.Get(Services.EnemyType.K);
+                                }
+                                else if (newNode.type == NodeType.FIGHT)
                                 {
                                     currentEnemy = Services.EnemyManager.Normal[contextRandom.Next(Services.EnemyManager.Normal.Length)];
                                 }
@@ -58,9 +74,15 @@ namespace typatro.GameFolder
                                     currentEnemy = Services.EnemyManager.Boss[contextRandom.Next(Services.EnemyManager.Boss.Length)];
                                 }
                                 Services.EnemyManager.SetActive(currentEnemy.Type);
+                                enemyIntroActive = !map.isTutorialMap || newNode.type == NodeType.BOSS;
+                                enemyIntroTimer = 0;
+                                introEnterReady = false;
+                                if (enemyIntroActive) sfx.enemyIntro.Play((float)SaveManager.volume / 10, 0f, 0f);
                                 break;
                             case NodeType.TREASURE:
-                                treasure.NewGlyph();
+                                treasure.NewGlyph(map.isTutorialMap);
+                                if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.TreasureTutorial))
+                                    TutorialManager.Start(TutorialManager.TreasureSteps());
                                 break;
                             case NodeType.SHOP:
                                 shop.NewShop();
@@ -68,19 +90,29 @@ namespace typatro.GameFolder
                                 {
                                     enhancements.AddLetterScore((char)(contextRandom.Next(0, 26) + 'a'), 5);
                                 }
+                                if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.ShopTutorial))
+                                    TutorialManager.Start(TutorialManager.ShopSteps());
                                 break;
                             case NodeType.CURSE:
-                                curseRoom.NewCurse();
+                                curseRoom.NewCurse(map.isTutorialMap);
+                                if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.CurseTutorial))
+                                    TutorialManager.Start(TutorialManager.CurseSteps());
                                 break;
                         }
                         if (IsFight(newNode.type))
                         {
-                            neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus) ? 20 : 0) - (difficulty >= 5 ? 5 : 0));
+                            // No shiny/stone/bloom words yet in the tutorial's very first fight -
+                            // SpecialWordsSteps introduces them at the second fight instead.
+                            bool allowSpecialWords = UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.FightTutorial);
+                            neededText = RandomTextGenerate(fight.words + (GlyphManager.IsActive(Glyph.Papyrus) ? 20 : 0) - (difficulty >= 5 ? 5 : 0), allowSpecialWords);
                             if (difficulty >= 4) fight.speed *= 2;
                             if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.FightTutorial))
                                 TutorialManager.Start(TutorialManager.FightSteps(), waitForRelease: true);
+                            else if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.SpecialWordsTutorial))
+                                TutorialManager.Start(TutorialManager.SpecialWordsSteps(), waitForRelease: true);
                         }
                         Writer.writtenText.Clear();
+                        Writer.diffIndexes.Clear();
                         startedTyping = false;
                         lastSelectedNode = selectedNode;
                         selectedNode = newNode;
@@ -90,13 +122,35 @@ namespace typatro.GameFolder
             }
             if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.MapTutorial))
             {
-                if (!mapTutorialStarted)
-                {
-                    TutorialManager.Start(TutorialManager.MapSteps());
-                    mapTutorialStarted = true;
-                }
+                if (!TutorialManager.IsShowing())
+                    TutorialManager.Start(TutorialManager.MapSteps(map.GetFirstNode().forward[0].point));
                 if (TutorialManager.Draw(state, mouseState))
+                {
                     UnlockManager.UnlockUnlock(UnlockManager.UnlockType.MapTutorial);
+                    map.ResetEnterGate();
+                }
+            }
+            else if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.MapChoiceTutorial) && selectedNode.forward.Count > 1)
+            {
+                if (!TutorialManager.IsShowing())
+                    TutorialManager.Start(TutorialManager.MapChoiceSteps(selectedNode.forward[0].point, selectedNode.forward[selectedNode.forward.Count - 1].point));
+                if (TutorialManager.Draw(state, mouseState))
+                {
+                    UnlockManager.UnlockUnlock(UnlockManager.UnlockType.MapChoiceTutorial);
+                    map.ResetEnterGate();
+                }
+            }
+            // Fires back on the map the moment the player has been through the Treasure
+            // tutorial - by then they've actually picked something up worth checking.
+            else if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.InventoryTutorial) && UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.TreasureTutorial))
+            {
+                if (!TutorialManager.IsShowing())
+                    TutorialManager.Start(TutorialManager.InventorySteps());
+                if (TutorialManager.Draw(state, mouseState))
+                {
+                    UnlockManager.UnlockUnlock(UnlockManager.UnlockType.InventoryTutorial);
+                    map.ResetEnterGate();
+                }
             }
         }
     }

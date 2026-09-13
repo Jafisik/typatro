@@ -47,6 +47,13 @@ namespace typatro.GameFolder{
         MapNode[,] mapNodes;
         int nodeSelectIndex = 0;
         bool nodeMove = true, enterUp = true;
+        public bool isTutorialMap;
+
+        // Forces the next Enter press after a tutorial popup closes to be a fresh one - without
+        // this, whatever Enter state was already sitting in enterUp from before the popup (or
+        // the very press that dismissed it) could immediately trigger a node selection the
+        // player never intended.
+        public void ResetEnterGate() => enterUp = false;
         
 
         public Map(){
@@ -70,8 +77,58 @@ namespace typatro.GameFolder{
             }
         }
 
+        // Hand-crafted map used only for a player's very first run, so the tutorial can
+        // walk through every room type in a deliberate order: Fight -> Shop -> a choice
+        // between Elite and Fight -> Treasure -> Curse -> Boss.
+        public void GenerateTutorialNodes()
+        {
+            isTutorialMap = true;
+            mapNodes = new MapNode[3, 7];
+            int midRow = 1;
+
+            // Center the small tutorial layout instead of leaving it pinned to the top-left
+            // corner like the full-size random map. Positioning uses its own 0-based content
+            // index (6 nodes wide) so the layout centers correctly regardless of the logical
+            // .column values (1,2,3,3,4,5,6) used for save/load lookups and reward generation.
+            int totalWidth = 5 * rowSpacing;
+            int totalHeight = 2 * columnSpacing;
+            int startX = Math.Max(leftOffset, (MainGame.screenWidth - totalWidth) / 2);
+            int startY = Math.Max(topOffset, (MainGame.screenHeight - totalHeight) / 2);
+
+            Vector2 PointAt(int row, int contentIndex) =>
+                new Vector2(startX + contentIndex * rowSpacing, startY + row * columnSpacing);
+
+            // fight1 -> elite/fight2 branch -> treasure -> curse -> shop -> boss (shop moved
+            // to right before the boss).
+            MapNode fight1 = new MapNode(new List<MapNode>(), NodeType.FIGHT, PointAt(midRow, 0), midRow, 1);
+            MapNode elite = new MapNode(new List<MapNode>(), NodeType.ELITE, PointAt(0, 1), 0, 2);
+            MapNode fight2 = new MapNode(new List<MapNode>(), NodeType.FIGHT, PointAt(2, 1), 2, 2);
+            MapNode treasure = new MapNode(new List<MapNode>(), NodeType.TREASURE, PointAt(midRow, 2), midRow, 3);
+            MapNode curse = new MapNode(new List<MapNode>(), NodeType.CURSE, PointAt(midRow, 3), midRow, 4);
+            MapNode shop = new MapNode(new List<MapNode>(), NodeType.SHOP, PointAt(midRow, 4), midRow, 5);
+            MapNode boss = new MapNode(new List<MapNode>(), NodeType.BOSS, PointAt(midRow, 5), midRow, 6);
+
+            fight1.forward.Add(elite);
+            fight1.forward.Add(fight2);
+            elite.forward.Add(treasure);
+            fight2.forward.Add(treasure);
+            treasure.forward.Add(curse);
+            curse.forward.Add(shop);
+            shop.forward.Add(boss);
+
+            mapNodes[midRow, 1] = fight1;
+            mapNodes[0, 2] = elite;
+            mapNodes[2, 2] = fight2;
+            mapNodes[midRow, 3] = treasure;
+            mapNodes[midRow, 4] = curse;
+            mapNodes[midRow, 5] = shop;
+            mapNodes[midRow, 6] = boss;
+            mapNodes[0, 0] = new MapNode(new List<MapNode> { fight1 }, NodeType.NOTHING, new Vector2(), 0, 0);
+        }
+
         public void GenerateNodes()
         {
+            isTutorialMap = false;
             mapNodes = new MapNode[8, 13];
             int pos = GameLogic.contextRandom.Next(0, mapNodes.GetLength(0));
 
@@ -175,11 +232,11 @@ namespace typatro.GameFolder{
                             }
                         }
 
-                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, MapIcon(node.type), node.point, ThemeColors.Text);
                         if (node.visited && node.type != NodeType.NOTHING)
                         {
                             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X - 7, (int)node.point.Y - 7, 38, 48), ThemeColors.ExitShop);
                         }
+                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, MapIcon(node.type), node.point, ThemeColors.Text);
                     }
                 }
             }
@@ -229,6 +286,7 @@ namespace typatro.GameFolder{
             int forwardCount = node.forward.Count;
             if(node.type != NodeType.NOTHING){
                 MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)node.point.X-7, (int)node.point.Y-7, 38, 48), ThemeColors.ExitShop);
+                MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, MapIcon(node.type), node.point, ThemeColors.Text);
             }
             if (forwardCount > 0)
             {
@@ -268,15 +326,23 @@ namespace typatro.GameFolder{
                     {
                         Vector2 nodePoint = node.forward[nodeSelectIndex].point;
                         MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((int)nodePoint.X - 7, (int)nodePoint.Y - 7, 38, 48), ThemeColors.Selected);
+                        // The highlight rect is drawn after (and on top of) DrawNodes()'s pass,
+                        // so redraw the letter itself over it - keeps the letter's own color
+                        // instead of the selection color just blotting it out.
+                        MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, MapIcon(node.forward[nodeSelectIndex].type), nodePoint, ThemeColors.Text);
 
                         NodeType type = node.forward[nodeSelectIndex].type;
                         Color infoBg = ThemeColors.ExitShop;
                         infoBg.A = 220;
                         Rectangle infoRect;
-                        if (column <= (SaveManager.size > 0 ? 8 : 5)) infoRect = new Rectangle((int)nodePoint.X + 50, (int)nodePoint.Y - 30, 200, 100);
+                        if (column <= 8) infoRect = new Rectangle((int)nodePoint.X + 50, (int)nodePoint.Y - 30, 200, 100);
                         else infoRect = new Rectangle((int)nodePoint.X - 230, (int)nodePoint.Y - 30, 200, 100);
 
-                        if (GameLogic.IsFight(type))
+                        // On the tutorial map, only show the info box where it's actually being
+                        // taught: the Elite/Fight choice (a node with more than one option) and the boss.
+                        bool showInfoBox = !isTutorialMap || forwardCount > 1 || type == NodeType.BOSS;
+
+                        if (showInfoBox && GameLogic.IsFight(type))
                         {
                             int difficulty;
                             string letters;
@@ -300,9 +366,10 @@ namespace typatro.GameFolder{
                                     break;
                             }
 
+                            int previewRow = node.forward[nodeSelectIndex].row;
                             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, infoRect, infoBg);
                             MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallMapFont,
-                                $"Reward: {Fight.CashGainGen(level, column+1, difficulty)} coins\nLetter: {letters}\nLength: {Fight.WordsGen(difficulty)} words\nDamage: {Fight.SpeedGen(level, column+1, difficulty)}/s",
+                                $"Reward: {Fight.CashGainGen(level, column+1, difficulty, previewRow)} coins\nLetter: {letters}\nLength: {Fight.WordsGen(difficulty, level, column+1, previewRow)} words\nDamage: {Fight.SpeedGen(level, column+1, difficulty, previewRow)}/s",
                                 new Vector2(infoRect.X + 10, infoRect.Y + 10), ThemeColors.Text);
                         }
                         else if (type == NodeType.SHOP)

@@ -24,8 +24,14 @@ namespace typatro.GameFolder.Services
         {
             CharacterTutorial,
             MapTutorial,
+            MapChoiceTutorial,
             FightTutorial,
+            SpecialWordsTutorial,
             ShopTutorial,
+            TreasureTutorial,
+            RewardTutorial,
+            CurseTutorial,
+            InventoryTutorial,
 
             Anubis,
             Cat,
@@ -61,8 +67,13 @@ namespace typatro.GameFolder.Services
         {
             UnlockType.CharacterTutorial => "characterTutorial",
             UnlockType.MapTutorial => "mapTutorial",
+            UnlockType.MapChoiceTutorial => "mapChoiceTutorial",
             UnlockType.FightTutorial => "fightTutorial",
+            UnlockType.SpecialWordsTutorial => "specialWordsTutorial",
             UnlockType.ShopTutorial => "shopTutorial",
+            UnlockType.TreasureTutorial => "treasureTutorial",
+            UnlockType.RewardTutorial => "rewardTutorial",
+            UnlockType.CurseTutorial => "curseTutorial",
 
             UnlockType.Anubis => "ANUBIS",
             UnlockType.Cat => "CAT",
@@ -204,6 +215,36 @@ namespace typatro.GameFolder.Services
         public static bool IsUnlockUnlocked(UnlockType id)
         {
             return unlocks.TryGetValue(id, out bool value) && value;
+        }
+
+        // Re-locks an unlock so a tutorial (etc.) can be replayed. Unlike UnlockUnlock this
+        // never touches Steam achievements - it's for turning progress off.
+        public static void LockUnlock(UnlockType id)
+        {
+            unlocks[id] = false;
+            SaveUnlocks();
+        }
+
+        // Every tutorial popup sequence in the game, in the order they're first encountered -
+        // shared by the debug tutorial toggles and the Options "replay tutorial" button.
+        public static readonly UnlockType[] TutorialTypes =
+        {
+            UnlockType.CharacterTutorial,
+            UnlockType.MapTutorial,
+            UnlockType.MapChoiceTutorial,
+            UnlockType.FightTutorial,
+            UnlockType.SpecialWordsTutorial,
+            UnlockType.ShopTutorial,
+            UnlockType.TreasureTutorial,
+            UnlockType.InventoryTutorial,
+            UnlockType.RewardTutorial,
+            UnlockType.CurseTutorial,
+        };
+
+        public static void ResetAllTutorials()
+        {
+            foreach (UnlockType tutorial in TutorialTypes)
+                LockUnlock(tutorial);
         }
 
         public static Dictionary<UnlockType, bool> GetAllUnlocks()

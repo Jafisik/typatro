@@ -33,7 +33,6 @@ namespace typatro.GameFolder
         Point windowPos, dragOffset;
         bool eyeOfHorusActive, isDragging, gameFinished, deadCounted, introPlayed;
         public bool mistake, anubisActive, mousePressed, tutorial;
-        private bool mapTutorialStarted;
         MainGame.SoundEffects sfx;
 
         // Player
@@ -48,7 +47,7 @@ namespace typatro.GameFolder
         GameUi gameUi;
 
         // Score
-        public double letterTimer = 0, timeSinceLastWord = 0, wordStreak = 1;
+        public double timeSinceLastWord = 0, wordStreak = 1;
         ScoreCalculator scoreCalculator;
 
         // Final stats
@@ -85,8 +84,32 @@ namespace typatro.GameFolder
         public bool isDebugFight;
         bool jumpscareActive, molochActive;
         public bool kHeperShieldActive;
+        public bool polemanRespawned;
+        float ictusFlashTimer = -1f, ictusFlashActive;
         double jumpscareEndTime, jumpscareNextTime = -1;
         public List<(Vector2 pos, Vector2 vel)> wendigoBugs = new();
+
+        // Enemy intro: shown centered/big at the start of a fight, then slides down into its
+        // usual corner spot. Outside the tutorial this plays for every fight; inside the
+        // tutorial only the boss gets it (the earlier fights are teaching the UI itself, so
+        // the corner position needs to already be settled and the banner/scorebar visible).
+        bool enemyIntroActive;
+        double enemyIntroTimer;
+        // Enter can also skip the intro, but only once it's been seen released at least once
+        // since the intro started - otherwise the same held-down Enter used to confirm the
+        // fight's map node would instantly skip it before the player ever let go.
+        bool introEnterReady;
+
+        // Safety net for tutorial fights - losing one doesn't kill the run (which would wipe
+        // the save and eject a brand new player mid-tutorial, since MapTutorial unlocks the
+        // moment the map bubble is dismissed, well before the first fight). It just resets the
+        // same fight for another attempt, with a brief reassuring message.
+        double tutorialRetryMsgUntil = -10;
+
+        // Short victory hold once the enemy is defeated, before cutting to the reward screen -
+        // otherwise the win was instant and jarring, straight from typing to Reward.
+        bool fightWinPending;
+        double fightWinPauseUntil = -10;
 
         // Map
         Map map;

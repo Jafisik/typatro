@@ -15,6 +15,7 @@ namespace typatro.GameFolder
         {
             KeyboardState keyboardState = Keyboard.GetState();
             HandleWindowDragging(window);
+            HandleDebugShortcut(keyboardState);
             if (gameState == GameState.NEWGAME || gameState == GameState.LOADGAME)
             {
                 TypingSystem(window, keyboardState);
@@ -34,6 +35,27 @@ namespace typatro.GameFolder
                 if (!sfx.musicIntro.IsDisposed) sfx.musicIntro.Dispose();
             }
             windowActive = isActive;
+        }
+
+        bool debugShortcutPressed;
+        private void HandleDebugShortcut(KeyboardState keyboardState)
+        {
+            bool ctrlShiftD = (keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl))
+                            && (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift))
+                            && keyboardState.IsKeyDown(Keys.D);
+
+            if (ctrlShiftD && !debugShortcutPressed)
+            {
+                debugShortcutPressed = true;
+                GlyphManager.RemoveAllGlyphs();
+                GlyphManager.Add(Glyph.NoGlyphsLeft);
+                debugPage = 0;
+                gameState = GameState.DEBUG;
+            }
+            else if (!ctrlShiftD)
+            {
+                debugShortcutPressed = false;
+            }
         }
 
         private void HandleWindowDragging(GameWindow window)
@@ -67,9 +89,13 @@ namespace typatro.GameFolder
 
         private void TypingSystem(GameWindow window, KeyboardState keyboardState)
         {
-            bool houseBlocking = GlyphManager.IsActive(Glyph.House) && (int)timeInSeconds % 8 == 0 && timeInSeconds != 0;                                                                                                                    
-            if (!houseBlocking)                                                                                                                                                                                                              
-            {                                                                                                                                                                                                                                
+            bool houseBlocking = GlyphManager.IsActive(Glyph.House) && (int)timeInSeconds % 8 == 0 && timeInSeconds != 0;
+            bool tutorialRetryPausing = MainGame.time.TotalGameTime.TotalSeconds < tutorialRetryMsgUntil;
+            // Keystrokes shouldn't silently start the fight (and its timer) while a tutorial
+            // bubble is still up over it, or while the enemy intro is still sliding into place -
+            // only once those are fully done does a genuinely fresh key press start typing.
+            if (!houseBlocking && !tutorialRetryPausing && !TutorialManager.IsShowing() && !enemyIntroActive && !fightWinPending)
+            {
                 writer.ReadKeyboardInput(MainGame.time);                                                                                                                                                                                   
                 writer.UpdateDiffIndexes(neededText);                                                                                                                                                                                        
             }   
@@ -82,13 +108,9 @@ namespace typatro.GameFolder
 
             if (startedTyping)
             {
-                if (!isFightFinished)
+                if (!isFightFinished && !fightWinPending)
                 {
                     timeInSeconds += MainGame.time.ElapsedGameTime.TotalSeconds;
-                }
-                else
-                {
-                    letterTimer = 0;
                 }
 
                 if ((int)timeInSeconds != lastTime)
@@ -98,6 +120,8 @@ namespace typatro.GameFolder
                         if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.B)) textRotation += Math.PI;
                         if (GlyphManager.IsActive(Glyph.M)) coins += 10;
                     }
+                    if ((int)timeInSeconds % 3 == 0 && timeInSeconds != 0 && Is(EnemyType.L) && !isFightFinished)
+                        coins = Math.Max(0, coins - 1);
                     if ((int)timeInSeconds % 5 == 0 && timeInSeconds != 0)
                     {
                         if (!GlyphManager.IsActive(Glyph.Sun) && GlyphManager.IsActive(Glyph.EyeOfHorus)) eyeOfHorusActive = true;
@@ -142,8 +166,28 @@ namespace typatro.GameFolder
                 if (jumpscareActive && timeInSeconds >= jumpscareEndTime)
                     jumpscareActive = false;
 
+                if (Is(EnemyType.I) && !isFightFinished)
+                {
+                    if (ictusFlashActive > 0)
+                        ictusFlashActive -= (float)MainGame.time.ElapsedGameTime.TotalSeconds;
+                    else
+                    {
+                        if (ictusFlashTimer < 0)
+                            ictusFlashTimer = unseededRandom.Next(3, 8);
+                        ictusFlashTimer -= (float)MainGame.time.ElapsedGameTime.TotalSeconds;
+                        if (ictusFlashTimer <= 0)
+                        {
+                            ictusFlashActive = 0.08f;
+                            ictusFlashTimer = unseededRandom.Next(3, 8);
+                        }
+                    }
+                }
+
                 if (Is(EnemyType.G) && !isFightFinished)
                     textRotation += 0.03 * MainGame.time.ElapsedGameTime.TotalSeconds;
+
+                if (Is(EnemyType.V) && !isFightFinished)
+                    wordStreak = Math.Max(0, wordStreak - 0.025 * MainGame.time.ElapsedGameTime.TotalSeconds);
 
                 if (Is(EnemyType.W) && !isFightFinished)
                 {

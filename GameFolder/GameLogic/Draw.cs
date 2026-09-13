@@ -14,7 +14,7 @@ namespace typatro.GameFolder
         float bgRotation = 0f, scaleDelta;
         bool scaleSwap;
 
-        public void Draw(GraphicsDeviceManager graphicsDevice)
+        public void Draw()
         {
             KeyboardState keyboardState = Keyboard.GetState();
             MouseState mouseState = Mouse.GetState();
@@ -34,12 +34,11 @@ namespace typatro.GameFolder
             Vector2 centerScreen = new Vector2(MainGame.screenWidth / 2f, MainGame.screenHeight / 2f);
             Vector2 bgOrigin = new Vector2(MainGame.Gfx.bg.Width / 2f, MainGame.Gfx.bg.Height / 2f);
 
+            ThemeColors.ApplyLevelTint(gameState == GameState.LOADGAME ? level : 1);
             MainGame.Gfx.spriteBatch.GraphicsDevice.Clear(ThemeColors.Background);
             Color bgImageColor = ThemeColors.Background;
             bgImageColor.A = 150;
-            float scale = 1f;
-            if (SaveManager.size == 1) scale = 1.4f;
-            if (SaveManager.size == 2) scale = 1.6f;
+            float scale = 1.6f;
 
             MainGame.Gfx.spriteBatch.Begin(SpriteSortMode.Deferred, samplerState: Microsoft.Xna.Framework.Graphics.SamplerState.LinearClamp);
             int blurOffset = 4;
@@ -57,8 +56,6 @@ namespace typatro.GameFolder
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(0, 0, lineWidth, MainGame.screenHeight), ThemeColors.Foreground);
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(0, MainGame.screenHeight - lineWidth, MainGame.screenWidth, lineWidth), ThemeColors.Foreground);
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle(MainGame.screenWidth - lineWidth, 0, lineWidth, MainGame.screenHeight), ThemeColors.Foreground);
-
-            graphicsDevice.IsFullScreen = SaveManager.fullscreen == 1;
 
             if (gameState == GameState.MENU)
             {
@@ -84,6 +81,8 @@ namespace typatro.GameFolder
                 characterSelect.CharacterChoose(ref enhancements);
                 if (!UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.CharacterTutorial))
                 {
+                    if (!TutorialManager.IsShowing())
+                        TutorialManager.Start(TutorialManager.CharacterSteps());
                     if (TutorialManager.Draw(state, mouseState))
                         UnlockManager.UnlockUnlock(UnlockType.CharacterTutorial);
                 }
@@ -101,6 +100,11 @@ namespace typatro.GameFolder
                 }
                 ThemeColors.Apply(SaveManager.theme);
                 if (menu.DrawOptionsMenu()) gameState = GameState.MENU;
+                if (menu.replayTutorialRequested)
+                {
+                    menu.replayTutorialRequested = false;
+                    NewGame();
+                }
             }
             else if (gameState == GameState.DEBUG)
             {

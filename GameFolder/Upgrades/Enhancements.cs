@@ -21,8 +21,16 @@ namespace typatro.GameFolder.Upgrades{
 
         public double shinyScore = 0.5, shinyScoreChange;
         public int stoneScore = 50, stoneScoreChange;
+        public int bloomScore = 1, bloomScoreChange;
 
         public bool overHundred = false;
+
+        // How much each letter changed the last time a given glyph's one-time bonus was
+        // applied - lets RemoveGlyphEnhancementsUpdate reverse exactly that, even for random
+        // targets (Cat, B, D...) or destructive effects (King, Crocodile zeroing a letter).
+        // Not perfectly fair if other changes have touched the same letters since, but it's
+        // the closest practical undo without logging every score change in the run.
+        Dictionary<Glyph, long[]> glyphLetterEffects = new Dictionary<Glyph, long[]>();
 
         public Enhancements()
         {
@@ -39,6 +47,7 @@ namespace typatro.GameFolder.Upgrades{
             shChange = stChange = blChange = 0;
             shinyScoreChange = 0;
             stoneScoreChange = 0;
+            bloomScoreChange = 0;
         }
 
         public long GetLetterScore(char letter){
@@ -151,6 +160,12 @@ namespace typatro.GameFolder.Upgrades{
             }
         }
 
+        public void AddBloomScore(int score)
+        {
+            bloomScore += score;
+            bloomScoreChange += score;
+        }
+
         public (char bestLetter, long bestLetterNum) HighestLetter()
         {
             char letter = 'a';
@@ -170,6 +185,7 @@ namespace typatro.GameFolder.Upgrades{
 
         public void AddGlyphEnhancementsUpdate(Glyph glyph)
         {
+            long[] beforeLetters = (long[])letters.Clone();
             switch (glyph)
             {
                 case Glyph.A:
@@ -244,10 +260,30 @@ namespace typatro.GameFolder.Upgrades{
                     AllLettersMultiplyScore(20);
                     break;
             }
+
+            long[] delta = new long[26];
+            for (int i = 0; i < 26; i++) delta[i] = letters[i] - beforeLetters[i];
+            glyphLetterEffects[glyph] = delta;
+
             foreach (long letter in letters)
             {
                 if (letter < 0) UnlockManager.UnlockUnlock(UnlockManager.UnlockType.Halagaz0);
             }
+        }
+
+        // Reverses exactly the per-letter change AddGlyphEnhancementsUpdate recorded for this
+        // glyph, then forgets it - so a glyph swapped away by a curse doesn't leave its bonus
+        // behind while the player only feels the curse's downside.
+        public void RemoveGlyphEnhancementsUpdate(Glyph glyph)
+        {
+            if (!glyphLetterEffects.TryGetValue(glyph, out long[] delta)) return;
+            for (int i = 0; i < 26; i++)
+            {
+                if (delta[i] == 0) continue;
+                letters[i] -= delta[i];
+                lettersChange[i] -= delta[i];
+            }
+            glyphLetterEffects.Remove(glyph);
         }
 
 

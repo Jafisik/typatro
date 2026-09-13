@@ -30,7 +30,8 @@ namespace typatro.GameFolder
             difficulty = gameSaveData.difficulty;
 
             SetContext(-1, 0);
-            map.GenerateNodes();
+            if (seed == 10) map.GenerateTutorialNodes();
+            else map.GenerateNodes();
 
             map.NodeVisit(gameSaveData.visitedNodes);
             visitedNodes = gameSaveData.visitedNodes;
@@ -44,16 +45,30 @@ namespace typatro.GameFolder
         private void NewGame()
         {
             level = 1;
-            seed = UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.MapTutorial) ? unseededRandom.Next() : 10;
+            bool firstRun = !UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.MapTutorial);
+            seed = firstRun ? 10 : unseededRandom.Next();
             SetContext(-1, 0);
             map = new Map();
-            map.GenerateNodes();
+            if (firstRun) map.GenerateTutorialNodes();
+            else map.GenerateNodes();
             selectedNode = map.GetFirstNode();
             lastSelectedNode = selectedNode;
             enhancements = new Enhancements();
             shop = new Shop(enhancements);
             treasure = new Treasure(enhancements);
             curseRoom = new CurseRoom(enhancements);
+            if (firstRun)
+            {
+                // Skip character/rune select on the very first run - start it with Uruz
+                // (rune 0, easiest difficulty), same bonus CharacterSelect would apply.
+                // The player reaches the real character select (and its tutorial) for the
+                // first time right after beating the tutorial boss - see
+                // DrawTutorialCompleteScreen, which calls back into NewGame() once MapTutorial
+                // is already unlocked, so this branch won't run and RUNES won't be skipped.
+                selectedRune = 0;
+                difficulty = 0;
+                enhancements.AllLettersAddScore(1);
+            }
             coins = difficulty >= 1 ? 15 : startCoins;
             if (difficulty >= 3) enhancements.streakMult -= 1;
             GlyphManager.RemoveAllGlyphs();
@@ -63,8 +78,7 @@ namespace typatro.GameFolder
             deadCounted = false;
             mousePressed = true;
             tutorial = false;
-            mapTutorialStarted = false;
-            gameState = GameState.RUNES;
+            gameState = firstRun ? GameState.LOADGAME : GameState.RUNES;
         }
 
         private void Reset()
@@ -74,11 +88,15 @@ namespace typatro.GameFolder
             jumpscareNextTime = -1;
             molochActive = false;
             kHeperShieldActive = false;
+            polemanRespawned = false;
+            ictusFlashTimer = -1f;
+            ictusFlashActive = 0f;
             wendigoBugs.Clear();
             textRotation = 0;
             enhancements.ResetChange();
             isFightFinished = false;
             afterFightScreen = false;
+            fightWinPending = false;
             wordStreak = 1;
             inventoryGlyphSelect = 1;
             afterFightSelect = 0;
@@ -87,6 +105,7 @@ namespace typatro.GameFolder
             cards.Clear();
             shinyWords.Clear();
             stoneWords.Clear();
+            bloomWords.Clear();
             scoreCalculator.Reset();
         }
     }

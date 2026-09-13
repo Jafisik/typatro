@@ -16,7 +16,14 @@ namespace typatro.GameFolder
         int menuRectWidth = 400, menuRectHeight = 80;
         int leftOffset = 170, optionRectWidth = 300, optionRectHeight = 80;
 
-        bool menuNav = true, optionNav = true, introFinished = false, introSkip = false, mousePressed;
+        bool menuNav = true, optionNav = true, introFinished = false, introSkip = false, mousePressed, optionEnterPressed;
+
+        // Requires Enter to be seen released at least once before it can confirm a menu
+        // selection. Without this, a held Enter carried over from the previous screen (e.g.
+        // dismissing the death screen) fires here on the very first frame, instantly
+        // "selecting" whatever menuSelect was left at - which can be "continue" with no save
+        // to load, crashing LoadGame().
+        bool menuEnterReady;
         enum MenuSelect
         {
             load,
@@ -27,40 +34,40 @@ namespace typatro.GameFolder
             empty
         }
         private MenuSelect menuSelect = MenuSelect.start;
-        string[] menuTexts = new string[] { "continue", "new game", "options", "exit", "debug" };
+        string[] menuTexts = new string[] { "continue", "new game", "options", "exit" };
         
 
         enum OptionSelect{
             theme,
             volume,
-            size,
             fullScreen,
+            replayTutorial,
             back
         }
         private OptionSelect optionSelect = OptionSelect.theme;
-        string[] optionTexts = new string[] { "theme", "volume", "size", "fullscreen", "back"};
+        string[] optionTexts = new string[] { "theme", "volume", "fullscreen", "replay tutorial", "back"};
 
         public string[] themes = new string[]{ "green", "pink", "blue", "red"  };
 
-        public string[] sizes = new string[]{ "800/600", "1152/648", "1280/720"};
         public bool fullscreen = false;
 
+        // Set for one frame when "replay tutorial" fires - GameLogic picks this up to jump
+        // straight into a fresh tutorial run instead of just resetting the unlocks and
+        // leaving the player to find "new game" themselves.
+        public bool replayTutorialRequested;
+
         public Menu()
-        {     
+        {
             int[] settings = SaveManager.LoadSettings();
             try{
                 SaveManager.theme = settings[0];
                 SaveManager.volume = settings[1];
-                SaveManager.size = settings[2];
                 SaveManager.fullscreen = settings[3];
-                ChangeScreenSize(SaveManager.size);
-                if (SaveManager.fullscreen == 1) MainGame.graphics.IsFullScreen = true;
-                else MainGame.graphics.IsFullScreen = false;
-                MainGame.graphics.ApplyChanges();
+                ApplyFullscreen();
             } catch(Exception e){
                 System.Diagnostics.Debug.WriteLine("Couldn't load settings " + e.Message);
             }
-            
+
         }
 
         //To add new new menu item just add an item into enum MenuSelect and in the class MainGame add the same thing to enum GameState
@@ -87,8 +94,14 @@ namespace typatro.GameFolder
                 else menuColors[menuIndex] = ThemeColors.NotSelected;
             }
             
+            if (state.IsKeyUp(Keys.Enter)) menuEnterReady = true;
+
             double totalSeconds = MainGame.time.TotalGameTime.TotalSeconds;
-            if (state.IsKeyDown(Keys.Enter) && ((introFinished && introSkip) || totalSeconds >= 6) && !gameFinished) return (int)menuSelect;
+            if (menuEnterReady && state.IsKeyDown(Keys.Enter) && ((introFinished && introSkip) || totalSeconds >= 6) && !gameFinished)
+            {
+                menuEnterReady = false;
+                return (int)menuSelect;
+            }
             if(!introSkip && (state.IsKeyDown(Keys.Enter) || mouseState.LeftButton == ButtonState.Pressed)){
                 introFinished = true;
                 mousePressed = true;
@@ -123,8 +136,8 @@ namespace typatro.GameFolder
                     Color rectColor = (line == 0 && !gameSaved ? ThemeColors.Background : menuColors[line]) * (introFinished?1:alpha);
                     Color textColor = ThemeColors.Text * (introFinished?1:alpha);
 
-                    Rectangle menuItemPos = new Rectangle((MainGame.screenWidth - menuRectWidth) / 2 - SaveManager.size * 5/2, (int)(MainGame.screenHeight / 5 * 1.5f) +
-                    (int)(MainGame.screenHeight / 6.5f) * line - SaveManager.size * 5/2, menuRectWidth + SaveManager.size * 5, menuRectHeight + SaveManager.size * 5);
+                    Rectangle menuItemPos = new Rectangle((MainGame.screenWidth - menuRectWidth) / 2, (int)(MainGame.screenHeight / 5 * 1.5f) +
+                    (int)(MainGame.screenHeight / 6.5f) * line, menuRectWidth, menuRectHeight);
                     MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, menuItemPos, rectColor);
                     if ((int)menuSelect == line)
                         ThemeColors.DrawGlowCorners(menuItemPos, ThemeColors.Text * (introFinished ? 1 : alpha));
@@ -197,6 +210,19 @@ namespace typatro.GameFolder
             {
                 optionNav = true;
             }
+
+            // Enter activates toggle/action rows (fullscreen, replay tutorial) directly -
+            // theme/volume are unaffected since they're only meant to be adjusted with L/R.
+            if (state.IsKeyDown(Keys.Enter) && !optionEnterPressed)
+            {
+                optionEnterPressed = true;
+                if (optionSelect == OptionSelect.fullScreen) ToggleFullscreen();
+                else if (optionSelect == OptionSelect.replayTutorial) StartTutorialReplay();
+            }
+            else if (state.IsKeyUp(Keys.Enter))
+            {
+                optionEnterPressed = false;
+            }
             int optionTopOffset = MainGame.screenHeight/5;
             Vector2 textPos, textSize;
             Rectangle menuItemPos;
@@ -255,21 +281,48 @@ namespace typatro.GameFolder
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+20, optionTopOffset + menuLineSpacing+20, optionRectWidth-40, 40), ThemeColors.Background);
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, optionRectWidth-50, 30), ThemeColors.Background);
             MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, new Rectangle((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+25, optionTopOffset + menuLineSpacing+25, (optionRectWidth-50)/10*SaveManager.volume, 30), ThemeColors.Selected);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, sizes[SaveManager.size], new Vector2(MainGame.screenWidth/2 + optionRectWidth/2- MainGame.Gfx.menuFont.MeasureString(sizes[SaveManager.size]).X/2+20, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "<               >", new Vector2((MainGame.screenWidth - optionRectWidth) / 2 + leftOffset+10, optionTopOffset+20 + menuLineSpacing*2), ThemeColors.Text);
             string fullScr = SaveManager.fullscreen == 0?"off":"on";
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, fullScr, new Vector2(MainGame.screenWidth / 2 + optionRectWidth / 2 - MainGame.Gfx.menuFont.MeasureString(fullScr).X / 2 +20, optionTopOffset + 20 + menuLineSpacing * 3), ThemeColors.Text);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, fullScr, new Vector2(MainGame.screenWidth / 2 + optionRectWidth / 2 - MainGame.Gfx.menuFont.MeasureString(fullScr).X / 2 +20, optionTopOffset + 20 + menuLineSpacing * 2), ThemeColors.Text);
             return false;
         }
-        private void ChangeScreenSize(int size)
+
+        // Windowed mode always runs at the fixed design resolution; "fullscreen" resizes the
+        // already-borderless window to cover the whole monitor instead of using exclusive
+        // fullscreen (graphics.IsFullScreen = true) - exclusive mode triggers an actual
+        // display mode switch, which causes a multi-second stutter on many drivers. A
+        // borderless window sized to the screen looks identical with none of that cost.
+        private void StartTutorialReplay()
         {
-            (int width, int height)[] resolutions = { (800, 600), (1152, 648), (1280, 720) };
-            if (size < 0 || size >= resolutions.Length) return;
-            MainGame.screenWidth = resolutions[size].width;
-            MainGame.screenHeight = resolutions[size].height;
-            MainGame.graphics.PreferredBackBufferWidth = MainGame.screenWidth;
-            MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
-            MainGame.graphics.ApplyChanges();
+            UnlockManager.ResetAllTutorials();
+            replayTutorialRequested = true;
+        }
+
+        private void ToggleFullscreen()
+        {
+            SaveManager.fullscreen = SaveManager.fullscreen == 0 ? 1 : 0;
+            ApplyFullscreen();
+        }
+
+        private void ApplyFullscreen()
+        {
+            if (SaveManager.fullscreen == 1)
+            {
+                MainGame.graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+                MainGame.graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+                MainGame.graphics.ApplyChanges();
+                if (MainGame.gameWindow != null) MainGame.gameWindow.Position = Point.Zero;
+            }
+            else
+            {
+                MainGame.graphics.PreferredBackBufferWidth = MainGame.screenWidth;
+                MainGame.graphics.PreferredBackBufferHeight = MainGame.screenHeight;
+                MainGame.graphics.ApplyChanges();
+                if (MainGame.gameWindow != null)
+                {
+                    var display = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+                    MainGame.gameWindow.Position = new Point((display.Width - MainGame.screenWidth) / 2, (display.Height - MainGame.screenHeight) / 2);
+                }
+            }
         }
 
         private void OptionDecrease(OptionSelect option)
@@ -292,26 +345,12 @@ namespace typatro.GameFolder
                         optionNav = false;
                     }
                     break;
-                case OptionSelect.size:
-                    if (SaveManager.size != 0)
-                    {
-                        SaveManager.size--;
-                        ChangeScreenSize(SaveManager.size);
-                        optionNav = false;
-                    }
-                    break;
                 case OptionSelect.fullScreen:
-                    if (SaveManager.fullscreen == 0)
-                    {
-                        SaveManager.fullscreen = 1;
-                        MainGame.graphics.IsFullScreen = true;
-                    }
-                    else
-                    {
-                        SaveManager.fullscreen = 0;
-                        MainGame.graphics.IsFullScreen = false;
-                    }
-                    MainGame.graphics.ApplyChanges();
+                    ToggleFullscreen();
+                    optionNav = false;
+                    break;
+                case OptionSelect.replayTutorial:
+                    StartTutorialReplay();
                     optionNav = false;
                     break;
                 case OptionSelect.back:
@@ -342,25 +381,12 @@ namespace typatro.GameFolder
                         optionNav = false;
                     }
                     break;
-                case OptionSelect.size:
-                    if(SaveManager.size != sizes.Length - 1){
-                        SaveManager.size++;
-                        ChangeScreenSize(SaveManager.size);
-                        optionNav = false;
-                    }
-                    break;
                 case OptionSelect.fullScreen:
-                    if (SaveManager.fullscreen == 0)
-                    {
-                        SaveManager.fullscreen = 1;
-                        MainGame.graphics.IsFullScreen = true;
-                    }
-                    else
-                    {
-                        SaveManager.fullscreen = 0;
-                        MainGame.graphics.IsFullScreen = false;
-                    }
-                    MainGame.graphics.ApplyChanges();
+                    ToggleFullscreen();
+                    optionNav = false;
+                    break;
+                case OptionSelect.replayTutorial:
+                    StartTutorialReplay();
                     optionNav = false;
                     break;
                 case OptionSelect.back:

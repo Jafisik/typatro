@@ -13,10 +13,9 @@ namespace typatro.GameFolder.UI
         private GameLogic gameLogic;
         bool runeMove, diffMove;
 
-        public CharacterSelect(GameLogic gameLogic) 
+        public CharacterSelect(GameLogic gameLogic)
         {
             this.gameLogic = gameLogic;
-            TutorialManager.Start(TutorialManager.CharacterSteps());
         }
         public void CharacterChoose(ref Enhancements enhancements)
         {
@@ -59,14 +58,14 @@ namespace typatro.GameFolder.UI
             bool leftHover = false, rightHover = false;
             if (gameLogic.selectedRune != 0)
             {
-                Rectangle lr = new Rectangle(MainGame.screenWidth / 5 - rectWidth / 4 + SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
+                Rectangle lr = new Rectangle(MainGame.screenWidth / 5 - rectWidth / 4 + 60, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
                 Rectangle lArrow = new Rectangle(lr.X - 60, lr.Y, 60, lr.Height);
                 Rectangle lExtra = new Rectangle(lr.X + lr.Width, lr.Y, 50, lr.Height);
                 leftHover = !GameLogic.keyboardUsed && (lr.Contains(mouseState.Position) || lExtra.Contains(mouseState.Position) || lArrow.Contains(mouseState.Position));
             }
             if (gameLogic.selectedRune != maxRunes - 1)
             {
-                Rectangle rr = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4 - SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
+                Rectangle rr = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4 - 60, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
                 Rectangle rArrow = new Rectangle(rr.X + rr.Width, rr.Y, 60, rr.Height);
                 Rectangle rExtra = new Rectangle(rr.X - 50, rr.Y, 50, rr.Height);
                 rightHover = !GameLogic.keyboardUsed && (rr.Contains(mouseState.Position) || rExtra.Contains(mouseState.Position) || rArrow.Contains(mouseState.Position));
@@ -112,7 +111,7 @@ namespace typatro.GameFolder.UI
 
             if (gameLogic.selectedRune != 0)
             {
-                Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 5 - rectWidth / 4 + SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
+                Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 5 - rectWidth / 4 + 60, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
                 Rectangle extraSpace = new Rectangle(runeSelect.X + runeSelect.Width, runeSelect.Y, 50, runeSelect.Height);
                 Rectangle arrowSpace = new Rectangle(runeSelect.X - 60, runeSelect.Y, 60, runeSelect.Height);
                 if (!gameLogic.mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position) || arrowSpace.Contains(mouseState.Position)) && mouseState.LeftButton == ButtonState.Pressed && windowActive)
@@ -131,8 +130,8 @@ namespace typatro.GameFolder.UI
                 MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.menuFont, "<", new Vector2(runeSelect.X - MainGame.Gfx.menuFont.MeasureString("<").X * 2, (int)(MainGame.screenHeight / 2.5f) - 20), ThemeColors.Text);
             }
             {
-                Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 2 - rectWidth / 2 + (SaveManager.size * 20), (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (SaveManager.size * 20),
-                    rectWidth - (SaveManager.size * 40), rectHeight - (SaveManager.size * 40));
+                Rectangle runeSelect = new Rectangle(MainGame.screenWidth / 2 - rectWidth / 2 + (40), (int)(MainGame.screenHeight / 2.5f) - rectHeight / 2 + (40),
+                    rectWidth - (80), rectHeight - (80));
                 if (runeSelect.Contains(mouseState.Position))
                 {
                     if (!gameLogic.mousePressed && mouseState.LeftButton == ButtonState.Pressed && windowActive
@@ -188,7 +187,7 @@ namespace typatro.GameFolder.UI
             }
             if (gameLogic.selectedRune != maxRunes - 1)
             {
-                Rectangle runeSelect = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4 - SaveManager.size * 30, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
+                Rectangle runeSelect = new Rectangle(MainGame.screenWidth - MainGame.screenWidth / 5 - rectWidth / 4 - 60, (int)(MainGame.screenHeight / 2.5f) - rectHeight / 4, rectWidth / 2, rectHeight / 2);
                 Rectangle extraSpace = new Rectangle(runeSelect.X - 50, runeSelect.Y, 50, runeSelect.Height);
                 Rectangle arrowSpace = new Rectangle(runeSelect.X + runeSelect.Width, runeSelect.Y, 60, runeSelect.Height);
                 if (!gameLogic.mousePressed && (runeSelect.Contains(mouseState.Position) || extraSpace.Contains(mouseState.Position) || arrowSpace.Contains(mouseState.Position)) &&

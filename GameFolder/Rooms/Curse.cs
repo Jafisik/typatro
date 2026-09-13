@@ -1,7 +1,10 @@
 using System;
 using System.ComponentModel;
+using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using typatro.GameFolder.Services;
 using typatro.GameFolder.UI;
 using typatro.GameFolder.Upgrades;
 
@@ -12,12 +15,18 @@ namespace typatro.GameFolder.Rooms
         Enhancements enhancements;
         Curses curse;
         bool pickUp = true, keyDown, enterReleased;
-        readonly int topOffset = 80, rectWidth = 170, rectHeight = 60, rectOffset;
+        readonly Rectangle panelRect;
+
+        // Same checkmark/cross position as Treasure - Backgrounds/yes.png and no.png are the
+        // shared overlay art for both rooms, on the same 128x64 canvas.
+        static readonly Rectangle yesHitboxNative = new Rectangle(48, 43, 14, 13);
+        static readonly Rectangle noHitboxNative = new Rectangle(64, 42, 15, 14);
 
         public CurseRoom(Enhancements enhancements)
         {
             this.enhancements = enhancements;
-            rectOffset = MainGame.screenWidth / 4;
+            int panelWidth = 850;
+            panelRect = new Rectangle((MainGame.screenWidth - panelWidth) / 2, 50, panelWidth, 480);
         }
 
         public bool CurseRoomDisplay(ref long coins, ref bool mousePressed)
@@ -29,16 +38,21 @@ namespace typatro.GameFolder.Rooms
                 enterReleased = true;
             }
 
-            if (!keyDown && (keyboard.IsKeyDown(Keys.Left) || keyboard.IsKeyDown(Keys.Right)))
+            if (!keyDown && keyboard.IsKeyDown(Keys.Left))
             {
-                pickUp = !pickUp;
+                pickUp = true;
+                keyDown = true;
+            }
+            else if (!keyDown && keyboard.IsKeyDown(Keys.Right))
+            {
+                pickUp = false;
                 keyDown = true;
             }
             if (keyboard.IsKeyUp(Keys.Left) && keyboard.IsKeyUp(Keys.Right))
             {
                 keyDown = false;
             }
-            if (keyboard.IsKeyDown(Keys.Enter) && enterReleased)
+            if (UnlockManager.IsUnlockUnlocked(UnlockManager.UnlockType.CurseTutorial) && keyboard.IsKeyDown(Keys.Enter) && enterReleased)
             {
                 if (pickUp)
                 {
@@ -53,16 +67,30 @@ namespace typatro.GameFolder.Rooms
                 mousePressed = false;
             }
 
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, GetName(curse), new Vector2(100, 100), ThemeColors.Text);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GetDescription(curse), new Vector2(100, 200), ThemeColors.Text);
+            // Confined to the play field - below the top banner, with a matching gap at the
+            // bottom - instead of stretching the art edge to edge over the whole window.
+            Rectangle screenRect = new Rectangle(0, 55, MainGame.screenWidth, MainGame.screenHeight - 55 - 15);
+            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.curseBg, screenRect, Color.White);
 
-            Rectangle yesRect = new Rectangle(rectOffset, topOffset * 5, rectWidth, rectHeight);
+            // The curse's name breathes between two shades and jitters a couple pixels, so
+            // the room reads as "unstable" the instant you walk in rather than just being
+            // another menu.
+            int leftOffset = panelRect.X + 170;
+            double t = MainGame.time.TotalGameTime.TotalSeconds;
+            float pulse = (float)(0.5 + 0.5 * Math.Sin(t * 2.5));
+            Color nameColor = Color.Lerp(ThemeColors.Text, ThemeColors.Wrong, pulse * 0.6f);
+            Vector2 nameJitter = new Vector2((float)(Math.Sin(t * 13.0) * 1.5), (float)(Math.Cos(t * 9.0) * 1.5));
+            float nameScale = 1.2f, descScale = 1.15f;
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, GetName(curse), new Vector2(leftOffset, panelRect.Y + 105) + nameJitter,
+                nameColor, 0f, Vector2.Zero, nameScale, SpriteEffects.None, 0f);
+            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.smallTextFont, GetDescription(curse), new Vector2(leftOffset, panelRect.Y + 175),
+                ThemeColors.Text, 0f, Vector2.Zero, descScale, SpriteEffects.None, 0f);
 
-            Vector2 yesSize = MainGame.Gfx.gameFont.MeasureString("accept");
-            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, yesRect, pickUp ? ThemeColors.Selected : ThemeColors.NotSelected);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "accept", new Vector2(yesRect.X + yesRect.Width / 2 - yesSize.X / 2, yesRect.Y + yesRect.Height / 2 - yesSize.Y / 2 + 5), ThemeColors.Text);
+            float scaleX = screenRect.Width / 128f, scaleY = screenRect.Height / 64f;
+            Rectangle yesRect = new Rectangle(screenRect.X + (int)(yesHitboxNative.X * scaleX), screenRect.Y + (int)(yesHitboxNative.Y * scaleY), (int)(yesHitboxNative.Width * scaleX), (int)(yesHitboxNative.Height * scaleY));
+            Rectangle noRect = new Rectangle(screenRect.X + (int)(noHitboxNative.X * scaleX), screenRect.Y + (int)(noHitboxNative.Y * scaleY), (int)(noHitboxNative.Width * scaleX), (int)(noHitboxNative.Height * scaleY));
 
-            if (yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+            if (!TutorialManager.IsShowing() && yesRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
             {
                 if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
                 {
@@ -72,13 +100,7 @@ namespace typatro.GameFolder.Rooms
                 }
                 pickUp = true;
             }
-
-
-            Rectangle noRect = new Rectangle(rectOffset * 2, topOffset * 5, rectWidth, rectHeight);
-            Vector2 noSize = MainGame.Gfx.gameFont.MeasureString("decline");
-            MainGame.Gfx.spriteBatch.Draw(MainGame.Gfx.texture, noRect, pickUp ? ThemeColors.NotSelected : ThemeColors.Selected);
-            MainGame.Gfx.spriteBatch.DrawString(MainGame.Gfx.gameFont, "decline", new Vector2(noRect.X + noRect.Width / 2 - noSize.X / 2, noRect.Y + noRect.Height / 2 - noSize.Y / 2 + 5), ThemeColors.Text);
-            if (noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
+            if (!TutorialManager.IsShowing() && noRect.Contains(mouseState.Position) && !GameLogic.keyboardUsed)
             {
                 if (!mousePressed && mouseState.LeftButton == ButtonState.Pressed)
                 {
@@ -87,14 +109,15 @@ namespace typatro.GameFolder.Rooms
                 }
                 pickUp = false;
             }
-            
+
+            MainGame.Gfx.spriteBatch.Draw(pickUp ? MainGame.Gfx.yesOverlay : MainGame.Gfx.noOverlay, screenRect, Color.White);
+
             return false;
         }
 
-        public void NewCurse()
+        public void NewCurse(bool forceTradeGlyph = false)
         {
-            curse = (Curses)GameLogic.unseededRandom.Next(0, Enum.GetValues(typeof(Curses)).Length);
-            //curse = Curses.GambleVision; //specific curse tester
+            curse = forceTradeGlyph ? Curses.TradeGlyph : (Curses)GameLogic.unseededRandom.Next(0, Enum.GetValues(typeof(Curses)).Length);
         }
 
 
@@ -135,16 +158,33 @@ namespace typatro.GameFolder.Rooms
                     enhancements.shinyChance = 0.1;
                     break;
                 case Curses.GambleVision:
-                    int glyphCount = GlyphManager.GetGlyphCount();
+                    foreach (Glyph oldGlyph in GlyphManager.GetGlyphs())
+                    {
+                        enhancements.RemoveGlyphEnhancementsUpdate(oldGlyph);
+                    }
+                    // NoGlyphsLeft is a placeholder for "you have none" that still lives in
+                    // activeGlyphs, so it must be excluded here - otherwise it inflates the
+                    // count and the curse hands out a free glyph even with nothing to gamble.
+                    int glyphCount = GlyphManager.GetGlyphs().Count(g => g != Glyph.NoGlyphsLeft);
                     GlyphManager.RemoveAllGlyphs();
                     for (int i = 0; i < glyphCount; i++)
                     {
-                        GlyphManager.Add(GlyphManager.GetRandomUnusedGlyph());
+                        Glyph newGlyph = GlyphManager.GetRandomUnusedGlyph();
+                        GlyphManager.Add(newGlyph);
+                        enhancements.AddGlyphEnhancementsUpdate(newGlyph);
                     }
                     break;
                 case Curses.TradeGlyph:
-                    GlyphManager.RemoveRandom();
-                    GlyphManager.Add(GlyphManager.GetRandomUnusedGlyph());
+                    Glyph removedGlyph = GlyphManager.RemoveRandom();
+                    // Nothing to trade with no glyphs to begin with - the curse just does
+                    // nothing instead of still handing out a free one.
+                    if (removedGlyph != Glyph.NoGlyphsLeft)
+                    {
+                        enhancements.RemoveGlyphEnhancementsUpdate(removedGlyph);
+                        Glyph tradedGlyph = GlyphManager.GetRandomUnusedGlyph();
+                        GlyphManager.Add(tradedGlyph);
+                        enhancements.AddGlyphEnhancementsUpdate(tradedGlyph);
+                    }
                     break;
                 case Curses.DoYouBelieve:
                     for (int i = 0; i < 26; i++)
@@ -154,7 +194,9 @@ namespace typatro.GameFolder.Rooms
                     break;
                 case Curses.AllForGlyphs:
                     coins = -100;
-                    GlyphManager.Add(GlyphManager.GetRandomUnusedGlyph());
+                    Glyph freeGlyph = GlyphManager.GetRandomUnusedGlyph();
+                    GlyphManager.Add(freeGlyph);
+                    enhancements.AddGlyphEnhancementsUpdate(freeGlyph);
                     break;
                 case Curses.HangingQueen:
                     enhancements.MultiplyLetterScore(enhancements.HighestLetter().bestLetter,0);
